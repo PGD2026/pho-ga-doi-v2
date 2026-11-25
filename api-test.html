@@ -1,1 +1,1169 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>Phở Gà Đồi - API TEST 7.8.2</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f5f3ee;
+      font-family: Arial, sans-serif;
+      color: #222;
+    }
+
+    .container {
+      max-width: 650px;
+      margin: auto;
+      padding: 16px;
+    }
+
+    .header {
+      background: #941c1c;
+      color: #f4e5a4;
+      padding: 24px 16px;
+      border-radius: 14px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .header h1 {
+      margin: 0 0 10px;
+      font-size: 26px;
+    }
+
+    .header p {
+      margin: 6px 0;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-top: 0;
+      color: #941c1c;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: bold;
+      margin: 12px 0 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #ccc;
+      padding: 12px;
+      border-radius: 7px;
+      font-size: 16px;
+      background: white;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      background: #941c1c;
+      color: white;
+      padding: 13px 10px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    button.secondary {
+      background: #444;
+    }
+
+    button.green {
+      background: #23764c;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .status {
+      padding: 12px;
+      border-radius: 7px;
+      background: #eee;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .notice {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #555;
+    }
+
+    pre {
+      background: #202124;
+      color: #b9efbd;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      max-height: 450px;
+      overflow: auto;
+    }
+
+    img {
+      display: block;
+      width: 100%;
+      max-height: 250px;
+      object-fit: contain;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+
+    <h1>PHỞ GÀ ĐỒI</h1>
+
+    <p>SYSTEM V2.0 - API TEST</p>
+
+    <p>Giai đoạn 7.8.2</p>
+
+  </div>
+
+
+  <!-- 01. KẾT NỐI -->
+
+  <div class="card">
+
+    <h2>01. Kết nối máy chủ</h2>
+
+    <div id="healthStatus" class="status">
+      Chưa kiểm tra kết nối
+    </div>
+
+    <button id="healthBtn">
+      Kiểm tra API
+    </button>
+
+  </div>
+
+
+  <!-- 02. ĐĂNG NHẬP -->
+
+  <div class="card">
+
+    <h2>02. Đăng nhập kiểm thử</h2>
+
+    <label>Cơ sở</label>
+
+    <select id="branch">
+
+      <option value="CS1">
+        CS1 - 28 Võ Chí Công
+      </option>
+
+      <option value="CS2">
+        CS2 - An Khánh
+      </option>
+
+    </select>
+
+    <label>Mã nhân viên TEST_</label>
+
+    <input id="employee"
+           autocomplete="off"
+           placeholder="TEST_API01">
+
+    <label>Mã PIN (nếu được yêu cầu)</label>
+
+    <input id="pin"
+           type="password"
+           inputmode="numeric"
+           autocomplete="off">
+
+    <button id="loginBtn">
+      Đăng nhập
+    </button>
+
+    <button id="logoutBtn"
+            class="secondary"
+            disabled>
+      Đăng xuất
+    </button>
+
+    <p id="loginStatus" class="notice">
+      Chưa đăng nhập
+    </p>
+
+  </div>
+
+
+  <!-- 03. PHIÊN LÀM VIỆC -->
+
+  <div id="workArea" hidden>
+
+    <div class="card">
+
+      <h2>03. Phiên làm việc kiểm thử</h2>
+
+      <label>Ngày làm việc</label>
+
+      <input id="date" type="date">
+
+      <label>Ca làm việc</label>
+
+      <select id="shift">
+
+        <option value="SANG">Ca sáng</option>
+
+        <option value="TOI" selected>Ca tối</option>
+
+        <option value="DEM">Ca đêm</option>
+
+      </select>
+
+      <label>Bộ phận</label>
+
+      <select id="department">
+
+        <option value="BEP_PHO">Bếp phở</option>
+
+        <option value="BEP_VAT_TU">Bếp vật tư</option>
+
+        <option value="CHAY_BAN">Chạy bàn</option>
+
+        <option value="VE_SINH">Vệ sinh chung</option>
+
+        <option value="TRUONG_CA">Trưởng ca</option>
+
+      </select>
+
+      <button id="openBtn">
+        Mở phiên làm việc
+      </button>
+
+    </div>
+
+
+    <div id="testArea" hidden>
+
+      <!-- 04. BẢN NHÁP -->
+
+      <div class="card">
+
+        <h2>04. Kiểm thử bản nháp</h2>
+
+        <div id="syncStatus" class="status">
+          Chưa đồng bộ
+        </div>
+
+        <label>Ghi chú kiểm thử</label>
+
+        <textarea id="note"
+                  rows="3"
+                  maxlength="1000"></textarea>
+
+        <div class="grid">
+
+          <button id="saveBtn">
+            Lưu điện thoại
+          </button>
+
+          <button id="restoreBtn">
+            Khôi phục
+          </button>
+
+          <button id="syncBtn" class="green">
+            Đồng bộ ngay
+          </button>
+
+          <button id="statusBtn">
+            Kiểm tra trạng thái
+          </button>
+
+        </div>
+
+        <button id="autoBtn" class="secondary">
+          Bật tự động đồng bộ
+        </button>
+
+      </div>
+
+
+      <!-- 05. HÌNH ẢNH -->
+
+      <div class="card">
+
+        <h2>05. Kiểm thử hình ảnh</h2>
+
+        <p class="notice">
+          Sử dụng ảnh mẫu để kiểm tra đường truyền.
+          Không dùng ảnh khách hàng hoặc dữ liệu thật.
+        </p>
+
+        <button id="photoBtn">
+          Tạo và lưu ảnh kiểm thử
+        </button>
+
+        <button id="readPhotoBtn">
+          Đọc ảnh từ Google Drive
+        </button>
+
+        <button id="removePhotoBtn"
+                class="secondary">
+          Xóa liên kết ảnh mẫu
+        </button>
+
+        <img id="preview" hidden alt="Ảnh kiểm thử">
+
+      </div>
+
+
+      <!-- 06. DANH MỤC -->
+
+      <div class="card">
+
+        <h2>06. Kiểm tra dữ liệu máy chủ</h2>
+
+        <div class="grid">
+
+          <button id="inventoryBtn">
+            Danh mục kiểm kê
+          </button>
+
+          <button id="checklistBtn">
+            Danh mục checklist
+          </button>
+
+          <button id="progressBtn">
+            Tiến độ bộ phận
+          </button>
+
+          <button id="conflictBtn">
+            Kiểm tra phiên bản
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- 07. NHẬT KÝ -->
+
+  <div class="card">
+
+    <h2>07. Nhật ký kiểm thử</h2>
+
+    <pre id="log">Hệ thống sẵn sàng.</pre>
+
+    <button id="clearLogBtn" class="secondary">
+      Xóa nhật ký hiển thị
+    </button>
+
+  </div>
+
+</div>
+
+
+<script src="draft.js?v=752"></script>
+
+<script src="api.js?v=782"></script>
+
+<script src="sync.js?v=782"></script>
+
+
+<script>
+
+(function() {
+
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+
+  let context = null;
+
+  let autoEnabled = false;
+
+  let busy = false;
+
+
+  /* =====================================================
+     01. NGÀY VIỆT NAM
+  ===================================================== */
+
+  $("date").value = new Intl.DateTimeFormat(
+
+    "en-CA",
+
+    {
+
+      timeZone: "Asia/Ho_Chi_Minh",
+
+      year: "numeric",
+
+      month: "2-digit",
+
+      day: "2-digit"
+
+    }
+
+  ).format(new Date());
+
+
+  /* =====================================================
+     02. NHẬT KÝ
+  ===================================================== */
+
+  function log(message, data) {
+
+    let line =
+
+      "[" + new Date().toLocaleTimeString("vi-VN") + "] " +
+
+      message;
+
+    if (data !== undefined) {
+
+      line += "\n" + JSON.stringify(data, null, 2);
+
+    }
+
+    $("log").textContent =
+
+      line + "\n\n" +
+
+      $("log").textContent.slice(0, 20000);
+
+  }
+
+
+  function showError(error) {
+
+    log(
+
+      "LỖI: " +
+
+      (error.code || "") +
+
+      " - " +
+
+      error.message
+
+    );
+
+    $("syncStatus").textContent = error.message;
+
+  }
+
+
+  function bind(id, callback) {
+
+    $(id).addEventListener("click", async function() {
+
+      if (busy) return;
+
+      busy = true;
+
+      this.disabled = true;
+
+      try {
+
+        await callback();
+
+      } catch (error) {
+
+        showError(error);
+
+      } finally {
+
+        this.disabled = false;
+
+        busy = false;
+
+      }
+
+    });
+
+  }
+
+
+  /* =====================================================
+     03. THÔNG TIN PHIÊN LÀM VIỆC
+  ===================================================== */
+
+  function requireContext() {
+
+    if (!context) {
+
+      throw new Error("Chưa mở phiên làm việc.");
+
+    }
+
+    return context;
+
+  }
+
+
+  function photoId() {
+
+    const map = {
+
+      BEP_PHO: "HA001",
+
+      BEP_VAT_TU: "HA003",
+
+      CHAY_BAN: "HA006",
+
+      VE_SINH: "HA008",
+
+      TRUONG_CA: "HA010"
+
+    };
+
+    return map[requireContext().department];
+
+  }
+
+
+  async function refreshLocal() {
+
+    const record = await PGDDraft.restoreLocal(
+
+      requireContext()
+
+    );
+
+    $("note").value = record
+
+      ? record.data.generalNote || ""
+
+      : "";
+
+    const photo = record && record.photos[photoId()];
+
+    if (photo && photo.data) {
+
+      $("preview").src = photo.data;
+
+      $("preview").hidden = false;
+
+    } else {
+
+      $("preview").removeAttribute("src");
+
+      $("preview").hidden = true;
+
+    }
+
+    await refreshStatus();
+
+  }
+
+
+  async function refreshStatus() {
+
+    const result = await PGDSync.getStatus(
+
+      requireContext()
+
+    );
+
+    const labels = {
+
+      EMPTY: "Chưa có bản nháp",
+
+      PENDING: "Đã lưu điện thoại - Chờ đồng bộ",
+
+      SYNCED: "Đã đồng bộ máy chủ",
+
+      SYNCING: "Đang đồng bộ",
+
+      OFFLINE: "Mất mạng - Dữ liệu lưu trên điện thoại",
+
+      BLOCKED: "Đồng bộ bị chặn - Cần kiểm tra"
+
+    };
+
+    $("syncStatus").textContent =
+
+      (labels[result.status] || result.status) +
+
+      (result.version !== undefined
+
+        ? " | Phiên bản: " + result.version
+
+        : "");
+
+    return result;
+
+  }
+
+
+  function stopAuto() {
+
+    if (context) {
+
+      PGDSync.stop(context);
+
+    }
+
+    autoEnabled = false;
+
+    $("autoBtn").textContent =
+
+      "Bật tự động đồng bộ";
+
+  }
+
+
+  /* =====================================================
+     04. KIỂM TRA API
+  ===================================================== */
+
+  bind("healthBtn", async function() {
+
+    const result = await PGDAPI.health();
+
+    $("healthStatus").textContent =
+
+      "Kết nối thành công | API " +
+
+      result.apiVersion +
+
+      " | " +
+
+      (result.apiEnabled ? "Đã bật" : "Đang tắt");
+
+    log("Kết nối API thành công", result);
+
+  });
+
+
+  /* =====================================================
+     05. ĐĂNG NHẬP
+  ===================================================== */
+
+  bind("loginBtn", async function() {
+
+    if (PGDAPI.getProfile()) {
+
+      throw new Error("Hãy đăng xuất phiên cũ trước.");
+
+    }
+
+    const profile = await PGDAPI.login(
+
+      $("employee").value,
+
+      $("branch").value,
+
+      $("pin").value
+
+    );
+
+    $("pin").value = "";
+
+    $("branch").disabled = true;
+
+    $("employee").disabled = true;
+
+    $("logoutBtn").disabled = false;
+
+    $("workArea").hidden = false;
+
+    $("loginStatus").textContent =
+
+      "Đăng nhập thành công: " +
+
+      profile.employee.name;
+
+    log("Đăng nhập thành công", {
+
+      code: profile.code,
+
+      branch: profile.branch
+
+    });
+
+  });
+
+
+  bind("logoutBtn", async function() {
+
+    stopAuto();
+
+    try {
+
+      await PGDAPI.logout();
+
+    } finally {
+
+      context = null;
+
+      $("workArea").hidden = true;
+
+      $("testArea").hidden = true;
+
+      $("branch").disabled = false;
+
+      $("employee").disabled = false;
+
+      $("loginStatus").textContent =
+
+        "Đã kết thúc phiên trên trình duyệt.";
+
+    }
+
+    log("Đăng xuất thành công");
+
+  });
+
+
+  /* =====================================================
+     06. MỞ PHIÊN
+  ===================================================== */
+
+  bind("openBtn", async function() {
+
+    stopAuto();
+
+    const profile = PGDAPI.getProfile();
+
+    if (!profile) {
+
+      throw new Error("Chưa đăng nhập.");
+
+    }
+
+    const selected = {
+
+      date: $("date").value,
+
+      branch: profile.branch,
+
+      shift: $("shift").value,
+
+      department: $("department").value,
+
+      employee: profile.code
+
+    };
+
+    PGDDraft.makeKey(selected);
+
+    await PGDAPI.checklistCatalog(selected);
+
+    context = selected;
+
+    $("testArea").hidden = false;
+
+    await refreshLocal();
+
+    log("Đã mở phiên", context);
+
+  });
+
+
+  /* =====================================================
+     07. LƯU NỘI DUNG
+  ===================================================== */
+
+  bind("saveBtn", async function() {
+
+    const result = await PGDDraft.saveFieldsLocal(
+
+      requireContext(),
+
+      {
+
+        generalNote: $("note").value
+
+      }
+
+    );
+
+    await refreshStatus();
+
+    log("Đã lưu điện thoại", {
+
+      localRevision: result.localRevision,
+
+      dirty: result.dirty
+
+    });
+
+  });
+
+
+  /* =====================================================
+     08. ĐỒNG BỘ
+  ===================================================== */
+
+  bind("syncBtn", async function() {
+
+    const result = await PGDSync.syncNow(
+
+      requireContext()
+
+    );
+
+    await refreshStatus();
+
+    log("Kết quả đồng bộ", result);
+
+  });
+
+
+  /* =====================================================
+     09. KHÔI PHỤC
+  ===================================================== */
+
+  bind("restoreBtn", async function() {
+
+    const result = await PGDSync.restore(
+
+      requireContext()
+
+    );
+
+    await refreshLocal();
+
+    log("Khôi phục thành công", {
+
+      source: result.source,
+
+      version: result.record
+
+        ? result.record.serverVersion
+
+        : 0,
+
+      photoCount: result.record
+
+        ? Object.keys(result.record.photos || {}).length
+
+        : 0
+
+    });
+
+  });
+
+
+  bind("statusBtn", async function() {
+
+    const result = await refreshStatus();
+
+    log("Trạng thái bản nháp", result);
+
+  });
+
+
+  /* =====================================================
+     10. TỰ ĐỘNG ĐỒNG BỘ
+  ===================================================== */
+
+  bind("autoBtn", async function() {
+
+    requireContext();
+
+    if (autoEnabled) {
+
+      stopAuto();
+
+      log("Đã tắt đồng bộ tự động");
+
+      return;
+
+    }
+
+    PGDSync.start(context, {
+
+      onSync: function(result) {
+
+        refreshStatus().catch(showError);
+
+        log("Đồng bộ tự động", result);
+
+      },
+
+      onProgress: function(result) {
+
+        log("Tiến độ bộ phận", {
+
+          submitted: result.submittedCount,
+
+          approved: result.approvedCount
+
+        });
+
+      },
+
+      onError: showError
+
+    });
+
+    autoEnabled = true;
+
+    $("autoBtn").textContent =
+
+      "Tắt tự động đồng bộ";
+
+    log("Đã bật đồng bộ tự động 5 giây");
+
+  });
+
+
+  /* =====================================================
+     11. TẠO ẢNH KIỂM THỬ
+  ===================================================== */
+
+  bind("photoBtn", async function() {
+
+    const ctx = requireContext();
+
+    const canvas = document.createElement("canvas");
+
+    canvas.width = 640;
+
+    canvas.height = 360;
+
+    const paint = canvas.getContext("2d");
+
+    paint.fillStyle = "#941c1c";
+
+    paint.fillRect(0, 0, 640, 360);
+
+    paint.fillStyle = "#f4e5a4";
+
+    paint.font = "bold 32px Arial";
+
+    paint.fillText("PHO GA DOI - TEST", 30, 80);
+
+    paint.font = "20px Arial";
+
+    paint.fillText(photoId(), 30, 140);
+
+    paint.fillText(ctx.branch, 30, 180);
+
+    paint.fillText(ctx.department, 30, 220);
+
+    paint.fillText(new Date().toISOString(), 30, 280);
+
+    const jpeg = canvas.toDataURL(
+
+      "image/jpeg",
+
+      0.8
+
+    );
+
+    await PGDDraft.savePhotoLocal(
+
+      ctx,
+
+      photoId(),
+
+      jpeg
+
+    );
+
+    $("preview").src = jpeg;
+
+    $("preview").hidden = false;
+
+    await refreshStatus();
+
+    log("Đã lưu ảnh mẫu trên điện thoại", {
+
+      photoId: photoId(),
+
+      length: jpeg.length
+
+    });
+
+  });
+
+
+  bind("readPhotoBtn", async function() {
+
+    const result = await PGDAPI.readPhoto(
+
+      requireContext(),
+
+      photoId()
+
+    );
+
+    $("preview").src = result.data;
+
+    $("preview").hidden = false;
+
+    log("Đọc ảnh Google Drive thành công", {
+
+      photoId: result.photoId,
+
+      length: result.data.length
+
+    });
+
+  });
+
+
+  bind("removePhotoBtn", async function() {
+
+    await PGDDraft.removePhotoLocal(
+
+      requireContext(),
+
+      photoId()
+
+    );
+
+    $("preview").hidden = true;
+
+    await refreshStatus();
+
+    log("Đã xóa liên kết ảnh cục bộ. Chờ đồng bộ.");
+
+  });
+
+
+  /* =====================================================
+     12. KIỂM TRA DANH MỤC
+  ===================================================== */
+
+  bind("inventoryBtn", async function() {
+
+    const result = await PGDAPI.inventoryCatalog(
+
+      requireContext()
+
+    );
+
+    log("Danh mục kiểm kê", result);
+
+  });
+
+
+  bind("checklistBtn", async function() {
+
+    const result = await PGDAPI.checklistCatalog(
+
+      requireContext()
+
+    );
+
+    log("Danh mục checklist", result);
+
+  });
+
+
+  bind("progressBtn", async function() {
+
+    const result = await PGDAPI.departmentStatus(
+
+      requireContext()
+
+    );
+
+    log("Tiến độ bộ phận", result);
+
+  });
+
+
+  bind("conflictBtn", async function() {
+
+    const result = await PGDSync.inspectConflict(
+
+      requireContext()
+
+    );
+
+    log("Kiểm tra phiên bản", result);
+
+  });
+
+
+  $("clearLogBtn").addEventListener(
+
+    "click",
+
+    function() {
+
+      $("log").textContent = "Đã xóa nhật ký hiển thị.";
+
+    }
+
+  );
+
+
+  window.addEventListener("offline", function() {
+
+    log("Mất kết nối mạng");
+
+    if (context) {
+
+      refreshStatus().catch(showError);
+
+    }
+
+  });
+
+
+  window.addEventListener("online", function() {
+
+    log("Đã kết nối lại Internet");
+
+  });
+
+
+  log("API TEST 7.8.2 sẵn sàng.");
+
+})();
+
+</script>
+
+</body>
+
+</html>
