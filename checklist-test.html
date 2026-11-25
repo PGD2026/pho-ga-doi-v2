@@ -1,1 +1,2060 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta name="theme-color" content="#941c1c">
+
+  <meta name="robots" content="noindex, nofollow">
+
+  <title>
+    Phở Gà Đồi - Checklist 7.6
+  </title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f5f3ef;
+      font-family: Arial, sans-serif;
+      color: #222;
+      line-height: 1.5;
+    }
+
+    .brand {
+      background: #941c1c;
+      color: #f4e5a4;
+      text-align: center;
+      padding: 24px 15px;
+      border-bottom: 4px solid #d8b86b;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-family: Georgia, serif;
+      font-size: 31px;
+    }
+
+    .brand .slogan {
+      font-style: italic;
+      font-size: 15px;
+    }
+
+    .brand .subtitle {
+      margin-top: 12px;
+      font-size: 13px;
+    }
+
+    main {
+      max-width: 680px;
+      margin: auto;
+      padding: 15px 12px 40px;
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid #e0ddd7;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 15px;
+    }
+
+    .panel h2 {
+      color: #941c1c;
+      font-size: 17px;
+      margin: 0 0 14px;
+    }
+
+    .notice {
+      background: #fff8e5;
+      border: 1px solid #e3c580;
+      border-radius: 9px;
+      padding: 13px;
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+
+    .field {
+      margin-bottom: 13px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 16px;
+    }
+
+    .primary,
+    .secondary {
+      width: 100%;
+      padding: 13px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: #941c1c;
+      color: #fff;
+      border: 0;
+    }
+
+    .secondary {
+      background: #fff;
+      color: #941c1c;
+      border: 1px solid #941c1c;
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .tab {
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #444;
+      border-radius: 8px;
+      padding: 14px 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: #941c1c;
+      color: #f4e5a4;
+      border-color: #941c1c;
+    }
+
+    .message {
+      margin-top: 10px;
+      color: #666;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .message.success {
+      color: #27864b;
+    }
+
+    .message.error {
+      color: #b92525;
+      font-weight: bold;
+    }
+
+    .result {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 13px;
+      font-size: 12px;
+      line-height: 1.7;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .result.success {
+      background: #f4faf5;
+      border-color: #9cc4a6;
+    }
+
+    .result.error {
+      background: #fff4f4;
+      border-color: #d9a1a1;
+    }
+
+    .simulation {
+      background: #fff8e8;
+      border: 1px solid #dfbf7c;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 15px;
+    }
+
+    .simulation h3 {
+      font-size: 15px;
+      color: #795500;
+      margin: 0 0 10px;
+    }
+
+    .simulation label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee0bd;
+      font-size: 13px;
+    }
+
+    .simulation input {
+      width: 22px;
+      height: 22px;
+      flex: 0 0 22px;
+      accent-color: #941c1c;
+    }
+
+    .simulation p {
+      font-size: 12px;
+      color: #795500;
+    }
+
+    footer {
+      text-align: center;
+      color: #777;
+      font-size: 12px;
+      padding: 15px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 360px) {
+
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <header class="brand">
+
+    <h1>PHỞ GÀ ĐỒI</h1>
+
+    <div class="slogan">ngon từ gà</div>
+
+    <div class="subtitle">
+      HỆ THỐNG QUẢN LÝ VẬN HÀNH V2.0
+    </div>
+
+  </header>
+
+  <main>
+
+    <div class="notice">
+
+      <strong>KIỂM THỬ GIAI ĐOẠN 7.6</strong>
+
+      <br>
+
+      Dữ liệu lưu cục bộ trên thiết bị.
+      Nghiệm thu trưởng ca và ảnh khóa cửa
+      chỉ là dữ liệu mô phỏng.
+      Không gửi báo cáo thật.
+
+    </div>
+
+    <section class="panel">
+
+      <h2>1. Thông tin ca làm việc</h2>
+
+      <div class="field">
+
+        <label for="workDate">
+          Ngày làm việc
+        </label>
+
+        <input id="workDate" type="date">
+
+      </div>
+
+      <div class="row">
+
+        <div class="field">
+
+          <label for="branch">Cơ sở</label>
+
+          <select id="branch">
+
+            <option value="CS1">
+              CS1 - Võ Chí Công
+            </option>
+
+            <option value="CS2">
+              CS2 - An Khánh
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="field">
+
+          <label for="shift">Ca làm việc</label>
+
+          <select id="shift">
+
+            <option value="SANG">
+              Ca sáng
+            </option>
+
+            <option value="TOI" selected>
+              Ca tối
+            </option>
+
+            <option value="DEM">
+              Ca đêm
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+      <div class="field">
+
+        <label for="employee">
+          Mã nhân viên thử nghiệm
+        </label>
+
+        <input
+          id="employee"
+          type="text"
+          value="TEST_CL760"
+          maxlength="24"
+          autocomplete="off"
+        >
+
+      </div>
+
+      <div class="field">
+
+        <label for="department">
+          Bộ phận
+        </label>
+
+        <select id="department">
+
+          <option value="BEP_PHO">
+            Bếp phở
+          </option>
+
+          <option value="BEP_VAT_TU">
+            Bếp vật tư + dọn dẹp
+          </option>
+
+          <option value="CHAY_BAN">
+            Chạy bàn + vật tư nguyên liệu
+          </option>
+
+          <option value="VE_SINH">
+            Vệ sinh chung
+          </option>
+
+          <option value="TRUONG_CA">
+            Trưởng ca
+          </option>
+
+        </select>
+
+      </div>
+
+      <button
+        id="startButton"
+        class="primary"
+        type="button"
+      >
+        Bắt đầu kiểm thử
+      </button>
+
+      <div
+        id="sessionMessage"
+        class="message"
+        aria-live="polite"
+      ></div>
+
+    </section>
+
+    <div id="tabs" class="tabs" hidden>
+
+      <button
+        id="inventoryTab"
+        class="tab"
+        type="button"
+      >
+        1. Kiểm kê
+      </button>
+
+      <button
+        id="checklistTab"
+        class="tab"
+        type="button"
+      >
+        2. Checklist
+      </button>
+
+    </div>
+
+    <section
+      id="simulationPanel"
+      class="simulation"
+      hidden
+    >
+
+      <h3>
+        DỮ LIỆU MÔ PHỎNG TRƯỞNG CA
+      </h3>
+
+      <p>
+        Các công tắc dưới đây giả lập trạng thái
+        máy chủ và camera. Không phải xác nhận
+        nghiệm thu thực tế.
+      </p>
+
+      <div id="approvalControls"></div>
+
+      <div id="photoControls"></div>
+
+      <p id="simulationMessage"></p>
+
+    </section>
+
+    <section
+      id="moduleContainer"
+      hidden
+    ></section>
+
+    <section
+      id="toolsPanel"
+      class="panel"
+      hidden
+    >
+
+      <h2>3. Kiểm tra lưu trữ</h2>
+
+      <button
+        id="restoreButton"
+        class="secondary"
+        type="button"
+      >
+        Lưu và khôi phục giao diện
+      </button>
+
+      <br>
+
+      <button
+        id="viewButton"
+        class="secondary"
+        type="button"
+      >
+        Xem dữ liệu bản nháp
+      </button>
+
+      <pre
+        id="draftResult"
+        class="result"
+        hidden
+      ></pre>
+
+    </section>
+
+    <section class="panel">
+
+      <h2>4. Kiểm thử tự động</h2>
+
+      <button
+        id="logicTestButton"
+        class="primary"
+        type="button"
+      >
+        Chạy 20 bài kiểm thử checklist
+      </button>
+
+      <br>
+
+      <button
+        id="storageTestButton"
+        class="secondary"
+        type="button"
+      >
+        Chạy 6 bài kiểm thử lưu trữ kết hợp
+      </button>
+
+      <div
+        id="versionInfo"
+        class="message"
+      ></div>
+
+      <pre
+        id="testResult"
+        class="result"
+        hidden
+      ></pre>
+
+    </section>
+
+    <section
+      id="completionPanel"
+      class="panel"
+      hidden
+    >
+
+      <h2>Kết quả kiểm tra</h2>
+
+      <pre
+        id="completionResult"
+        class="result success"
+      ></pre>
+
+    </section>
+
+  </main>
+
+  <footer>
+
+    PHỞ GÀ ĐỒI - SYSTEM V2.0
+
+    <br>
+
+    Giai đoạn 7.6 | Catalog 751
+
+  </footer>
+
+
+  <!-- MODULE BẢN NHÁP -->
+
+  <script src="./draft.js?v=752"></script>
+
+
+  <!-- MODULE KIỂM KÊ -->
+
+  <script src="./inventory.js?v=753"></script>
+
+
+  <!-- MODULE CHECKLIST -->
+
+  <script src="./checklist.js?v=760"></script>
+
+
+  <script>
+
+    "use strict";
+
+
+    /* ====================================================
+       01. KHAI BÁO
+    ==================================================== */
+
+    const $ = id => document.getElementById(id);
+
+    const SESSION_KEY =
+
+      "PGD_TEST_CHECKLIST_SESSION_760";
+
+    let context = null;
+
+    let activeTab = "CHECKLIST";
+
+    let activeModule = null;
+
+    let busy = false;
+
+    const approvalInputs = {};
+
+    const photoInputs = {};
+
+
+    /* ====================================================
+       02. NGÀY LÀM VIỆC
+    ==================================================== */
+
+    function todayVietnam() {
+
+      const parts = new Intl.DateTimeFormat(
+
+        "en-GB",
+
+        {
+
+          timeZone: "Asia/Ho_Chi_Minh",
+
+          year: "numeric",
+
+          month: "2-digit",
+
+          day: "2-digit"
+
+        }
+
+      ).formatToParts(new Date());
+
+      const get = type =>
+
+        parts.find(p => p.type === type).value;
+
+      return [
+
+        get("year"),
+
+        get("month"),
+
+        get("day")
+
+      ].join("-");
+
+    }
+
+    $("workDate").value = todayVietnam();
+
+
+    /* ====================================================
+       03. HIỂN THỊ THÔNG BÁO
+    ==================================================== */
+
+    function message(text, type) {
+
+      $("sessionMessage").textContent = text;
+
+      $("sessionMessage").className =
+
+        "message " + (type || "");
+
+    }
+
+
+    function showResult(id, data, success) {
+
+      const node = $(id);
+
+      node.hidden = false;
+
+      node.className =
+
+        "result " +
+
+        (success ? "success" : "error");
+
+      node.textContent =
+
+        typeof data === "string"
+
+          ? data
+
+          : JSON.stringify(data, null, 2);
+
+    }
+
+
+    function setBusy(value) {
+
+      busy = value;
+
+      [
+
+        "startButton",
+
+        "inventoryTab",
+
+        "checklistTab",
+
+        "restoreButton",
+
+        "viewButton",
+
+        "logicTestButton",
+
+        "storageTestButton"
+
+      ].forEach(function (id) {
+
+        $(id).disabled = value;
+
+      });
+
+    }
+
+
+    /* ====================================================
+       04. KIỂM TRA PHIÊN BẢN
+    ==================================================== */
+
+    function checkModules() {
+
+      if (
+
+        !window.PGDDraft ||
+
+        !window.PGDInventory ||
+
+        !window.PGDChecklist
+
+      ) {
+
+        throw new Error(
+
+          "Không tải đủ 3 module."
+
+        );
+
+      }
+
+      if (
+
+        PGDDraft.config.VERSION !== "7.5.2" ||
+
+        PGDInventory.config.VERSION !== "7.5.3" ||
+
+        PGDChecklist.config.VERSION !== "7.6"
+
+      ) {
+
+        throw new Error(
+
+          "Phiên bản module không đồng nhất."
+
+        );
+
+      }
+
+      if (
+
+        typeof PGDDraft.saveFieldsLocal !==
+
+          "function"
+
+      ) {
+
+        throw new Error(
+
+          "draft.js thiếu saveFieldsLocal."
+
+        );
+
+      }
+
+      $("versionInfo").textContent =
+
+        "Draft: 7.5.2 | " +
+
+        "Inventory: 7.5.3 | " +
+
+        "Checklist: 7.6";
+
+      $("versionInfo").className =
+
+        "message success";
+
+    }
+
+
+    /* ====================================================
+       05. ĐỌC THÔNG TIN PHIÊN
+    ==================================================== */
+
+    function readContext() {
+
+      const employee = $("employee")
+
+        .value.trim().toUpperCase();
+
+      if (
+
+        !/^TEST_[A-Z0-9_-]{1,19}$/
+
+          .test(employee)
+
+      ) {
+
+        throw new Error(
+
+          "Chỉ sử dụng mã nhân viên TEST_."
+
+        );
+
+      }
+
+      const result = {
+
+        date: $("workDate").value,
+
+        branch: $("branch").value,
+
+        shift: $("shift").value,
+
+        employee: employee,
+
+        department: $("department").value
+
+      };
+
+      PGDDraft.makeKey(result);
+
+      return result;
+
+    }
+
+
+    function saveSession() {
+
+      try {
+
+        localStorage.setItem(
+
+          SESSION_KEY,
+
+          JSON.stringify({
+
+            context: context,
+
+            tab: activeTab
+
+          })
+
+        );
+
+      } catch (failure) {
+
+        console.warn(failure);
+
+      }
+
+    }
+
+
+    /* ====================================================
+       06. TẠO CÔNG TẮC MÔ PHỎNG
+    ==================================================== */
+
+    function addSimulationInput(
+
+      parent,
+
+      id,
+
+      text,
+
+      target
+
+    ) {
+
+      const label =
+
+        document.createElement("label");
+
+      const input =
+
+        document.createElement("input");
+
+      input.type = "checkbox";
+
+      const title =
+
+        document.createElement("span");
+
+      title.textContent = text;
+
+      label.append(input, title);
+
+      parent.appendChild(label);
+
+      target[id] = input;
+
+      input.addEventListener(
+
+        "change",
+
+        updateSimulation
+
+      );
+
+    }
+
+
+    function createSimulationControls() {
+
+      $("approvalControls").replaceChildren();
+
+      $("photoControls").replaceChildren();
+
+      [
+
+        ["BEP_PHO", "Giả lập đã nghiệm thu Bếp phở"],
+
+        ["BEP_VAT_TU", "Giả lập đã nghiệm thu Bếp vật tư"],
+
+        ["CHAY_BAN", "Giả lập đã nghiệm thu Chạy bàn"],
+
+        ["VE_SINH", "Giả lập đã nghiệm thu Vệ sinh"]
+
+      ].forEach(function (row) {
+
+        addSimulationInput(
+
+          $("approvalControls"),
+
+          row[0],
+
+          row[1],
+
+          approvalInputs
+
+        );
+
+      });
+
+      [
+
+        ["HA010", "Giả lập ảnh tổng thể bếp phở"],
+
+        ["HA011", "Giả lập ảnh bếp vật tư"],
+
+        ["HA012", "Giả lập ảnh khu vực khách"],
+
+        ["HA013", "Giả lập ảnh điện và gas"],
+
+        ["HA014", "Giả lập ảnh khóa cửa cuối cùng"]
+
+      ].forEach(function (row) {
+
+        addSimulationInput(
+
+          $("photoControls"),
+
+          row[0],
+
+          row[1],
+
+          photoInputs
+
+        );
+
+      });
+
+      photoInputs.HA014.disabled = true;
+
+    }
+
+
+    /* ====================================================
+       07. CẬP NHẬT MÔ PHỎNG
+    ==================================================== */
+
+    function updateSimulation() {
+
+      if (
+
+        !activeModule ||
+
+        activeTab !== "CHECKLIST" ||
+
+        !context ||
+
+        context.department !== "TRUONG_CA"
+
+      ) return;
+
+      const approvals = {};
+
+      const photos = {};
+
+      Object.entries(approvalInputs).forEach(
+
+        function (entry) {
+
+          approvals[entry[0]] =
+
+            entry[1].checked;
+
+        }
+
+      );
+
+      Object.entries(photoInputs).forEach(
+
+        function (entry) {
+
+          photos[entry[0]] =
+
+            entry[1].checked;
+
+        }
+
+      );
+
+      try {
+
+        const accepted =
+
+          activeModule.setTestEvidence({
+
+            approvals: approvals,
+
+            photos: photos
+
+          });
+
+        photoInputs.HA014.checked =
+
+          accepted.photos.HA014 === true;
+
+        refreshSimulation(
+
+          activeModule.getState()
+
+        );
+
+      } catch (failure) {
+
+        message(failure.message, "error");
+
+      }
+
+    }
+
+
+    function refreshSimulation(state) {
+
+      if (
+
+        !context ||
+
+        context.department !== "TRUONG_CA"
+
+      ) return;
+
+      const allowed =
+
+        state.readyForLock &&
+
+        !state.locked &&
+
+        !state.error;
+
+      photoInputs.HA014.disabled = !allowed;
+
+      if (
+
+        !allowed ||
+
+        !state.checklist.CL047
+
+      ) {
+
+        // Chỉ bỏ công tắc khi mất điều kiện khóa.
+        // Nếu đã có ảnh và chưa xác nhận CL047,
+        // vẫn giữ ảnh để người thử có thể tích CL047.
+
+        if (!allowed) {
+
+          photoInputs.HA014.checked = false;
+
+        }
+
+      }
+
+      $("simulationMessage").textContent =
+
+        allowed
+
+          ? "Đủ điều kiện mô phỏng ảnh khóa cửa."
+
+          : "Chưa đủ nghiệm thu, an toàn hoặc 4 ảnh đầu.";
+
+    }
+
+
+    /* ====================================================
+       08. HIỂN THỊ KẾT QUẢ HOÀN THÀNH
+    ==================================================== */
+
+    function showCompletion(data) {
+
+      $("completionPanel").hidden = false;
+
+      showResult(
+
+        "completionResult",
+
+        {
+
+          message:
+
+            "Dữ liệu hợp lệ cục bộ. Chưa gửi máy chủ.",
+
+          department: context.department,
+
+          mode: activeTab,
+
+          completed: data.completed,
+
+          total: data.total,
+
+          checklist: data.checklist || null,
+
+          inventory: data.inventory || null,
+
+          supplies: data.supplies || null,
+
+          wasteNote: data.wasteNote || "",
+
+          wastePhotoCount: Object.keys(
+
+            data.wastePhotos || {}
+
+          ).length,
+
+          simulation: data.testOnly === true
+
+        },
+
+        true
+
+      );
+
+      $("completionPanel").scrollIntoView({
+
+        behavior: "smooth"
+
+      });
+
+    }
+
+
+    /* ====================================================
+       09. MỞ MODULE
+    ==================================================== */
+
+    async function mountActive() {
+
+      $("completionPanel").hidden = true;
+
+      $("draftResult").hidden = true;
+
+      $("moduleContainer").hidden = false;
+
+      $("toolsPanel").hidden = false;
+
+      $("tabs").hidden = false;
+
+      $("inventoryTab").classList.toggle(
+
+        "active",
+
+        activeTab === "INVENTORY"
+
+      );
+
+      $("checklistTab").classList.toggle(
+
+        "active",
+
+        activeTab === "CHECKLIST"
+
+      );
+
+      const leaderSimulation =
+
+        activeTab === "CHECKLIST" &&
+
+        context.department === "TRUONG_CA";
+
+      $("simulationPanel").hidden =
+
+        !leaderSimulation;
+
+      if (leaderSimulation) {
+
+        createSimulationControls();
+
+      }
+
+      const options = {
+
+        container: $("moduleContainer"),
+
+        context: context,
+
+        onComplete: showCompletion,
+
+        onChange: function (state) {
+
+          $("completionPanel").hidden = true;
+
+          if (leaderSimulation) {
+
+            refreshSimulation(state);
+
+          }
+
+        }
+
+      };
+
+      if (activeTab === "INVENTORY") {
+
+        activeModule =
+
+          await PGDInventory.mount(options);
+
+      } else {
+
+        activeModule =
+
+          await PGDChecklist.mount(
+
+            Object.assign(
+
+              {},
+
+              options,
+
+              {testMode: true}
+
+            )
+
+          );
+
+      }
+
+      saveSession();
+
+      message(
+
+        "Đã mở giao diện kiểm thử.",
+
+        "success"
+
+      );
+
+    }
+
+
+    /* ====================================================
+       10. BẮT ĐẦU PHIÊN
+    ==================================================== */
+
+    async function startSession(tab) {
+
+      if (busy) return;
+
+      setBusy(true);
+
+      try {
+
+        checkModules();
+
+        const nextContext = readContext();
+
+        if (activeModule) {
+
+          await activeModule.destroy();
+
+          activeModule = null;
+
+        }
+
+        context = nextContext;
+
+        activeTab =
+
+          tab === "INVENTORY"
+
+            ? "INVENTORY"
+
+            : "CHECKLIST";
+
+        await mountActive();
+
+      } finally {
+
+        setBusy(false);
+
+      }
+
+    }
+
+
+    $("startButton").addEventListener(
+
+      "click",
+
+      function () {
+
+        startSession("CHECKLIST")
+
+          .catch(function (failure) {
+
+            message(failure.message, "error");
+
+          });
+
+      }
+
+    );
+
+
+    /* ====================================================
+       11. CHUYỂN KIỂM KÊ / CHECKLIST
+    ==================================================== */
+
+    async function switchTab(tab) {
+
+      if (busy || !context) return;
+
+      setBusy(true);
+
+      try {
+
+        if (activeModule) {
+
+          await activeModule.destroy();
+
+          activeModule = null;
+
+        }
+
+        activeTab = tab;
+
+        await mountActive();
+
+      } finally {
+
+        setBusy(false);
+
+      }
+
+    }
+
+
+    $("inventoryTab").addEventListener(
+
+      "click",
+
+      function () {
+
+        switchTab("INVENTORY")
+
+          .catch(function (failure) {
+
+            message(failure.message, "error");
+
+          });
+
+      }
+
+    );
+
+
+    $("checklistTab").addEventListener(
+
+      "click",
+
+      function () {
+
+        switchTab("CHECKLIST")
+
+          .catch(function (failure) {
+
+            message(failure.message, "error");
+
+          });
+
+      }
+
+    );
+
+
+    /* ====================================================
+       12. KHÔI PHỤC GIAO DIỆN
+    ==================================================== */
+
+    $("restoreButton").addEventListener(
+
+      "click",
+
+      function () {
+
+        switchTab(activeTab)
+
+          .catch(function (failure) {
+
+            message(failure.message, "error");
+
+          });
+
+      }
+
+    );
+
+
+    /* ====================================================
+       13. XEM BẢN NHÁP
+    ==================================================== */
+
+    $("viewButton").addEventListener(
+
+      "click",
+
+      async function () {
+
+        if (busy || !activeModule) return;
+
+        try {
+
+          await activeModule.flush();
+
+          const record =
+
+            await PGDDraft.restoreLocal(context);
+
+          if (!record) {
+
+            showResult(
+
+              "draftResult",
+
+              "Chưa có bản nháp.",
+
+              true
+
+            );
+
+            return;
+
+          }
+
+          showResult(
+
+            "draftResult",
+
+            {
+
+              key: record.key,
+
+              catalogRevision:
+
+                record.catalogRevision,
+
+              status: record.status,
+
+              localRevision:
+
+                record.localRevision,
+
+              data: record.data,
+
+              photos: Object.keys(
+
+                record.photos || {}
+
+              )
+
+            },
+
+            true
+
+          );
+
+        } catch (failure) {
+
+          showResult(
+
+            "draftResult",
+
+            failure.message,
+
+            false
+
+          );
+
+        }
+
+      }
+
+    );
+
+
+    /* ====================================================
+       14. KIỂM THỬ LƯU TRỮ KẾT HỢP - 6 BÀI
+
+       Sử dụng mã TEST_ riêng biệt.
+       Không ghi đè phiên kiểm thử đang mở.
+    ==================================================== */
+
+    async function testCombinedStorage() {
+
+      let passed = 0;
+
+      const total = 6;
+
+      const results = [];
+
+      const testContext = {
+
+        date: todayVietnam(),
+
+        branch: "CS1",
+
+        shift: "TOI",
+
+        department: "BEP_PHO",
+
+        employee:
+
+          "TEST_CL_" +
+
+          Date.now().toString(36).toUpperCase()
+
+      };
+
+      function check(name, condition) {
+
+        if (!condition) {
+
+          throw new Error(name);
+
+        }
+
+        passed++;
+
+        results.push(
+
+          "ĐẠT " + passed + " - " + name
+
+        );
+
+      }
+
+      try {
+
+        await PGDDraft.saveFieldsLocal(
+
+          testContext,
+
+          {
+
+            inventory: {
+
+              KK001: {
+
+                remaining: 5,
+
+                waste: 0
+
+              }
+
+            }
+
+          }
+
+        );
+
+        let record =
+
+          await PGDDraft.restoreLocal(testContext);
+
+        check(
+
+          "Lưu kiểm kê ban đầu",
+
+          record.data.inventory.KK001.remaining === 5
+
+        );
+
+        await PGDDraft.saveFieldsLocal(
+
+          testContext,
+
+          {
+
+            checklist: {
+
+              CL001: true,
+
+              CL002: true
+
+            }
+
+          }
+
+        );
+
+        record =
+
+          await PGDDraft.restoreLocal(testContext);
+
+        check(
+
+          "Lưu và khôi phục checklist",
+
+          record.data.checklist.CL001 === true &&
+
+          record.data.checklist.CL002 === true
+
+        );
+
+        check(
+
+          "Checklist không ghi đè kiểm kê",
+
+          record.data.inventory.KK001.remaining === 5
+
+        );
+
+        await PGDDraft.saveFieldsLocal(
+
+          testContext,
+
+          {
+
+            inventory: {
+
+              KK001: {
+
+                remaining: 8,
+
+                waste: 0
+
+              }
+
+            }
+
+          }
+
+        );
+
+        record =
+
+          await PGDDraft.restoreLocal(testContext);
+
+        check(
+
+          "Kiểm kê không ghi đè checklist",
+
+          record.data.inventory.KK001.remaining === 8 &&
+
+          record.data.checklist.CL001 === true
+
+        );
+
+        const canvas =
+
+          document.createElement("canvas");
+
+        canvas.width = 80;
+
+        canvas.height = 80;
+
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "#ffffff";
+
+        ctx.fillRect(0, 0, 80, 80);
+
+        const photo = canvas.toDataURL(
+
+          "image/jpeg",
+
+          0.8
+
+        );
+
+        await PGDDraft.savePhotoLocal(
+
+          testContext,
+
+          "HA001",
+
+          photo
+
+        );
+
+        await PGDDraft.saveFieldsLocal(
+
+          testContext,
+
+          {
+
+            checklist: {
+
+              CL001: true,
+
+              CL002: false,
+
+              CL003: true
+
+            }
+
+          }
+
+        );
+
+        record =
+
+          await PGDDraft.restoreLocal(testContext);
+
+        check(
+
+          "Checklist không làm mất ảnh",
+
+          record.photos.HA001 &&
+
+          record.photos.HA001.data === photo &&
+
+          record.data.checklist.CL002 === false
+
+        );
+
+        const anotherContext = Object.assign(
+
+          {},
+
+          testContext,
+
+          {branch: "CS2"}
+
+        );
+
+        const other =
+
+          await PGDDraft.restoreLocal(
+
+            anotherContext
+
+          );
+
+        check(
+
+          "Tách riêng dữ liệu giữa hai cơ sở",
+
+          !other
+
+        );
+
+        return {
+
+          success: true,
+
+          passed: passed,
+
+          total: total,
+
+          results: results,
+
+          testEmployee: testContext.employee
+
+        };
+
+      } catch (failure) {
+
+        return {
+
+          success: false,
+
+          passed: passed,
+
+          total: total,
+
+          error: failure.message,
+
+          results: results,
+
+          testEmployee: testContext.employee
+
+        };
+
+      }
+
+    }
+
+
+    /* ====================================================
+       15. CHẠY KIỂM THỬ
+    ==================================================== */
+
+    async function runTest(callback) {
+
+      if (busy) return;
+
+      setBusy(true);
+
+      try {
+
+        checkModules();
+
+        if (activeModule) {
+
+          await activeModule.flush();
+
+        }
+
+        showResult(
+
+          "testResult",
+
+          "Đang chạy kiểm thử...",
+
+          true
+
+        );
+
+        const result = await callback();
+
+        const lines = [
+
+          "KẾT QUẢ: " +
+
+            result.passed + "/" +
+
+            result.total,
+
+          "",
+
+          ...(result.results || [])
+
+        ];
+
+        if (result.error) {
+
+          lines.push(
+
+            "",
+
+            "LỖI: " + result.error
+
+          );
+
+        }
+
+        if (result.testEmployee) {
+
+          lines.push(
+
+            "",
+
+            "Mã dữ liệu thử nghiệm: " +
+
+              result.testEmployee
+
+          );
+
+        }
+
+        lines.push(
+
+          "",
+
+          result.success
+
+            ? "TEST_COMPLETED"
+
+            : "TEST_FAILED"
+
+        );
+
+        showResult(
+
+          "testResult",
+
+          lines.join("\n"),
+
+          result.success
+
+        );
+
+      } catch (failure) {
+
+        showResult(
+
+          "testResult",
+
+          failure.message,
+
+          false
+
+        );
+
+      } finally {
+
+        setBusy(false);
+
+      }
+
+    }
+
+
+    $("logicTestButton").addEventListener(
+
+      "click",
+
+      function () {
+
+        runTest(function () {
+
+          return PGDChecklist.selfTest();
+
+        });
+
+      }
+
+    );
+
+
+    $("storageTestButton").addEventListener(
+
+      "click",
+
+      function () {
+
+        runTest(testCombinedStorage);
+
+      }
+
+    );
+
+
+    /* ====================================================
+       16. CẢNH BÁO KHI ĐÓNG TRANG
+    ==================================================== */
+
+    window.addEventListener(
+
+      "beforeunload",
+
+      function (event) {
+
+        if (!activeModule) return;
+
+        const state = activeModule.getState();
+
+        if (
+
+          state.pending > 0 ||
+
+          state.processing ||
+
+          state.error
+
+        ) {
+
+          event.preventDefault();
+
+          event.returnValue = "";
+
+        }
+
+      }
+
+    );
+
+
+    /* ====================================================
+       17. KHỞI TẠO TRANG
+    ==================================================== */
+
+    async function initialize() {
+
+      try {
+
+        checkModules();
+
+        await PGDDraft.openDatabase();
+
+        message(
+
+          "Hệ thống checklist đã sẵn sàng.",
+
+          "success"
+
+        );
+
+        let previous = null;
+
+        try {
+
+          previous = JSON.parse(
+
+            localStorage.getItem(
+
+              SESSION_KEY
+
+            ) || "null"
+
+          );
+
+        } catch (failure) {
+
+          previous = null;
+
+        }
+
+        if (previous && previous.context) {
+
+          const old = previous.context;
+
+          $("workDate").value = old.date;
+
+          $("branch").value = old.branch;
+
+          $("shift").value = old.shift;
+
+          $("employee").value = old.employee;
+
+          $("department").value = old.department;
+
+          await startSession(previous.tab);
+
+        }
+
+      } catch (failure) {
+
+        message(failure.message, "error");
+
+      }
+
+    }
+
+    initialize();
+
+  </script>
+
+</body>
+
+</html>
