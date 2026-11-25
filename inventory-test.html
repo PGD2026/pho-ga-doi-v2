@@ -1,1 +1,1940 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta name="theme-color" content="#941c1c">
+
+  <meta
+    name="robots"
+    content="noindex, nofollow"
+  >
+
+  <title>
+    Phở Gà Đồi - Kiểm thử kiểm kê 7.5.3
+  </title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f5f3ef;
+      color: #222;
+      font-family: Arial, sans-serif;
+      line-height: 1.5;
+    }
+
+    .brand {
+      background: #941c1c;
+      color: #f4e5a4;
+      text-align: center;
+      padding: 24px 15px;
+      border-bottom: 4px solid #d8b86b;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-family: Georgia, serif;
+      font-size: 31px;
+      letter-spacing: 1px;
+    }
+
+    .brand .slogan {
+      margin-top: 2px;
+      font-style: italic;
+      font-size: 15px;
+    }
+
+    .brand .subtitle {
+      margin-top: 12px;
+      font-size: 13px;
+      letter-spacing: 1px;
+    }
+
+    .main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 15px 12px 40px;
+    }
+
+    .test-notice {
+      border: 1px solid #e0c481;
+      background: #fff8e5;
+      border-radius: 9px;
+      padding: 13px;
+      margin-bottom: 15px;
+      font-size: 13px;
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid #e3e0da;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 15px;
+    }
+
+    .panel h2 {
+      font-size: 17px;
+      color: #941c1c;
+      margin: 0 0 15px;
+    }
+
+    .field {
+      margin-bottom: 13px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      border: 1px solid #ccc;
+      background: #fff;
+      border-radius: 8px;
+      padding: 12px 10px;
+      font-size: 16px;
+      color: #222;
+    }
+
+    .field input:disabled,
+    .field select:disabled {
+      background: #eee;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .primary {
+      display: block;
+      width: 100%;
+      background: #941c1c;
+      color: #fff;
+      border: 0;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .secondary {
+      display: block;
+      width: 100%;
+      border: 1px solid #941c1c;
+      border-radius: 8px;
+      background: #fff;
+      color: #941c1c;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .message {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #555;
+      overflow-wrap: anywhere;
+    }
+
+    .message.success {
+      color: #27864b;
+    }
+
+    .message.error {
+      color: #b92525;
+      font-weight: bold;
+    }
+
+    .department-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .department {
+      border: 1px solid #ddd;
+      border-radius: 9px;
+      padding: 12px;
+      background: #fff;
+      text-align: left;
+      color: #222;
+      cursor: pointer;
+      min-height: 85px;
+    }
+
+    .department.active {
+      border: 2px solid #941c1c;
+      background: #fff8f8;
+    }
+
+    .department .name {
+      display: block;
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    .department .count {
+      display: block;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .department .state {
+      display: block;
+      font-size: 12px;
+      margin-top: 5px;
+      color: #666;
+    }
+
+    .department .state.complete {
+      color: #27864b;
+      font-weight: bold;
+    }
+
+    .department .state.error {
+      color: #b92525;
+    }
+
+    .result {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: #f4f4f4;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 13px;
+      font-size: 12px;
+      line-height: 1.7;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .result.success {
+      border-color: #a2c8ac;
+      background: #f4fbf5;
+    }
+
+    .result.error {
+      border-color: #d8a0a0;
+      background: #fff5f5;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .summary-item {
+      background: #fff;
+      border: 1px solid #e1ded7;
+      border-radius: 9px;
+      padding: 12px 5px;
+      text-align: center;
+    }
+
+    .summary-item strong {
+      display: block;
+      font-size: 24px;
+      color: #941c1c;
+    }
+
+    .summary-item span {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .footer {
+      text-align: center;
+      color: #777;
+      font-size: 12px;
+      padding: 15px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 360px) {
+
+      .department-grid,
+      .field-row,
+      .button-row {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <header class="brand">
+
+    <h1>PHỞ GÀ ĐỒI</h1>
+
+    <div class="slogan">ngon từ gà</div>
+
+    <div class="subtitle">
+      HỆ THỐNG QUẢN LÝ VẬN HÀNH V2.0
+    </div>
+
+  </header>
+
+  <main class="main">
+
+    <div class="test-notice">
+
+      <strong>CHẾ ĐỘ KIỂM THỬ 7.5.3</strong>
+
+      <br>
+
+      Dữ liệu chỉ lưu trên trình duyệt này.
+      Không gửi Telegram, không ghi báo cáo chính thức
+      vào Google Sheet.
+
+    </div>
+
+    <div class="summary">
+
+      <div class="summary-item">
+        <strong>41</strong>
+        <span>Hạng mục</span>
+      </div>
+
+      <div class="summary-item">
+        <strong>13</strong>
+        <span>Số lượng</span>
+      </div>
+
+      <div class="summary-item">
+        <strong>28</strong>
+        <span>Trạng thái</span>
+      </div>
+
+    </div>
+
+    <section class="panel">
+
+      <h2>1. Thông tin ca làm việc</h2>
+
+      <div class="field">
+
+        <label for="workDate">
+          Ngày làm việc
+        </label>
+
+        <input
+          id="workDate"
+          type="date"
+        >
+
+      </div>
+
+      <div class="field">
+
+        <label for="branch">
+          Cơ sở
+        </label>
+
+        <select id="branch">
+
+          <option value="CS1">
+            CS1 - 28 Võ Chí Công
+          </option>
+
+          <option value="CS2">
+            CS2 - An Khánh
+          </option>
+
+        </select>
+
+      </div>
+
+      <div class="field-row">
+
+        <div class="field">
+
+          <label for="shift">
+            Ca làm việc
+          </label>
+
+          <select id="shift">
+
+            <option value="SANG">
+              Ca sáng
+            </option>
+
+            <option value="TOI" selected>
+              Ca tối
+            </option>
+
+            <option value="DEM">
+              Ca đêm
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="field">
+
+          <label for="employee">
+            Mã nhân viên thử nghiệm
+          </label>
+
+          <input
+            id="employee"
+            type="text"
+            value="TEST_KK753"
+            maxlength="24"
+            autocomplete="off"
+          >
+
+        </div>
+
+      </div>
+
+      <button
+        id="startButton"
+        class="primary"
+        type="button"
+      >
+        Bắt đầu kiểm kê
+      </button>
+
+      <div
+        id="sessionMessage"
+        class="message"
+        aria-live="polite"
+      ></div>
+
+    </section>
+
+    <section
+      id="departmentPanel"
+      class="panel"
+      hidden
+    >
+
+      <h2>2. Chọn bộ phận</h2>
+
+      <div
+        id="departmentGrid"
+        class="department-grid"
+      ></div>
+
+      <p class="message">
+
+        Tiến độ hiển thị theo dữ liệu kiểm kê
+        đã lưu trên thiết bị thử nghiệm.
+
+      </p>
+
+    </section>
+
+    <section
+      id="inventoryContainer"
+      hidden
+    ></section>
+
+    <section
+      id="actionPanel"
+      class="panel"
+      hidden
+    >
+
+      <h2>3. Công cụ kiểm tra dữ liệu</h2>
+
+      <button
+        id="restoreButton"
+        class="secondary"
+        type="button"
+      >
+        Lưu và khôi phục lại giao diện
+      </button>
+
+      <div class="button-row">
+
+        <button
+          id="viewDataButton"
+          class="secondary"
+          type="button"
+        >
+          Xem bản nháp
+        </button>
+
+        <button
+          id="backupButton"
+          class="secondary"
+          type="button"
+        >
+          Xem bản sao cũ
+        </button>
+
+      </div>
+
+      <pre
+        id="draftResult"
+        class="result"
+        hidden
+      ></pre>
+
+    </section>
+
+    <section class="panel">
+
+      <h2>4. Kiểm thử tự động</h2>
+
+      <button
+        id="testButton"
+        class="primary"
+        type="button"
+      >
+        Chạy 16 bài kiểm thử kiểm kê
+      </button>
+
+      <div class="button-row">
+
+        <button
+          id="draftTestButton"
+          class="secondary"
+          type="button"
+        >
+          Kiểm thử bản nháp 10 bài
+        </button>
+
+        <button
+          id="migrationTestButton"
+          class="secondary"
+          type="button"
+        >
+          Kiểm thử chuyển đổi 6 bài
+        </button>
+
+      </div>
+
+      <div
+        id="versionInfo"
+        class="message"
+      ></div>
+
+      <pre
+        id="testResult"
+        class="result"
+        hidden
+      ></pre>
+
+    </section>
+
+    <section
+      id="completionPanel"
+      class="panel"
+      hidden
+    >
+
+      <h2>Kết quả kiểm kê hợp lệ</h2>
+
+      <pre
+        id="completionResult"
+        class="result success"
+      ></pre>
+
+      <p class="message">
+
+        Đây là kết quả kiểm tra cục bộ,
+        chưa phải báo cáo đã gửi hoặc nghiệm thu.
+
+      </p>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+
+    PHỞ GÀ ĐỒI - SYSTEM V2.0
+
+    <br>
+
+    Giai đoạn 7.5.3 | Catalog 751
+
+  </footer>
+
+
+  <!-- MODULE LƯU BẢN NHÁP -->
+
+  <script src="./draft.js?v=752"></script>
+
+
+  <!-- MODULE KIỂM KÊ -->
+
+  <script src="./inventory.js?v=753"></script>
+
+
+  <script>
+
+    "use strict";
+
+    /* ====================================================
+       01. KHAI BÁO
+    ==================================================== */
+
+    const $ = function (id) {
+      return document.getElementById(id);
+    };
+
+    const DEPARTMENTS = [
+
+      {
+        code: "BEP_PHO",
+        name: "Bếp phở",
+        count: 5
+      },
+
+      {
+        code: "BEP_VAT_TU",
+        name: "Bếp vật tư",
+        count: 14
+      },
+
+      {
+        code: "CHAY_BAN",
+        name: "Chạy bàn",
+        count: 17
+      },
+
+      {
+        code: "VE_SINH",
+        name: "Vệ sinh chung",
+        count: 5
+      },
+
+      {
+        code: "TRUONG_CA",
+        name: "Trưởng ca",
+        count: 0
+      }
+
+    ];
+
+    const SESSION_KEY =
+      "PGD_TEST_INVENTORY_SESSION_753";
+
+    let session = null;
+    let activeDepartment = null;
+    let inventoryModule = null;
+    let switching = false;
+    let statusGeneration = 0;
+
+    const departmentButtons = new Map();
+
+
+    /* ====================================================
+       02. NGÀY LÀM VIỆC
+    ==================================================== */
+
+    function todayVietnam() {
+
+      const parts = new Intl.DateTimeFormat(
+        "en-GB",
+        {
+          timeZone: "Asia/Ho_Chi_Minh",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit"
+        }
+      ).formatToParts(new Date());
+
+      const get = function (type) {
+
+        return parts.find(
+          p => p.type === type
+        ).value;
+
+      };
+
+      return [
+        get("year"),
+        get("month"),
+        get("day")
+      ].join("-");
+    }
+
+    $("workDate").value = todayVietnam();
+
+
+    /* ====================================================
+       03. HÀM HIỂN THỊ
+    ==================================================== */
+
+    function showMessage(message, type) {
+
+      const node = $("sessionMessage");
+
+      node.textContent = message;
+
+      node.className =
+        "message " + (type || "");
+    }
+
+    function showResult(id, data, success) {
+
+      const node = $(id);
+
+      node.hidden = false;
+
+      node.className =
+        "result " +
+        (success ? "success" : "error");
+
+      node.textContent =
+        typeof data === "string"
+          ? data
+          : JSON.stringify(data, null, 2);
+    }
+
+    function hideCompletion() {
+
+      $("completionPanel").hidden = true;
+    }
+
+    function setBusy(value) {
+
+      switching = value;
+
+      $("startButton").disabled = value;
+
+      $("restoreButton").disabled = value;
+
+      $("viewDataButton").disabled = value;
+
+      $("backupButton").disabled = value;
+
+      departmentButtons.forEach(
+        function (entry) {
+
+          entry.button.disabled = value;
+
+        }
+      );
+    }
+
+
+    /* ====================================================
+       04. KIỂM TRA MODULE
+    ==================================================== */
+
+    function checkModules() {
+
+      if (!window.PGDDraft) {
+
+        throw new Error(
+          "Không tải được draft.js."
+        );
+
+      }
+
+      if (!window.PGDInventory) {
+
+        throw new Error(
+          "Không tải được inventory.js."
+        );
+
+      }
+
+      if (
+        PGDDraft.config.VERSION !== "7.5.2"
+      ) {
+
+        throw new Error(
+          "draft.js không đúng phiên bản 7.5.2."
+        );
+
+      }
+
+      if (
+        PGDInventory.config.VERSION !== "7.5.3"
+      ) {
+
+        throw new Error(
+          "inventory.js không đúng phiên bản 7.5.3."
+        );
+
+      }
+
+      if (
+        PGDDraft.config.CATALOG_REVISION !== "751" ||
+        PGDInventory.config.CATALOG_REVISION !== "751"
+      ) {
+
+        throw new Error(
+          "Danh mục hai module không đồng nhất."
+        );
+
+      }
+
+      $("versionInfo").textContent =
+
+        "Draft: " + PGDDraft.config.VERSION +
+
+        " | Inventory: " +
+        PGDInventory.config.VERSION +
+
+        " | Catalog: 751";
+
+      $("versionInfo").className =
+        "message success";
+    }
+
+
+    /* ====================================================
+       05. THÔNG TIN PHIÊN KIỂM THỬ
+    ==================================================== */
+
+    function readSession() {
+
+      const employee = $("employee")
+        .value.trim().toUpperCase();
+
+      if (
+        !/^TEST_[A-Z0-9_-]{1,19}$/
+          .test(employee)
+      ) {
+
+        throw new Error(
+          "Mã thử nghiệm phải bắt đầu bằng TEST_. " +
+          "Không dùng mã nhân viên thật."
+        );
+
+      }
+
+      const result = {
+
+        date: $("workDate").value,
+
+        branch: $("branch").value,
+
+        shift: $("shift").value,
+
+        employee: employee
+
+      };
+
+      PGDDraft.makeKey(
+        Object.assign(
+          {},
+          result,
+          {department: "BEP_PHO"}
+        )
+      );
+
+      return result;
+    }
+
+    function makeContext(department) {
+
+      if (!session) {
+
+        throw new Error(
+          "Chưa bắt đầu phiên kiểm kê."
+        );
+
+      }
+
+      return Object.assign(
+        {},
+        session,
+        {department: department}
+      );
+    }
+
+    function saveSession() {
+
+      try {
+
+        localStorage.setItem(
+
+          SESSION_KEY,
+
+          JSON.stringify({
+            session: session,
+            department: activeDepartment
+          })
+
+        );
+
+      } catch (failure) {
+
+        console.warn(
+          "Không lưu được lựa chọn phiên:",
+          failure
+        );
+
+      }
+
+    }
+
+
+    /* ====================================================
+       06. TẠO NÚT CHỌN BỘ PHẬN
+    ==================================================== */
+
+    function renderDepartments() {
+
+      $("departmentGrid").replaceChildren();
+
+      departmentButtons.clear();
+
+      DEPARTMENTS.forEach(function (item) {
+
+        const button =
+          document.createElement("button");
+
+        button.type = "button";
+
+        button.className = "department";
+
+        const name =
+          document.createElement("span");
+
+        name.className = "name";
+        name.textContent = item.name;
+
+        const count =
+          document.createElement("span");
+
+        count.className = "count";
+
+        count.textContent =
+          item.count + " hạng mục";
+
+        const state =
+          document.createElement("span");
+
+        state.className = "state";
+        state.textContent = "Chưa kiểm kê";
+
+        button.append(
+          name, count, state
+        );
+
+        button.addEventListener(
+          "click",
+          function () {
+
+            openDepartment(item.code)
+              .catch(function (failure) {
+
+                showMessage(
+                  failure.message,
+                  "error"
+                );
+
+              });
+
+          }
+        );
+
+        departmentButtons.set(item.code, {
+          button: button,
+          state: state
+        });
+
+        $("departmentGrid")
+          .appendChild(button);
+
+      });
+    }
+
+
+    /* ====================================================
+       07. TÍNH TIẾN ĐỘ BẢN NHÁP
+    ==================================================== */
+
+    function calculateDraftState(
+      department,
+      record
+    ) {
+
+      const catalog =
+        PGDInventory.getCatalog(department);
+
+      if (catalog.length === 0) {
+
+        return {
+          completed: 0,
+          total: 0,
+          complete: true,
+          noInventory: true
+        };
+
+      }
+
+      if (!record) {
+
+        return {
+          completed: 0,
+          total: catalog.length,
+          complete: false
+        };
+
+      }
+
+      if (
+        record.catalogRevision !== "751"
+      ) {
+
+        throw new Error(
+          "Bản nháp thuộc danh mục cũ."
+        );
+
+      }
+
+      const fields = record.data || {};
+
+      const inventory =
+        fields.inventory || {};
+
+      const supplies =
+        fields.supplies || {};
+
+      function validNumber(value, item) {
+
+        return (
+          typeof value === "number" &&
+          Number.isFinite(value) &&
+          value >= 0 &&
+          value <= 100000 &&
+          (
+            ["Kg", "Lít"].includes(item.unit) ||
+            Number.isInteger(value)
+          )
+        );
+
+      }
+
+      let completed = 0;
+
+      catalog.forEach(function (item) {
+
+        if (item.type === "NUMBER") {
+
+          const value = inventory[item.id];
+
+          if (
+
+            value &&
+
+            validNumber(
+              value.remaining, item
+            ) &&
+
+            validNumber(
+              value.waste, item
+            )
+
+          ) {
+
+            completed++;
+
+          }
+
+        } else {
+
+          if (
+            ["Còn", "Gần hết", "Hết"]
+              .includes(supplies[item.id])
+          ) {
+
+            completed++;
+
+          }
+
+        }
+
+      });
+
+      const hasWaste = catalog.some(
+        function (item) {
+
+          return (
+            item.type === "NUMBER" &&
+            inventory[item.id] &&
+            inventory[item.id].waste > 0
+          );
+
+        }
+      );
+
+      const photos = Object.entries(
+        record.photos || {}
+      ).filter(function (entry) {
+
+        return entry[0].startsWith("WASTE_");
+
+      });
+
+      const validPhotos = photos.filter(
+        function (entry) {
+
+          return (
+            /^WASTE_0[1-5]$/.test(entry[0]) &&
+            entry[1] &&
+            typeof entry[1].data === "string" &&
+            entry[1].data.startsWith(
+              "data:image/jpeg;base64,"
+            )
+          );
+
+        }
+      );
+
+      const note = fields.wasteNote || "";
+
+      const wasteComplete = hasWaste
+
+        ? (
+            note.trim().length > 0 &&
+            note.length <= 1000 &&
+            validPhotos.length === photos.length &&
+            validPhotos.length >= 1 &&
+            validPhotos.length <= 5
+          )
+
+        : (
+            note.trim() === "" &&
+            photos.length === 0
+          );
+
+      return {
+
+        completed: completed,
+        total: catalog.length,
+
+        complete:
+          completed === catalog.length &&
+          wasteComplete
+
+      };
+    }
+
+    function updateDepartmentState(
+      department,
+      state
+    ) {
+
+      const entry =
+        departmentButtons.get(department);
+
+      if (!entry) return;
+
+      entry.state.className = "state";
+
+      if (state.error) {
+
+        entry.state.textContent =
+          "Cần kiểm tra bản nháp";
+
+        entry.state.classList.add("error");
+
+      } else if (
+        state.noInventory ||
+        state.total === 0
+      ) {
+
+        entry.state.textContent =
+          "Không phải kiểm kê";
+
+      } else if (state.complete) {
+
+        entry.state.textContent =
+          "✓ Đủ kiểm kê " +
+          state.completed + "/" + state.total;
+
+        entry.state.classList.add(
+          "complete"
+        );
+
+      } else if (
+        state.completed === state.total
+      ) {
+
+        entry.state.textContent =
+          "Chưa đủ điều kiện hoàn thành";
+
+      } else {
+
+        entry.state.textContent =
+          state.completed + "/" +
+          state.total + " hạng mục";
+
+      }
+
+    }
+
+    async function refreshDepartments() {
+
+      const generation = ++statusGeneration;
+
+      for (const item of DEPARTMENTS) {
+
+        try {
+
+          const record =
+            await PGDDraft.restoreLocal(
+              makeContext(item.code)
+            );
+
+          if (
+            generation !== statusGeneration
+          ) return;
+
+          updateDepartmentState(
+
+            item.code,
+
+            calculateDraftState(
+              item.code,
+              record
+            )
+
+          );
+
+        } catch (failure) {
+
+          if (
+            generation !== statusGeneration
+          ) return;
+
+          updateDepartmentState(
+            item.code,
+            {error: failure.message}
+          );
+
+        }
+
+      }
+    }
+
+
+    /* ====================================================
+       08. MỞ GIAO DIỆN KIỂM KÊ
+    ==================================================== */
+
+    async function openDepartment(department) {
+
+      if (switching) return;
+
+      setBusy(true);
+
+      try {
+
+        if (inventoryModule) {
+
+          await inventoryModule.destroy();
+
+          inventoryModule = null;
+
+        }
+
+        statusGeneration++;
+
+        activeDepartment = department;
+
+        hideCompletion();
+
+        $("draftResult").hidden = true;
+
+        $("inventoryContainer").hidden = false;
+
+        const context = makeContext(department);
+
+        inventoryModule =
+          await PGDInventory.mount({
+
+            container: $("inventoryContainer"),
+
+            context: context,
+
+            catalog:
+              PGDInventory.getCatalog(
+                department
+              ),
+
+            onChange: function (state) {
+
+              updateDepartmentState(
+                department,
+                state
+              );
+
+              hideCompletion();
+
+            },
+
+            onComplete: function (data) {
+
+              showCompletion(
+                department,
+                data
+              );
+
+            }
+
+          });
+
+        departmentButtons.forEach(
+          function (entry, code) {
+
+            entry.button.classList.toggle(
+              "active",
+              code === department
+            );
+
+          }
+        );
+
+        $("actionPanel").hidden = false;
+
+        saveSession();
+
+        showMessage(
+          "Đã mở bộ phận kiểm kê.",
+          "success"
+        );
+
+      } finally {
+
+        setBusy(false);
+
+      }
+
+    }
+
+
+    /* ====================================================
+       09. BẮT ĐẦU PHIÊN
+    ==================================================== */
+
+    async function startSession(
+      preferredDepartment
+    ) {
+
+      if (switching) return;
+
+      setBusy(true);
+
+      let ready = false;
+
+      try {
+
+        checkModules();
+
+        const nextSession = readSession();
+
+        if (inventoryModule) {
+
+          await inventoryModule.destroy();
+
+          inventoryModule = null;
+
+        }
+
+        session = nextSession;
+
+        activeDepartment = null;
+
+        $("departmentPanel").hidden = false;
+
+        renderDepartments();
+
+        await refreshDepartments();
+
+        ready = true;
+
+      } finally {
+
+        setBusy(false);
+
+      }
+
+      if (ready) {
+
+        await openDepartment(
+
+          DEPARTMENTS.some(
+            item =>
+              item.code === preferredDepartment
+          )
+
+            ? preferredDepartment
+
+            : "BEP_PHO"
+
+        );
+
+      }
+
+    }
+
+    $("startButton").addEventListener(
+      "click",
+      function () {
+
+        startSession("BEP_PHO")
+          .catch(function (failure) {
+
+            showMessage(
+              failure.message,
+              "error"
+            );
+
+          });
+
+      }
+    );
+
+
+    /* ====================================================
+       10. LƯU VÀ KHÔI PHỤC
+    ==================================================== */
+
+    $("restoreButton").addEventListener(
+      "click",
+      async function () {
+
+        if (
+          !inventoryModule ||
+          switching
+        ) return;
+
+        try {
+
+          await inventoryModule.flush();
+
+          await openDepartment(
+            activeDepartment
+          );
+
+          showMessage(
+            "Đã lưu và khôi phục giao diện.",
+            "success"
+          );
+
+        } catch (failure) {
+
+          showMessage(
+            failure.message,
+            "error"
+          );
+
+        }
+
+      }
+    );
+
+
+    /* ====================================================
+       11. XEM BẢN NHÁP
+    ==================================================== */
+
+    $("viewDataButton").addEventListener(
+      "click",
+      async function () {
+
+        if (!inventoryModule) return;
+
+        try {
+
+          await inventoryModule.flush();
+
+          const record =
+            await PGDDraft.restoreLocal(
+              makeContext(activeDepartment)
+            );
+
+          if (!record) {
+
+            showResult(
+              "draftResult",
+              "Chưa có dữ liệu bản nháp.",
+              true
+            );
+
+            return;
+
+          }
+
+          const result = {
+
+            key: record.key,
+
+            catalogRevision:
+              record.catalogRevision,
+
+            status: record.status,
+
+            localRevision:
+              record.localRevision,
+
+            serverVersion:
+              record.serverVersion,
+
+            dirty: record.dirty,
+
+            updatedAt: record.updatedAt,
+
+            data: record.data,
+
+            photos: Object.keys(
+              record.photos || {}
+            ),
+
+            migrationInfo:
+              record.migrationInfo || null
+
+          };
+
+          showResult(
+            "draftResult",
+            result,
+            true
+          );
+
+        } catch (failure) {
+
+          showResult(
+            "draftResult",
+            failure.message,
+            false
+          );
+
+        }
+
+      }
+    );
+
+
+    /* ====================================================
+       12. XEM BẢN SAO LƯU
+    ==================================================== */
+
+    $("backupButton").addEventListener(
+      "click",
+      async function () {
+
+        if (!activeDepartment) return;
+
+        try {
+
+          const backups =
+            await PGDDraft.listBackups(
+              makeContext(activeDepartment)
+            );
+
+          const summary = backups.map(
+            function (backup) {
+
+              return {
+
+                backupId: backup.backupId,
+
+                backedUpAt:
+                  backup.backedUpAt,
+
+                reason: backup.reason,
+
+                data: backup.record.data,
+
+                photos: Object.keys(
+                  backup.record.photos || {}
+                )
+
+              };
+
+            }
+          );
+
+          showResult(
+            "draftResult",
+            summary.length
+
+              ? summary
+
+              : "Không có bản sao danh mục cũ " +
+                "trong phiên này.",
+
+            true
+          );
+
+        } catch (failure) {
+
+          showResult(
+            "draftResult",
+            failure.message,
+            false
+          );
+
+        }
+
+      }
+    );
+
+
+    /* ====================================================
+       13. HIỂN THỊ KẾT QUẢ KIỂM KÊ
+    ==================================================== */
+
+    function showCompletion(department, data) {
+
+      const catalog =
+        PGDInventory.getCatalog(department);
+
+      const lines = [];
+
+      lines.push(
+        "KIỂM KÊ HỢP LỆ - CHƯA GỬI MÁY CHỦ"
+      );
+
+      lines.push("");
+
+      lines.push("Cơ sở: " + session.branch);
+      lines.push("Ngày: " + session.date);
+      lines.push("Ca: " + session.shift);
+      lines.push("Nhân viên: " + session.employee);
+
+      lines.push(
+        "Bộ phận: " +
+        DEPARTMENTS.find(
+          item => item.code === department
+        ).name
+      );
+
+      lines.push(
+        "Hoàn thành: " +
+        catalog.length + "/" +
+        catalog.length
+      );
+
+      lines.push("");
+      lines.push("CHI TIẾT KIỂM KÊ");
+
+      catalog.forEach(function (item) {
+
+        if (item.type === "NUMBER") {
+
+          const value =
+            data.inventory[item.id];
+
+          lines.push(
+
+            "- " + item.name +
+
+            ": Tồn " +
+            value.remaining +
+            " " + item.unit +
+
+            " | Hủy " +
+            value.waste +
+            " " + item.unit
+
+          );
+
+        } else {
+
+          lines.push(
+            "- " + item.name +
+            ": " + data.supplies[item.id]
+          );
+
+        }
+
+      });
+
+      lines.push("");
+      lines.push("HÀNG HỦY");
+
+      lines.push(
+        data.wasteNote ||
+        "Không phát sinh hàng hủy."
+      );
+
+      lines.push(
+        "Ảnh minh chứng: " +
+        Object.keys(
+          data.wastePhotos || {}
+        ).length
+      );
+
+      $("completionPanel").hidden = false;
+
+      $("completionResult").textContent =
+        lines.join("\n");
+
+      $("completionPanel").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+    }
+
+
+    /* ====================================================
+       14. CHẠY KIỂM THỬ TỰ ĐỘNG
+    ==================================================== */
+
+    async function runTest(button, callback) {
+
+      button.disabled = true;
+
+      showResult(
+        "testResult",
+        "Đang chạy kiểm thử...",
+        true
+      );
+
+      try {
+
+        checkModules();
+
+        const result = await callback();
+
+        const lines = [
+
+          "KẾT QUẢ: " +
+            result.passed + "/" +
+            result.total,
+
+          "",
+
+          ...(result.results || [])
+
+        ];
+
+        if (result.error) {
+
+          lines.push("");
+          lines.push(
+            "LỖI: " + result.error
+          );
+
+        }
+
+        lines.push("");
+
+        lines.push(
+          result.success
+
+            ? "TEST_COMPLETED"
+
+            : "TEST_FAILED"
+        );
+
+        showResult(
+          "testResult",
+          lines.join("\n"),
+          result.success
+        );
+
+      } catch (failure) {
+
+        showResult(
+          "testResult",
+          failure.message,
+          false
+        );
+
+      } finally {
+
+        button.disabled = false;
+
+      }
+
+    }
+
+    $("testButton").addEventListener(
+      "click",
+      function () {
+
+        runTest(
+          this,
+          function () {
+            return PGDInventory.selfTest();
+          }
+        );
+
+      }
+    );
+
+    $("draftTestButton").addEventListener(
+      "click",
+      function () {
+
+        runTest(
+          this,
+          function () {
+            return PGDDraft.selfTest();
+          }
+        );
+
+      }
+    );
+
+    $("migrationTestButton").addEventListener(
+      "click",
+      function () {
+
+        runTest(
+          this,
+          function () {
+            return PGDDraft.selfTest752();
+          }
+        );
+
+      }
+    );
+
+
+    /* ====================================================
+       15. CẢNH BÁO KHI ĐÓNG TRANG
+    ==================================================== */
+
+    window.addEventListener(
+      "beforeunload",
+      function (event) {
+
+        if (!inventoryModule) return;
+
+        const state =
+          inventoryModule.getState();
+
+        if (
+          state.pending > 0 ||
+          state.processing ||
+          state.error
+        ) {
+
+          event.preventDefault();
+
+          event.returnValue = "";
+
+        }
+
+      }
+    );
+
+
+    /* ====================================================
+       16. KHỞI TẠO TRANG
+    ==================================================== */
+
+    async function initialize() {
+
+      try {
+
+        checkModules();
+
+        await PGDDraft.openDatabase();
+
+        showMessage(
+          "Hệ thống kiểm thử đã sẵn sàng.",
+          "success"
+        );
+
+        let previous = null;
+
+        try {
+
+          previous = JSON.parse(
+
+            localStorage.getItem(
+              SESSION_KEY
+            ) || "null"
+
+          );
+
+        } catch (failure) {
+
+          previous = null;
+
+        }
+
+        if (
+          previous &&
+          previous.session
+        ) {
+
+          $("workDate").value =
+            previous.session.date;
+
+          $("branch").value =
+            previous.session.branch;
+
+          $("shift").value =
+            previous.session.shift;
+
+          $("employee").value =
+            previous.session.employee;
+
+          await startSession(
+            previous.department
+          );
+
+        }
+
+      } catch (failure) {
+
+        showMessage(
+          failure.message,
+          "error"
+        );
+
+      }
+
+    }
+
+    initialize();
+
+  </script>
+
+</body>
+
+</html>
