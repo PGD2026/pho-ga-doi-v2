@@ -1,1 +1,1930 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta name="theme-color" content="#941c1c">
+
+  <meta name="robots" content="noindex, nofollow">
+
+  <title>Phở Gà Đồi - Camera 7.7</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f5f3ef;
+      color: #222;
+      font-family: Arial, sans-serif;
+      line-height: 1.5;
+    }
+
+    .brand {
+      background: #941c1c;
+      color: #f4e5a4;
+      text-align: center;
+      padding: 24px 15px;
+      border-bottom: 4px solid #d8b86b;
+    }
+
+    .brand h1 {
+      font-family: Georgia, serif;
+      font-size: 31px;
+      margin: 0;
+    }
+
+    .slogan {
+      font-size: 15px;
+      font-style: italic;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
+    main {
+      max-width: 680px;
+      margin: auto;
+      padding: 15px 12px 40px;
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 15px;
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      color: #941c1c;
+      font-size: 17px;
+    }
+
+    .notice {
+      background: #fff8e8;
+      border: 1px solid #dfc486;
+      padding: 13px;
+      border-radius: 9px;
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+
+    .field {
+      margin-bottom: 13px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 16px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .primary,
+    .secondary {
+      display: block;
+      width: 100%;
+      padding: 13px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 9px;
+    }
+
+    .primary {
+      border: 0;
+      background: #941c1c;
+      color: #fff;
+    }
+
+    .secondary {
+      border: 1px solid #941c1c;
+      background: #fff;
+      color: #941c1c;
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+      margin-bottom: 15px;
+    }
+
+    .tab {
+      padding: 13px 5px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: #941c1c;
+      color: #f4e5a4;
+      border-color: #941c1c;
+    }
+
+    .message {
+      font-size: 13px;
+      color: #666;
+      margin-top: 10px;
+      overflow-wrap: anywhere;
+    }
+
+    .message.success {
+      color: #27864b;
+    }
+
+    .message.error {
+      color: #b92525;
+      font-weight: bold;
+    }
+
+    .result {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 13px;
+      font-size: 12px;
+      line-height: 1.7;
+      max-height: 450px;
+      overflow-y: auto;
+    }
+
+    .result.success {
+      background: #f4faf5;
+      border-color: #9cc4a6;
+    }
+
+    .result.error {
+      background: #fff4f4;
+      border-color: #d9a1a1;
+    }
+
+    .simulation {
+      background: #fff8e8;
+      border: 1px solid #dfbf7c;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 15px;
+    }
+
+    .simulation h3 {
+      font-size: 15px;
+      color: #795500;
+      margin: 0 0 10px;
+    }
+
+    .simulation label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee0bd;
+      font-size: 13px;
+    }
+
+    .simulation input {
+      width: 22px;
+      height: 22px;
+      accent-color: #941c1c;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: #777;
+      padding: 15px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <header class="brand">
+
+    <h1>PHỞ GÀ ĐỒI</h1>
+
+    <div class="slogan">ngon từ gà</div>
+
+    <div class="subtitle">
+      HỆ THỐNG QUẢN LÝ VẬN HÀNH V2.0
+    </div>
+
+  </header>
+
+  <main>
+
+    <div class="notice">
+
+      <strong>KIỂM THỬ CAMERA 7.7</strong>
+
+      <br>
+
+      Camera chụp ảnh thật.
+      Dữ liệu chỉ lưu trên thiết bị.
+      Nghiệm thu trưởng ca được mô phỏng.
+      Không gửi báo cáo chính thức.
+
+    </div>
+
+    <section class="panel">
+
+      <h2>1. Thông tin ca làm việc</h2>
+
+      <div class="field">
+
+        <label for="workDate">
+          Ngày làm việc
+        </label>
+
+        <input id="workDate" type="date">
+
+      </div>
+
+      <div class="row">
+
+        <div class="field">
+
+          <label for="branch">Cơ sở</label>
+
+          <select id="branch">
+
+            <option value="CS1">
+              CS1 - Võ Chí Công
+            </option>
+
+            <option value="CS2">
+              CS2 - An Khánh
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="field">
+
+          <label for="shift">Ca làm việc</label>
+
+          <select id="shift">
+
+            <option value="SANG">
+              Ca sáng
+            </option>
+
+            <option value="TOI" selected>
+              Ca tối
+            </option>
+
+            <option value="DEM">
+              Ca đêm
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+      <div class="field">
+
+        <label for="employee">
+          Mã nhân viên thử nghiệm
+        </label>
+
+        <input
+          id="employee"
+          value="TEST_CAM770"
+          maxlength="24"
+          autocomplete="off"
+        >
+
+      </div>
+
+      <div class="field">
+
+        <label for="department">Bộ phận</label>
+
+        <select id="department">
+
+          <option value="BEP_PHO">
+            Bếp phở
+          </option>
+
+          <option value="BEP_VAT_TU">
+            Bếp vật tư + dọn dẹp
+          </option>
+
+          <option value="CHAY_BAN">
+            Chạy bàn + vật tư nguyên liệu
+          </option>
+
+          <option value="VE_SINH">
+            Vệ sinh chung
+          </option>
+
+          <option value="TRUONG_CA">
+            Trưởng ca
+          </option>
+
+        </select>
+
+      </div>
+
+      <button
+        id="startButton"
+        class="primary"
+        type="button"
+      >
+        Bắt đầu kiểm thử
+      </button>
+
+      <div
+        id="sessionMessage"
+        class="message"
+      ></div>
+
+    </section>
+
+    <div id="tabs" class="tabs" hidden>
+
+      <button
+        id="inventoryTab"
+        class="tab"
+        type="button"
+      >
+        1. Kiểm kê
+      </button>
+
+      <button
+        id="checklistTab"
+        class="tab"
+        type="button"
+      >
+        2. Checklist
+      </button>
+
+      <button
+        id="cameraTab"
+        class="tab"
+        type="button"
+      >
+        3. Camera
+      </button>
+
+    </div>
+
+    <section
+      id="simulationPanel"
+      class="simulation"
+      hidden
+    >
+
+      <h3>
+        NGHIỆM THU MÔ PHỎNG TRƯỞNG CA
+      </h3>
+
+      <p>
+        Chỉ dùng để kiểm thử điều kiện
+        chụp ảnh khóa cửa.
+      </p>
+
+      <div id="approvalControls"></div>
+
+      <button
+        id="applyApprovalButton"
+        class="secondary"
+        type="button"
+      >
+        Áp dụng trạng thái mô phỏng
+      </button>
+
+      <div
+        id="simulationMessage"
+        class="message"
+      ></div>
+
+    </section>
+
+    <section
+      id="moduleContainer"
+      hidden
+    ></section>
+
+    <section
+      id="toolsPanel"
+      class="panel"
+      hidden
+    >
+
+      <h2>2. Kiểm tra bản nháp</h2>
+
+      <button
+        id="restoreButton"
+        class="secondary"
+        type="button"
+      >
+        Lưu và khôi phục giao diện
+      </button>
+
+      <button
+        id="viewButton"
+        class="secondary"
+        type="button"
+      >
+        Xem dữ liệu bản nháp
+      </button>
+
+      <pre
+        id="draftResult"
+        class="result"
+        hidden
+      ></pre>
+
+    </section>
+
+    <section class="panel">
+
+      <h2>3. Kiểm thử tự động</h2>
+
+      <button
+        id="logicTestButton"
+        class="primary"
+        type="button"
+      >
+        Chạy 20 bài kiểm thử camera
+      </button>
+
+      <button
+        id="storageTestButton"
+        class="secondary"
+        type="button"
+      >
+        Chạy 8 bài kiểm thử lưu trữ
+      </button>
+
+      <div
+        id="versionInfo"
+        class="message"
+      ></div>
+
+      <pre
+        id="testResult"
+        class="result"
+        hidden
+      ></pre>
+
+    </section>
+
+    <section
+      id="completionPanel"
+      class="panel"
+      hidden
+    >
+
+      <h2>Kết quả hoàn thành</h2>
+
+      <pre
+        id="completionResult"
+        class="result success"
+      ></pre>
+
+    </section>
+
+  </main>
+
+  <footer>
+
+    PHỞ GÀ ĐỒI - SYSTEM V2.0
+
+    <br>
+
+    Giai đoạn 7.7 | Catalog 751
+
+  </footer>
+
+
+  <script src="./draft.js?v=752"></script>
+
+  <script src="./inventory.js?v=753"></script>
+
+  <script src="./checklist.js?v=760"></script>
+
+  <script src="./camera.js?v=770"></script>
+
+
+  <script>
+
+    "use strict";
+
+    /* ====================================================
+       01. KHAI BÁO
+    ==================================================== */
+
+    const $ = id => document.getElementById(id);
+
+    const SESSION_KEY =
+
+      "PGD_TEST_CAMERA_SESSION_770";
+
+    let context = null;
+
+    let activeModule = null;
+
+    let activeTab = "CAMERA";
+
+    let busy = false;
+
+    const approvalInputs = {};
+
+
+    /* ====================================================
+       02. HÀM HỖ TRỢ
+    ==================================================== */
+
+    function todayVietnam() {
+
+      const parts = new Intl.DateTimeFormat(
+
+        "en-GB",
+
+        {
+
+          timeZone: "Asia/Ho_Chi_Minh",
+
+          year: "numeric",
+
+          month: "2-digit",
+
+          day: "2-digit"
+
+        }
+
+      ).formatToParts(new Date());
+
+      const get = type =>
+
+        parts.find(p => p.type === type).value;
+
+      return [
+
+        get("year"),
+
+        get("month"),
+
+        get("day")
+
+      ].join("-");
+
+    }
+
+
+    function message(text, type) {
+
+      $("sessionMessage").textContent = text;
+
+      $("sessionMessage").className =
+
+        "message " + (type || "");
+
+    }
+
+
+    function showResult(id, data, success) {
+
+      const node = $(id);
+
+      node.hidden = false;
+
+      node.className =
+
+        "result " +
+
+        (success ? "success" : "error");
+
+      node.textContent =
+
+        typeof data === "string"
+
+          ? data
+
+          : JSON.stringify(data, null, 2);
+
+    }
+
+
+    function setBusy(value) {
+
+      busy = value;
+
+      [
+
+        "startButton",
+
+        "inventoryTab",
+
+        "checklistTab",
+
+        "cameraTab",
+
+        "restoreButton",
+
+        "viewButton",
+
+        "logicTestButton",
+
+        "storageTestButton",
+
+        "applyApprovalButton"
+
+      ].forEach(function (id) {
+
+        $(id).disabled = value;
+
+      });
+
+    }
+
+
+    $("workDate").value = todayVietnam();
+
+
+    /* ====================================================
+       03. KIỂM TRA PHIÊN BẢN
+    ==================================================== */
+
+    function checkModules() {
+
+      if (
+
+        !window.PGDDraft ||
+
+        !window.PGDInventory ||
+
+        !window.PGDChecklist ||
+
+        !window.PGDCamera
+
+      ) {
+
+        throw new Error("Không tải đủ 4 module.");
+
+      }
+
+      if (
+
+        PGDDraft.config.VERSION !== "7.5.2" ||
+
+        PGDInventory.config.VERSION !== "7.5.3" ||
+
+        PGDChecklist.config.VERSION !== "7.6" ||
+
+        PGDCamera.config.VERSION !== "7.7"
+
+      ) {
+
+        throw new Error("Sai phiên bản module.");
+
+      }
+
+      $("versionInfo").textContent =
+
+        "Draft: 7.5.2 | " +
+
+        "Inventory: 7.5.3 | " +
+
+        "Checklist: 7.6 | Camera: 7.7";
+
+      $("versionInfo").className =
+
+        "message success";
+
+    }
+
+
+    /* ====================================================
+       04. THÔNG TIN PHIÊN
+    ==================================================== */
+
+    function readContext() {
+
+      const employee = $("employee")
+
+        .value.trim().toUpperCase();
+
+      if (!/^TEST_[A-Z0-9_-]{1,19}$/.test(employee)) {
+
+        throw new Error(
+
+          "Chỉ sử dụng mã nhân viên TEST_."
+
+        );
+
+      }
+
+      const result = {
+
+        date: $("workDate").value,
+
+        branch: $("branch").value,
+
+        shift: $("shift").value,
+
+        employee: employee,
+
+        department: $("department").value
+
+      };
+
+      PGDDraft.makeKey(result);
+
+      return result;
+
+    }
+
+
+    function saveSession() {
+
+      try {
+
+        localStorage.setItem(
+
+          SESSION_KEY,
+
+          JSON.stringify({
+
+            context: context,
+
+            tab: activeTab
+
+          })
+
+        );
+
+      } catch (failure) {
+
+        console.warn(failure);
+
+      }
+
+    }
+
+
+    /* ====================================================
+       05. NGHIỆM THU MÔ PHỎNG
+    ==================================================== */
+
+    function createApprovalControls() {
+
+      $("approvalControls").replaceChildren();
+
+      [
+
+        ["BEP_PHO", "Đã nghiệm thu Bếp phở"],
+
+        ["BEP_VAT_TU", "Đã nghiệm thu Bếp vật tư"],
+
+        ["CHAY_BAN", "Đã nghiệm thu Chạy bàn"],
+
+        ["VE_SINH", "Đã nghiệm thu Vệ sinh chung"]
+
+      ].forEach(function (row) {
+
+        const label = document.createElement("label");
+
+        const input = document.createElement("input");
+
+        input.type = "checkbox";
+
+        const span = document.createElement("span");
+
+        span.textContent = row[1];
+
+        label.append(input, span);
+
+        $("approvalControls").appendChild(label);
+
+        approvalInputs[row[0]] = input;
+
+      });
+
+      $("simulationMessage").textContent =
+
+        "Chưa áp dụng nghiệm thu mô phỏng.";
+
+    }
+
+
+    $("applyApprovalButton").addEventListener(
+
+      "click",
+
+      async function () {
+
+        if (
+
+          busy ||
+
+          !activeModule ||
+
+          activeTab !== "CAMERA" ||
+
+          context.department !== "TRUONG_CA"
+
+        ) return;
+
+        setBusy(true);
+
+        try {
+
+          const approvals = {};
+
+          Object.entries(approvalInputs).forEach(
+
+            function (entry) {
+
+              approvals[entry[0]] = entry[1].checked;
+
+            }
+
+          );
+
+          const state =
+
+            await activeModule.setTestApprovals(
+
+              approvals
+
+            );
+
+          $("simulationMessage").textContent =
+
+            state.readyForLock
+
+              ? "Đủ điều kiện chụp ảnh khóa cửa."
+
+              : "Đã áp dụng. Kiểm tra các điều kiện còn thiếu.";
+
+        } catch (failure) {
+
+          message(failure.message, "error");
+
+        } finally {
+
+          setBusy(false);
+
+        }
+
+      }
+
+    );
+
+
+    /* ====================================================
+       06. HIỂN THỊ KẾT QUẢ
+    ==================================================== */
+
+    function showCompletion(data) {
+
+      $("completionPanel").hidden = false;
+
+      showResult(
+
+        "completionResult",
+
+        {
+
+          message: "Hợp lệ cục bộ. Chưa gửi máy chủ.",
+
+          department: context.department,
+
+          module: activeTab,
+
+          completed: data.completed,
+
+          total: data.total,
+
+          photos: Object.keys(data.photos || {}),
+
+          checklist: data.checklist || null,
+
+          inventory: data.inventory || null,
+
+          simulation: data.testOnly === true
+
+        },
+
+        true
+
+      );
+
+    }
+
+
+    /* ====================================================
+       07. MỞ MODULE
+    ==================================================== */
+
+    async function mountActive() {
+
+      $("tabs").hidden = false;
+
+      $("toolsPanel").hidden = false;
+
+      $("moduleContainer").hidden = false;
+
+      $("completionPanel").hidden = true;
+
+      $("draftResult").hidden = true;
+
+      $("inventoryTab").classList.toggle(
+
+        "active",
+
+        activeTab === "INVENTORY"
+
+      );
+
+      $("checklistTab").classList.toggle(
+
+        "active",
+
+        activeTab === "CHECKLIST"
+
+      );
+
+      $("cameraTab").classList.toggle(
+
+        "active",
+
+        activeTab === "CAMERA"
+
+      );
+
+      const simulation =
+
+        context.department === "TRUONG_CA" &&
+
+        activeTab === "CAMERA";
+
+      $("simulationPanel").hidden = !simulation;
+
+      if (simulation) {
+
+        createApprovalControls();
+
+      }
+
+      const options = {
+
+        container: $("moduleContainer"),
+
+        context: context,
+
+        onComplete: showCompletion,
+
+        onChange: function (state) {
+
+          $("completionPanel").hidden = true;
+
+          if (simulation) {
+
+            $("simulationMessage").textContent =
+
+              state.readyForLock
+
+                ? "Đủ điều kiện chụp ảnh khóa cửa."
+
+                : "Chờ nghiệm thu, checklist và 4 ảnh đầu.";
+
+          }
+
+        }
+
+      };
+
+      if (activeTab === "INVENTORY") {
+
+        activeModule =
+
+          await PGDInventory.mount(options);
+
+      } else if (activeTab === "CHECKLIST") {
+
+        activeModule =
+
+          await PGDChecklist.mount(
+
+            Object.assign(
+
+              {}, options, {testMode: true}
+
+            )
+
+          );
+
+      } else {
+
+        activeModule =
+
+          await PGDCamera.mount(
+
+            Object.assign(
+
+              {}, options, {testMode: true}
+
+            )
+
+          );
+
+      }
+
+      saveSession();
+
+      message(
+
+        "Đã mở giao diện kiểm thử.",
+
+        "success"
+
+      );
+
+    }
+
+
+    /* ====================================================
+       08. CHUYỂN MODULE
+    ==================================================== */
+
+    async function switchTab(tab) {
+
+      if (busy || !context) return;
+
+      setBusy(true);
+
+      try {
+
+        if (activeModule) {
+
+          await activeModule.destroy();
+
+          activeModule = null;
+
+        }
+
+        activeTab = tab;
+
+        await mountActive();
+
+      } finally {
+
+        setBusy(false);
+
+      }
+
+    }
+
+
+    async function startSession(tab) {
+
+      if (busy) return;
+
+      setBusy(true);
+
+      try {
+
+        checkModules();
+
+        const next = readContext();
+
+        if (activeModule) {
+
+          await activeModule.destroy();
+
+          activeModule = null;
+
+        }
+
+        context = next;
+
+        activeTab = [
+
+          "INVENTORY",
+
+          "CHECKLIST",
+
+          "CAMERA"
+
+        ].includes(tab) ? tab : "CAMERA";
+
+        await mountActive();
+
+      } finally {
+
+        setBusy(false);
+
+      }
+
+    }
+
+
+    function handleFailure(failure) {
+
+      message(failure.message, "error");
+
+    }
+
+
+    $("startButton").addEventListener(
+
+      "click",
+
+      function () {
+
+        startSession("CAMERA").catch(handleFailure);
+
+      }
+
+    );
+
+
+    $("inventoryTab").addEventListener(
+
+      "click",
+
+      function () {
+
+        switchTab("INVENTORY").catch(handleFailure);
+
+      }
+
+    );
+
+
+    $("checklistTab").addEventListener(
+
+      "click",
+
+      function () {
+
+        switchTab("CHECKLIST").catch(handleFailure);
+
+      }
+
+    );
+
+
+    $("cameraTab").addEventListener(
+
+      "click",
+
+      function () {
+
+        switchTab("CAMERA").catch(handleFailure);
+
+      }
+
+    );
+
+
+    $("restoreButton").addEventListener(
+
+      "click",
+
+      function () {
+
+        switchTab(activeTab).catch(handleFailure);
+
+      }
+
+    );
+
+
+    /* ====================================================
+       09. XEM DỮ LIỆU BẢN NHÁP
+    ==================================================== */
+
+    $("viewButton").addEventListener(
+
+      "click",
+
+      async function () {
+
+        if (busy || !activeModule) return;
+
+        setBusy(true);
+
+        try {
+
+          await activeModule.flush();
+
+          const record =
+
+            await PGDDraft.restoreLocal(context);
+
+          if (!record) {
+
+            showResult(
+
+              "draftResult",
+
+              "Chưa có bản nháp.",
+
+              true
+
+            );
+
+            return;
+
+          }
+
+          const photos = Object.entries(
+
+            record.photos || {}
+
+          ).map(function (entry) {
+
+            return {
+
+              id: entry[0],
+
+              length: (entry[1].data || "").length,
+
+              updatedAt: entry[1].updatedAt
+
+            };
+
+          });
+
+          showResult(
+
+            "draftResult",
+
+            {
+
+              key: record.key,
+
+              status: record.status,
+
+              catalogRevision: record.catalogRevision,
+
+              localRevision: record.localRevision,
+
+              data: record.data,
+
+              photos: photos
+
+            },
+
+            true
+
+          );
+
+        } catch (failure) {
+
+          showResult(
+
+            "draftResult",
+
+            failure.message,
+
+            false
+
+          );
+
+        } finally {
+
+          setBusy(false);
+
+        }
+
+      }
+
+    );
+
+
+    /* ====================================================
+       10. KIỂM THỬ LƯU TRỮ - 8 BÀI
+    ==================================================== */
+
+    async function testStorage() {
+
+      let passed = 0;
+
+      const total = 8;
+
+      const results = [];
+
+      const testContext = {
+
+        date: todayVietnam(),
+
+        branch: "CS1",
+
+        shift: "TOI",
+
+        department: "BEP_PHO",
+
+        employee:
+
+          "TEST_CAM_" +
+
+          Date.now().toString(36).toUpperCase()
+
+      };
+
+      function check(name, condition) {
+
+        if (!condition) {
+
+          throw new Error(name);
+
+        }
+
+        passed++;
+
+        results.push(
+
+          "ĐẠT " + passed + " - " + name
+
+        );
+
+      }
+
+      try {
+
+        await PGDDraft.saveFieldsLocal(
+
+          testContext,
+
+          {
+
+            inventory: {
+
+              KK001: {
+
+                remaining: 12,
+
+                waste: 0
+
+              }
+
+            },
+
+            checklist: {
+
+              CL001: true
+
+            }
+
+          }
+
+        );
+
+        const canvas =
+
+          document.createElement("canvas");
+
+        canvas.width = 640;
+
+        canvas.height = 480;
+
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "#941c1c";
+
+        ctx.fillRect(0, 0, 640, 480);
+
+        const catalog =
+
+          PGDCamera.getCatalog("BEP_PHO");
+
+        const first =
+
+          await PGDCamera.processImage(
+
+            canvas,
+
+            testContext,
+
+            catalog[0]
+
+          );
+
+        await PGDDraft.savePhotoLocal(
+
+          testContext,
+
+          "HA001",
+
+          first.data
+
+        );
+
+        let record =
+
+          await PGDDraft.restoreLocal(testContext);
+
+        check(
+
+          "Lưu và khôi phục ảnh HA001",
+
+          record.photos.HA001.data === first.data
+
+        );
+
+        check(
+
+          "Lưu ảnh không mất kiểm kê",
+
+          record.data.inventory.KK001.remaining === 12
+
+        );
+
+        check(
+
+          "Lưu ảnh không mất checklist",
+
+          record.data.checklist.CL001 === true
+
+        );
+
+        ctx.fillStyle = "#f4e5a4";
+
+        ctx.fillRect(0, 0, 640, 480);
+
+        const second =
+
+          await PGDCamera.processImage(
+
+            canvas,
+
+            testContext,
+
+            catalog[1]
+
+          );
+
+        await PGDDraft.savePhotoLocal(
+
+          testContext,
+
+          "HA002",
+
+          second.data
+
+        );
+
+        record =
+
+          await PGDDraft.restoreLocal(testContext);
+
+        check(
+
+          "Lưu hai ảnh độc lập",
+
+          record.photos.HA001.data === first.data &&
+
+          record.photos.HA002.data === second.data
+
+        );
+
+        await PGDDraft.saveFieldsLocal(
+
+          testContext,
+
+          {
+
+            checklist: {
+
+              CL001: true,
+
+              CL002: true
+
+            }
+
+          }
+
+        );
+
+        record =
+
+          await PGDDraft.restoreLocal(testContext);
+
+        check(
+
+          "Cập nhật checklist không mất ảnh",
+
+          record.photos.HA001.data === first.data &&
+
+          record.photos.HA002.data === second.data
+
+        );
+
+        await PGDDraft.saveFieldsLocal(
+
+          testContext,
+
+          {
+
+            inventory: {
+
+              KK001: {
+
+                remaining: 15,
+
+                waste: 0
+
+              }
+
+            }
+
+          }
+
+        );
+
+        record =
+
+          await PGDDraft.restoreLocal(testContext);
+
+        check(
+
+          "Cập nhật kiểm kê không mất ảnh",
+
+          record.data.inventory.KK001.remaining === 15 &&
+
+          record.photos.HA002.data === second.data
+
+        );
+
+        await PGDDraft.removePhotoLocal(
+
+          testContext,
+
+          "HA001"
+
+        );
+
+        record =
+
+          await PGDDraft.restoreLocal(testContext);
+
+        check(
+
+          "Xóa một ảnh không mất ảnh khác",
+
+          !record.photos.HA001 &&
+
+          record.photos.HA002.data === second.data
+
+        );
+
+        const another =
+
+          await PGDDraft.restoreLocal(
+
+            Object.assign(
+
+              {},
+
+              testContext,
+
+              {branch: "CS2"}
+
+            )
+
+          );
+
+        check(
+
+          "Ảnh không lẫn giữa hai cơ sở",
+
+          !another
+
+        );
+
+        return {
+
+          success: true,
+
+          passed: passed,
+
+          total: total,
+
+          results: results,
+
+          testEmployee: testContext.employee
+
+        };
+
+      } catch (failure) {
+
+        return {
+
+          success: false,
+
+          passed: passed,
+
+          total: total,
+
+          results: results,
+
+          error: failure.message,
+
+          testEmployee: testContext.employee
+
+        };
+
+      }
+
+    }
+
+
+    /* ====================================================
+       11. CHẠY KIỂM THỬ
+    ==================================================== */
+
+    async function runTest(callback) {
+
+      if (busy) return;
+
+      setBusy(true);
+
+      try {
+
+        checkModules();
+
+        if (activeModule) {
+
+          await activeModule.flush();
+
+        }
+
+        showResult(
+
+          "testResult",
+
+          "Đang chạy kiểm thử...",
+
+          true
+
+        );
+
+        const result = await callback();
+
+        const lines = [
+
+          "KẾT QUẢ: " +
+
+            result.passed + "/" +
+
+            result.total,
+
+          "",
+
+          ...(result.results || [])
+
+        ];
+
+        if (result.error) {
+
+          lines.push("", "LỖI: " + result.error);
+
+        }
+
+        if (result.testEmployee) {
+
+          lines.push(
+
+            "",
+
+            "Mã thử nghiệm: " + result.testEmployee
+
+          );
+
+        }
+
+        lines.push(
+
+          "",
+
+          result.success
+
+            ? "TEST_COMPLETED"
+
+            : "TEST_FAILED"
+
+        );
+
+        showResult(
+
+          "testResult",
+
+          lines.join("\n"),
+
+          result.success
+
+        );
+
+      } catch (failure) {
+
+        showResult(
+
+          "testResult",
+
+          failure.message,
+
+          false
+
+        );
+
+      } finally {
+
+        setBusy(false);
+
+      }
+
+    }
+
+
+    $("logicTestButton").addEventListener(
+
+      "click",
+
+      function () {
+
+        runTest(PGDCamera.selfTest);
+
+      }
+
+    );
+
+
+    $("storageTestButton").addEventListener(
+
+      "click",
+
+      function () {
+
+        runTest(testStorage);
+
+      }
+
+    );
+
+
+    /* ====================================================
+       12. CẢNH BÁO ĐÓNG TRANG
+    ==================================================== */
+
+    window.addEventListener(
+
+      "beforeunload",
+
+      function (event) {
+
+        if (!activeModule) return;
+
+        const state = activeModule.getState();
+
+        if (
+
+          state.pending > 0 ||
+
+          state.processing ||
+
+          state.cameraOpen ||
+
+          state.error
+
+        ) {
+
+          event.preventDefault();
+
+          event.returnValue = "";
+
+        }
+
+      }
+
+    );
+
+
+    /* ====================================================
+       13. KHỞI TẠO
+    ==================================================== */
+
+    async function initialize() {
+
+      try {
+
+        checkModules();
+
+        await PGDDraft.openDatabase();
+
+        message(
+
+          "Hệ thống camera đã sẵn sàng.",
+
+          "success"
+
+        );
+
+        let previous = null;
+
+        try {
+
+          previous = JSON.parse(
+
+            localStorage.getItem(SESSION_KEY) ||
+
+            "null"
+
+          );
+
+        } catch (failure) {
+
+          previous = null;
+
+        }
+
+        if (previous && previous.context) {
+
+          const old = previous.context;
+
+          $("workDate").value = old.date;
+
+          $("branch").value = old.branch;
+
+          $("shift").value = old.shift;
+
+          $("employee").value = old.employee;
+
+          $("department").value = old.department;
+
+          await startSession(previous.tab);
+
+        }
+
+      } catch (failure) {
+
+        message(failure.message, "error");
+
+      }
+
+    }
+
+    initialize();
+
+  </script>
+
+</body>
+
+</html>
