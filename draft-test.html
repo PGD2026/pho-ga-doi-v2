@@ -1,1 +1,682 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>PHỞ GÀ ĐỒI - TEST 7.4</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #121212;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 16px;
+    }
+
+    main {
+      max-width: 600px;
+      margin: auto;
+    }
+
+    header {
+      background: #941c1c;
+      color: #f4e5a4;
+      padding: 24px 15px;
+      text-align: center;
+      border-radius: 14px;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 27px;
+    }
+
+    section {
+      background: #242424;
+      padding: 18px;
+      margin-top: 15px;
+      border-radius: 12px;
+    }
+
+    label {
+      display: block;
+      margin: 15px 0 8px;
+      color: #f4e5a4;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    textarea {
+      width: 100%;
+      background: #161616;
+      color: white;
+      border: 1px solid #555;
+      padding: 13px;
+      font-size: 16px;
+      border-radius: 8px;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      margin: 10px 0;
+    }
+
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+    }
+
+    button {
+      width: 100%;
+      background: #941c1c;
+      color: #f4e5a4;
+      border: 0;
+      padding: 15px;
+      font-size: 15px;
+      font-weight: bold;
+      border-radius: 8px;
+      margin-top: 12px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+    }
+
+    #status {
+      color: #81d49a;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    #preview {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
+    #results {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .muted {
+      color: #aaaaaa;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<main>
+
+  <header>
+
+    <h1>PHỞ GÀ ĐỒI</h1>
+
+    <div>ngon từ gà</div>
+
+    <p>V2.0 - KIỂM THỬ BẢN NHÁP 7.4</p>
+
+  </header>
+
+  <section>
+
+    <strong>CS1 - 28 Võ Chí Công</strong>
+
+    <p class="muted">
+
+      Ca tối - Bếp phở - Tài khoản kiểm thử
+
+    </p>
+
+    <div id="status">Đang mở bộ nhớ thiết bị...</div>
+
+  </section>
+
+  <section>
+
+    <label for="chicken">Gà sống còn lại (con)</label>
+
+    <input id="chicken"
+           type="number"
+           min="0"
+           step="1"
+           disabled>
+
+    <label for="noodles">Bánh phở còn lại (kg)</label>
+
+    <input id="noodles"
+           type="number"
+           min="0"
+           step="0.1"
+           disabled>
+
+    <label>
+
+      <input type="checkbox"
+             id="checklist"
+             disabled>
+
+      Đã kiểm tra nguyên liệu
+
+    </label>
+
+    <label for="note">Ghi chú</label>
+
+    <textarea id="note"
+              rows="4"
+              maxlength="1000"
+              disabled></textarea>
+
+    <label>Ảnh khu vực làm phở</label>
+
+    <input type="file"
+           id="camera"
+           accept="image/*"
+           capture="environment"
+           disabled>
+
+    <img id="preview" alt="Ảnh bản nháp" hidden>
+
+    <button id="reload" disabled>
+
+      Tải lại trang để kiểm tra khôi phục
+
+    </button>
+
+  </section>
+
+  <section>
+
+    <strong>KIỂM THỬ TỰ ĐỘNG</strong>
+
+    <button id="runTest" disabled>
+
+      Chạy 10 bài kiểm thử
+
+    </button>
+
+    <pre id="results"></pre>
+
+  </section>
+
+  <p class="muted">
+
+    Đây là trang TEST lưu trên điện thoại.
+
+    Chưa kết nối Google Sheet, Drive hoặc Telegram.
+
+    Không sử dụng thông tin nhân viên thật.
+
+  </p>
+
+</main>
+
+<script src="./draft.js?v=740"></script>
+
+<script>
+
+  "use strict";
+
+  const context = {
+
+    date: "2026-11-25",
+
+    branch: "CS1",
+
+    shift: "TOI",
+
+    department: "BEP_PHO",
+
+    employee: "TEST_LOCAL"
+
+  };
+
+  const $ = id => document.getElementById(id);
+
+  let pending = Promise.resolve();
+
+  let ready = false;
+
+  let photoProcessing = false;
+
+  function showStatus(message, error) {
+
+    $("status").textContent = message;
+
+    $("status").style.color = error
+
+      ? "#ff8585"
+
+      : "#81d49a";
+
+  }
+
+  function readQuantity(id) {
+
+    const value = $(id).value;
+
+    return value === "" ? null : Number(value);
+
+  }
+
+  function collectData() {
+
+    return {
+
+      inventory: {
+
+        KK001: {
+
+          remaining: readQuantity("chicken"),
+
+          waste: 0
+
+        },
+
+        KK002: {
+
+          remaining: readQuantity("noodles"),
+
+          waste: 0
+
+        }
+
+      },
+
+      supplies: {},
+
+      checklist: {
+
+        CL001: $("checklist").checked
+
+      },
+
+      wasteNote: "",
+
+      generalNote: $("note").value
+
+    };
+
+  }
+
+  function enqueue(callback) {
+
+    pending = pending
+
+      .catch(function() {})
+
+      .then(callback);
+
+    pending.catch(function(error) {
+
+      showStatus(
+
+        "Lỗi lưu dữ liệu: " + error.message,
+
+        true
+
+      );
+
+    });
+
+    return pending;
+
+  }
+
+  function saveForm() {
+
+    if (!ready) return;
+
+    const data = collectData();
+
+    showStatus("Đang lưu trên điện thoại...");
+
+    enqueue(async function() {
+
+      const record = await PGDDraft.saveLocal(
+
+        context, data
+
+      );
+
+      showStatus(
+
+        "✓ Đã lưu trên điện thoại\n" +
+
+        new Date(record.updatedAt)
+
+          .toLocaleTimeString("vi-VN") +
+
+        "\nChưa đồng bộ máy chủ"
+
+      );
+
+    });
+
+  }
+
+  async function compressPhoto(file) {
+
+    const url = URL.createObjectURL(file);
+
+    try {
+
+      const image = new Image();
+
+      await new Promise(function(resolve, reject) {
+
+        image.onload = resolve;
+
+        image.onerror = reject;
+
+        image.src = url;
+
+      });
+
+      const ratio = Math.min(
+
+        1,
+
+        1000 / Math.max(image.width, image.height)
+
+      );
+
+      const canvas = document.createElement("canvas");
+
+      canvas.width = Math.max(
+
+        1, Math.round(image.width * ratio)
+
+      );
+
+      canvas.height = Math.max(
+
+        1, Math.round(image.height * ratio)
+
+      );
+
+      const ctx = canvas.getContext("2d");
+
+      ctx.fillStyle = "#ffffff";
+
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.drawImage(
+
+        image, 0, 0, canvas.width, canvas.height
+
+      );
+
+      let quality = 0.75;
+
+      let data = canvas.toDataURL(
+
+        "image/jpeg", quality
+
+      );
+
+      while (data.length > 750000 && quality > 0.3) {
+
+        quality -= 0.1;
+
+        data = canvas.toDataURL(
+
+          "image/jpeg", quality
+
+        );
+
+      }
+
+      if (data.length > 750000) {
+
+        throw new Error("Ảnh quá lớn.");
+
+      }
+
+      return data;
+
+    } finally {
+
+      URL.revokeObjectURL(url);
+
+    }
+
+  }
+
+  $("camera").addEventListener("change", async function() {
+
+    const file = this.files[0];
+
+    if (!file || !ready || photoProcessing) return;
+
+    photoProcessing = true;
+
+    $("camera").disabled = true;
+
+    $("reload").disabled = true;
+
+    showStatus("Đang xử lý ảnh...");
+
+    try {
+
+      const data = await compressPhoto(file);
+
+      await enqueue(async function() {
+
+        await PGDDraft.savePhotoLocal(
+
+          context, "HA001", data
+
+        );
+
+        $("preview").src = data;
+
+        $("preview").hidden = false;
+
+        showStatus(
+
+          "✓ Đã lưu hình ảnh trên điện thoại\n" +
+
+          "Chưa đồng bộ máy chủ"
+
+        );
+
+      });
+
+    } catch (error) {
+
+      showStatus(
+
+        "Lỗi hình ảnh: " + error.message,
+
+        true
+
+      );
+
+    } finally {
+
+      photoProcessing = false;
+
+      $("camera").disabled = false;
+
+      $("reload").disabled = false;
+
+      this.value = "";
+
+    }
+
+  });
+
+  ["chicken", "noodles", "note"].forEach(function(id) {
+
+    $(id).addEventListener("input", saveForm);
+
+  });
+
+  $("checklist").addEventListener("change", saveForm);
+
+  $("reload").addEventListener("click", async function() {
+
+    try {
+
+      await pending;
+
+      if (!photoProcessing) location.reload();
+
+    } catch (error) {
+
+      showStatus(
+
+        "Chưa thể tải lại: " + error.message,
+
+        true
+
+      );
+
+    }
+
+  });
+
+  $("runTest").addEventListener("click", async function() {
+
+    this.disabled = true;
+
+    $("results").textContent = "Đang kiểm thử...";
+
+    try {
+
+      const result = await PGDDraft.selfTest();
+
+      $("results").textContent =
+
+        result.results.join("\n") +
+
+        "\n\nKẾT QUẢ: " +
+
+        result.passed + "/" + result.total +
+
+        (result.error ? "\nLỗi: " + result.error : "");
+
+    } finally {
+
+      this.disabled = false;
+
+    }
+
+  });
+
+  async function initialize() {
+
+    try {
+
+      await PGDDraft.openDatabase();
+
+      const record = await PGDDraft.restoreLocal(context);
+
+      if (record) {
+
+        const data = record.data || {};
+
+        const inventory = data.inventory || {};
+
+        const checklist = data.checklist || {};
+
+        $("chicken").value =
+
+          inventory.KK001?.remaining ?? "";
+
+        $("noodles").value =
+
+          inventory.KK002?.remaining ?? "";
+
+        $("checklist").checked =
+
+          checklist.CL001 === true;
+
+        $("note").value = data.generalNote || "";
+
+        if (record.photos?.HA001?.data) {
+
+          $("preview").src = record.photos.HA001.data;
+
+          $("preview").hidden = false;
+
+        }
+
+        showStatus(
+
+          "✓ Đã khôi phục bản nháp\n" +
+
+          "Lưu gần nhất: " +
+
+          new Date(record.updatedAt)
+
+            .toLocaleString("vi-VN") +
+
+          "\nChưa đồng bộ máy chủ"
+
+        );
+
+      } else {
+
+        showStatus("Chưa có bản nháp. Có thể bắt đầu nhập.");
+
+      }
+
+      ready = true;
+
+      [
+
+        "chicken", "noodles", "checklist",
+
+        "note", "camera", "reload", "runTest"
+
+      ].forEach(id => {
+
+        $(id).disabled = false;
+
+      });
+
+    } catch (error) {
+
+      showStatus(
+
+        "Không mở được bộ nhớ: " + error.message,
+
+        true
+
+      );
+
+    }
+
+  }
+
+  initialize();
+
+</script>
+
+</body>
+</html>
