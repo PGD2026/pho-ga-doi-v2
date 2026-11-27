@@ -1,8 +1,8 @@
 
 /************************************************************
  * PHỞ GÀ ĐỒI - SYSTEM V2.0
- * GIAI ĐOẠN 7.8.2
  * FILE: sync.js
+ * VERSION: 7.8.4.2-B
  ************************************************************/
 
 (function(global) {
@@ -10,155 +10,180 @@
   "use strict";
 
   const CONFIG = Object.freeze({
-
-    VERSION: "7.8.2",
-
+    VERSION: "7.8.4.2-B",
     CATALOG_REVISION: "751",
-
     AUTOSAVE_MS: 5000,
-
     STATUS_REFRESH_MS: 15000
-
   });
 
   const running = new Map();
-
   const blocked = new Map();
-
-  const pending = new Map();
-
   const controllers = new Map();
 
+  function fail(code, message) {
+    const error = new Error(message);
+    error.code = code;
+    return error;
+  }
 
-  /* =====================================================
-     01. HÀM HỖ TRỢ
-  ===================================================== */
+  function assert(condition, code, message) {
+    if (!condition) throw fail(code, message);
+  }
 
   function clone(value) {
-
     return JSON.parse(JSON.stringify(value));
-
   }
-
-
-  function fail(code, message) {
-
-    const error = new Error(message);
-
-    error.code = code;
-
-    return error;
-
-  }
-
 
   function keyOf(context) {
-
-    return global.PGDDraft.makeKey(context);
-
+    return PGDDraft.makeKey(context);
   }
-
 
   function editable(status) {
-
     return ["DRAFT", "REJECTED"].includes(status);
-
   }
-
 
   function assertSession(context) {
 
-    const profile = global.PGDAPI.getProfile();
+    const profile = PGDAPI.getProfile();
 
-    if (
-
-      !profile ||
-
-      profile.code !== context.employee ||
-
-      profile.branch !== context.branch
-
-    ) {
-
-      throw fail(
-
-        "LOGIN_REQUIRED",
-
-        "Cần đăng nhập đúng tài khoản và cơ sở."
-
-      );
-
-    }
-
-  }
-
-
-  function wasteSignature(fields) {
-
-    const inventory = fields.inventory || {};
-
-    return JSON.stringify(
-
-      Object.keys(inventory)
-
-        .sort()
-
-        .filter(id => Number(inventory[id].waste) > 0)
-
-        .map(id => [id, inventory[id].waste])
-
+    assert(
+      profile &&
+      profile.code === context.employee &&
+      profile.branch === context.branch,
+      "LOGIN_REQUIRED",
+      "Đăng nhập đúng tài khoản để đồng bộ."
     );
 
   }
 
+  function canonical(value) {
 
-  function emptyFields() {
+    if (Array.isArray(value)) {
+      return "[" +
+        value.map(canonical).join(",") + "]";
+    }
 
-    return {
+    if (value && typeof value === "object") {
+      return "{" +
+        Object.keys(value).sort().map(key =>
+          JSON.stringify(key) + ":" +
+          canonical(value[key])
+        ).join(",") + "}";
+    }
 
-      inventory: {},
-
-      supplies: {},
-
-      checklist: {},
-
-      wasteNote: "",
-
-      generalNote: ""
-
-    };
+    return JSON.stringify(value);
 
   }
 
+  function equal(a, b) {
+    return canonical(a) === canonical(b);
+  }
 
-  /* =====================================================
-     02. CẬP NHẬT INDEXED DB AN TOÀN
-  ===================================================== */
+  function emptyFields() {
+    return {
+      inventory: {},
+      supplies: {},
+      checklist: {},
+      wasteNote: "",
+      generalNote: ""
+    };
+  }
+
+  function cleanFields(fields, context) {
+
+    const data = Object.assign(
+      emptyFields(),
+      clone(fields || {})
+    );
+
+    if (context.department === "TRUONG_CA") {
+
+      [
+        "CL033", "CL034", "CL035",
+        "CL036", "CL047"
+      ].forEach(id => {
+        delete data.checklist[id];
+      });
+
+    }
+
+    return data;
+
+  }
+
+  function wasteSignature(fields) {
+
+    return JSON.stringify(
+      Object.keys(fields.inventory || {})
+        .filter(id =>
+          Number(fields.inventory[id].waste) > 0
+        )
+        .sort()
+        .map(id => [
+          id,
+          Number(fields.inventory[id].waste)
+        ])
+    );
+
+  }
+
+  function requireModules() {
+
+    assert(
+      global.PGDAPI &&
+      global.PGDDraft &&
+      global.PGDOutbox,
+      "MODULE_MISSING",
+      "Thiếu module API, Draft hoặc Outbox."
+    );
+
+    assert(
+      typeof PGDAPI.requestState === "function" &&
+      typeof PGDAPI.sendPending === "function",
+      "API_UPGRADE_REQUIRED",
+      "Cần nâng cấp api.js."
+    );
+
+  }
+
+  async function withLock(context, callback) {
+
+    requireModules();
+
+    assert(
+      navigator.locks &&
+      typeof navigator.locks.request === "function",
+      "WEB_LOCKS_UNAVAILABLE",
+      "Trình duyệt chưa hỗ trợ khóa đồng bộ."
+    );
+
+    return navigator.locks.request(
+      "PGD_SYNC_" + keyOf(context),
+      {mode: "exclusive"},
+      callback
+    );
+
+  }
 
   async function atomicUpdate(context, updater) {
 
-    const db = await global.PGDDraft.openDatabase();
+    const db = await PGDDraft.openDatabase();
 
-    const key = keyOf(context);
-
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
 
       const tx = db.transaction(
-
         ["drafts", "draft_backups"],
-
         "readwrite"
-
       );
 
       const store = tx.objectStore("drafts");
 
-      const backups = tx.objectStore("draft_backups");
+      const backups =
+        tx.objectStore("draft_backups");
 
-      const request = store.get(key);
+      const request = store.get(keyOf(context));
 
       let result;
-
       let failure;
 
       request.onsuccess = function() {
@@ -166,568 +191,209 @@
         try {
 
           result = updater(
-
             request.result || null,
-
             backups
-
           );
 
-          if (result) {
-
-            store.put(result);
-
-          }
+          if (result) store.put(result);
 
         } catch (error) {
 
           failure = error;
-
           tx.abort();
 
         }
 
       };
 
-      tx.oncomplete = function() {
+      tx.oncomplete = () => resolve(result);
 
-        resolve(result);
-
-      };
-
-      tx.onerror = function() {
-
+      tx.onerror = () =>
         reject(failure || tx.error);
 
-      };
-
-      tx.onabort = function() {
-
+      tx.onabort = () =>
         reject(
-
-          failure ||
-
-          tx.error ||
-
-          new Error("Không cập nhật được IndexedDB.")
-
+          failure || tx.error ||
+          fail("LOCAL_WRITE_FAILED",
+               "Không cập nhật được bản nháp.")
         );
-
-      };
 
     });
 
   }
-
-
-  /* =====================================================
-     03. SAO LƯU BẢN NHÁP
-  ===================================================== */
 
   function backupRecord(store, record, reason) {
 
     if (!record) return;
 
     store.put({
-
-      backupId: global.PGDDraft.createId(),
-
+      backupId: PGDDraft.createId(),
       draftKey: record.key,
-
       reason: reason,
-
       backedUpAt: new Date().toISOString(),
-
       record: clone(record)
-
     });
 
   }
 
-
   /* =====================================================
-     04. KHÔI PHỤC TỪ MÁY CHỦ
+     XÁC MINH NỘI DUNG MÁY CHỦ
   ===================================================== */
 
-  async function restore(context) {
-
-    assertSession(context);
-
-    const key = keyOf(context);
-
-    if (running.has(key) || pending.has(key)) {
-
-      throw fail(
-
-        "SYNC_BUSY",
-
-        "Đang có yêu cầu đồng bộ chưa hoàn tất."
-
-      );
-
-    }
-
-    const local = await global.PGDDraft.restoreLocal(context);
-
-    const server = await global.PGDAPI.restoreDraft(context);
-
-    if (local && local.dirty) {
-
-      if (local.serverVersion !== server.version) {
-
-        blocked.set(key, {
-
-          code: "VERSION_CONFLICT",
-
-          server: server
-
-        });
-
-        throw fail(
-
-          "VERSION_CONFLICT",
-
-          "Bản nháp trên máy chủ khác bản nháp điện thoại."
-
-        );
-
-      }
-
-      return {
-
-        source: "LOCAL",
-
-        record: local
-
-      };
-
-    }
-
-    if (!server.exists) {
-
-      if (local && local.serverVersion > 0) {
-
-        throw fail(
-
-          "SERVER_DRAFT_MISSING",
-
-          "Không tìm thấy bản nháp đã đồng bộ."
-
-        );
-
-      }
-
-      return {
-
-        source: "LOCAL",
-
-        record: local
-
-      };
-
-    }
-
-    if (server.catalogRevision !== "751") {
-
-      throw fail(
-
-        "CATALOG_MISMATCH",
-
-        "Danh mục máy chủ không tương thích."
-
-      );
-
-    }
-
-    const photos = {};
-
-    for (const id of Object.keys(server.photos || {})) {
-
-      const image = await global.PGDAPI.readPhoto(
-
-        context,
-
-        id
-
-      );
-
-      if (
-
-        typeof image.data !== "string" ||
-
-        !image.data.startsWith("data:image/jpeg;base64,") ||
-
-        image.data.length >
-
-          global.PGDDraft.config.MAX_PHOTO_LENGTH
-
-      ) {
-
-        throw fail(
-
-          "INVALID_PHOTO",
-
-          "Không khôi phục được ảnh " + id
-
-        );
-
-      }
-
-      photos[id] = {
-
-        data: image.data,
-
-        fileId: server.photos[id].fileId,
-
-        dirty: false,
-
-        updatedAt: server.photos[id].receivedAt
-
-      };
-
-    }
-
-    // Kiểm tra máy chủ không thay đổi trong lúc tải ảnh.
-
-    const latest = await global.PGDAPI.restoreDraft(context);
-
-    if (
-
-      latest.version !== server.version ||
-
-      latest.status !== server.status
-
-    ) {
-
-      throw fail(
-
-        "VERSION_CONFLICT",
-
-        "Máy chủ vừa thay đổi. Hãy khôi phục lại."
-
-      );
-
-    }
-
-    const record = await atomicUpdate(
-
-      context,
-
-      function(current, backups) {
-
-        if (
-
-          current && (
-
-            current.dirty ||
-
-            !local ||
-
-            current.localRevision !== local.localRevision ||
-
-            current.serverVersion !== local.serverVersion
-
-          )
-
-        ) {
-
-          throw fail(
-
-            "LOCAL_CHANGED",
-
-            "Điện thoại vừa phát sinh dữ liệu mới."
-
-          );
-
-        }
-
-        backupRecord(
-
-          backups,
-
-          current,
-
-          "SERVER_RESTORE"
-
-        );
-
-        return {
-
-          key: key,
-
-          context: clone(context),
-
-          deviceId: global.PGDDraft.getDeviceId(),
-
-          catalogRevision: "751",
-
-          data: Object.assign(
-
-            emptyFields(),
-
-            clone(server.data || {})
-
-          ),
-
-          photos: photos,
-
-          removedPhotos: [],
-
-          serverVersion: server.version,
-
-          localRevision: current
-
-            ? current.localRevision + 1
-
-            : 1,
-
-          dirty: false,
-
-          status: server.status,
-
-          createdAt: current
-
-            ? current.createdAt
-
-            : new Date().toISOString(),
-
-          updatedAt: new Date().toISOString(),
-
-          syncedAt: new Date().toISOString()
-
-        };
-
-      }
-
+  async function verifyContent(context, pending, server) {
+
+    assert(
+      server && server.success === true,
+      "INVALID_SERVER_DRAFT",
+      "Không đọc được bản nháp máy chủ."
     );
 
-    blocked.delete(key);
+    assert(
+      server.catalogRevision === "751",
+      "CATALOG_MISMATCH",
+      "Danh mục không tương thích."
+    );
 
-    return {
+    assert(
+      editable(server.status),
+      "LOCKED",
+      "Bản nháp đã bị khóa."
+    );
 
-      source: "SERVER",
+    const payload = pending.payload;
 
-      record: record
+    if (pending.action === "saveDraft") {
 
-    };
+      assert(
+        equal(
+          cleanFields(server.data, context),
+          cleanFields(payload.data, context)
+        ),
+        "CONTENT_MISMATCH",
+        "Nội dung máy chủ khác yêu cầu đã gửi."
+      );
 
-  }
+    } else if (pending.action === "savePhoto") {
 
+      const id = payload.photoId;
 
-  /* =====================================================
-     05. KIỂM TRA PHẢN HỒI GHI
-  ===================================================== */
+      assert(
+        server.photos && server.photos[id],
+        "PHOTO_MISSING",
+        "Không tìm thấy ảnh trên máy chủ."
+      );
 
-  function checkWriteResult(result, version) {
+      const image = await PGDAPI.readPhoto(
+        context, id
+      );
 
-    if (
+      assert(
+        image.data === payload.data,
+        "PHOTO_CONTENT_MISMATCH",
+        "Nội dung ảnh không trùng khớp."
+      );
 
-      !result ||
+    } else if (pending.action === "removePhoto") {
 
-      result.success !== true ||
+      assert(
+        !(server.photos || {})[payload.photoId],
+        "PHOTO_STILL_EXISTS",
+        "Liên kết ảnh chưa được xóa."
+      );
 
-      !Number.isInteger(result.version) ||
-
-      result.version < version ||
-
-      result.version > version + 1 ||
-
-      result.catalogRevision !== "751"
-
-    ) {
+    } else {
 
       throw fail(
-
-        "INVALID_WRITE_RESULT",
-
-        "Chưa xác nhận được kết quả ghi dữ liệu."
-
+        "INVALID_ACTION",
+        "Thao tác không hợp lệ."
       );
 
     }
 
-    return result;
+    const latest = await PGDAPI.restoreDraft(context);
+
+    assert(
+      latest.version === server.version &&
+      latest.status === server.status &&
+      equal(latest.data, server.data) &&
+      equal(latest.photos, server.photos),
+      "VERSION_CONFLICT",
+      "Máy chủ thay đổi trong lúc xác minh."
+    );
+
+    return latest;
 
   }
 
-
   /* =====================================================
-     06. GHI TỪNG YÊU CẦU
-     Không tự tạo requestId mới khi mất phản hồi.
+     XÁC NHẬN VÀO INDEXEDDB TRƯỚC KHI XÓA OUTBOX
   ===================================================== */
 
-  async function write(context, action, payload, version) {
+  async function acknowledge(context, pending, server) {
 
-    const key = keyOf(context);
+    const oldVersion = pending.expectedVersion;
 
-    const requestId = global.PGDDraft.createId();
+    const newVersion = server.version;
 
-    pending.set(key, {
-
-      action: action,
-
-      payload: clone(payload),
-
-      version: version,
-
-      requestId: requestId
-
-    });
-
-    let result;
-
-    try {
-
-      if (action === "saveDraft") {
-
-        result = await global.PGDAPI.saveDraft(
-
-          context,
-
-          payload.data,
-
-          version,
-
-          requestId
-
-        );
-
-      } else if (action === "savePhoto") {
-
-        result = await global.PGDAPI.savePhoto(
-
-          context,
-
-          payload.photoId,
-
-          payload.data,
-
-          version,
-
-          requestId
-
-        );
-
-      } else if (action === "removePhoto") {
-
-        result = await global.PGDAPI.removePhoto(
-
-          context,
-
-          payload.photoId,
-
-          version,
-
-          requestId
-
-        );
-
-      } else {
-
-        throw fail(
-
-          "INVALID_ACTION",
-
-          "Thao tác đồng bộ không hợp lệ."
-
-        );
-
-      }
-
-      checkWriteResult(result, version);
-
-      return result;
-
-    } catch (error) {
-
-      if (error.code === "VERSION_CONFLICT") {
-
-        pending.delete(key);
-
-      }
-
-      throw error;
-
-    }
-
-  }
-
-
-  /* =====================================================
-     07. GHI NHẬN PHIÊN BẢN TỪNG BƯỚC
-  ===================================================== */
-
-  async function acknowledge(
-
-    context,
-
-    oldVersion,
-
-    result,
-
-    photoId,
-
-    sentPhoto
-
-  ) {
-
-    const key = keyOf(context);
+    assert(
+      newVersion === oldVersion + 1 ||
+      (
+        pending.action === "removePhoto" &&
+        newVersion === oldVersion
+      ),
+      "INVALID_CONFIRMED_VERSION",
+      "Phiên bản xác nhận không hợp lệ."
+    );
 
     await atomicUpdate(context, function(record) {
 
-      if (!record) {
+      assert(
+        record,
+        "LOCAL_MISSING",
+        "Không tìm thấy bản nháp thiết bị."
+      );
 
-        throw fail(
+      assert(
+        editable(record.status),
+        "LOCKED",
+        "Bản nháp thiết bị đã bị khóa."
+      );
 
-          "LOCAL_MISSING",
+      assert(
+        record.serverVersion === oldVersion ||
+        record.serverVersion === newVersion,
+        "LOCAL_VERSION_CHANGED",
+        "Phiên bản thiết bị đã thay đổi."
+      );
 
-          "Không tìm thấy bản nháp điện thoại."
+      record.serverVersion = newVersion;
 
-        );
+      record.photos = record.photos || {};
 
-      }
+      if (pending.action === "savePhoto") {
 
-      if (record.serverVersion !== oldVersion) {
+        const id = pending.payload.photoId;
 
-        throw fail(
+        const photo = record.photos[id];
 
-          "LOCAL_VERSION_CHANGED",
+        if (
+          photo &&
+          photo.data === pending.payload.data &&
+          server.photos &&
+          server.photos[id]
+        ) {
 
-          "Phiên bản điện thoại vừa thay đổi."
+          photo.fileId =
+            server.photos[id].fileId;
 
-        );
+          photo.dirty = false;
 
-      }
-
-      record.serverVersion = result.version;
-
-      if (
-
-        photoId &&
-
-        sentPhoto &&
-
-        record.photos[photoId] &&
-
-        record.photos[photoId].data === sentPhoto.data &&
-
-        record.photos[photoId].updatedAt === sentPhoto.updatedAt &&
-
-        result.photos &&
-
-        result.photos[photoId]
-
-      ) {
-
-        record.photos[photoId].fileId =
-
-          result.photos[photoId].fileId;
-
-        record.photos[photoId].dirty = false;
+        }
 
       }
 
-      // Chưa được đánh dấu đồng bộ hoàn toàn.
+      // Không đánh dấu toàn bộ bản nháp đã đồng bộ.
+      // Có thể còn thay đổi mới hoặc ảnh chưa gửi.
 
       record.dirty = true;
 
@@ -735,438 +401,539 @@
 
     });
 
-    pending.delete(key);
+    await PGDOutbox.complete(
+      context,
+      pending.requestId,
+      newVersion
+    );
+
+    return server;
 
   }
 
+  /* =====================================================
+     PHÂN LOẠI LỖI
+  ===================================================== */
+
+  function isBlockingError(error) {
+
+    return [
+      "VERSION_CONFLICT",
+      "LOCKED",
+      "UNKNOWN",
+      "CONTENT_MISMATCH",
+      "PHOTO_CONTENT_MISMATCH",
+      "PHOTO_MISSING",
+      "PHOTO_STILL_EXISTS",
+      "LOCAL_VERSION_CHANGED",
+      "LOCAL_MISSING",
+      "INVALID_CONFIRMED_VERSION",
+      "CATALOG_MISMATCH"
+    ].includes(error.code);
+
+  }
+
+  async function preserveFailure(
+    context, pending, error
+  ) {
+
+    const code = error.code || "SYNC_ERROR";
+
+    if (isBlockingError(error)) {
+
+      await PGDOutbox.markBlocked(
+        context,
+        pending.requestId,
+        code
+      );
+
+      blocked.set(keyOf(context), {
+        code: code
+      });
+
+    } else {
+
+      await PGDOutbox.markUncertain(
+        context,
+        pending.requestId,
+        code
+      );
+
+    }
+
+  }
 
   /* =====================================================
-     08. ĐỒNG BỘ BẢN NHÁP
+     PHỤC HỒI YÊU CẦU ĐANG CHỜ
+  ===================================================== */
+
+  async function recoverInternal(context) {
+
+    assertSession(context);
+
+    const pending = await PGDOutbox.get(context);
+
+    if (!pending) {
+      return {
+        success: true,
+        recovered: false
+      };
+    }
+
+    assert(
+      pending.status !== "BLOCKED",
+      "OUTBOX_BLOCKED",
+      "Yêu cầu đang bị chặn. Không tự ghi đè."
+    );
+
+    assert(
+      navigator.onLine,
+      "OFFLINE",
+      "Thiết bị chưa có kết nối mạng."
+    );
+
+    try {
+
+      const state = await PGDAPI.requestState(
+        context,
+        pending.action,
+        pending.requestId,
+        pending.expectedVersion
+      );
+
+      let server;
+
+      if (state.state === "APPLIED") {
+
+        server = state.server;
+
+      } else if (state.state === "RETRY_ALLOWED") {
+
+        await PGDOutbox.markSending(
+          context,
+          pending.requestId
+        );
+
+        // Gửi lại đúng mã, nội dung và version cũ.
+
+        server = await PGDAPI.sendPending(pending);
+
+      } else {
+
+        throw fail(
+          state.state,
+          "Không thể tự phục hồi yêu cầu."
+        );
+
+      }
+
+      server = await verifyContent(
+        context, pending, server
+      );
+
+      await acknowledge(
+        context, pending, server
+      );
+
+      blocked.delete(keyOf(context));
+
+      return {
+        success: true,
+        recovered: true,
+        requestId: pending.requestId,
+        version: server.version,
+        recoveryState: state.state
+      };
+
+    } catch (error) {
+
+      await preserveFailure(
+        context, pending, error
+      );
+
+      throw error;
+
+    }
+
+  }
+
+  function recoverPending(context) {
+
+    return withLock(
+      context,
+      () => recoverInternal(context)
+    );
+
+  }
+
+  /* =====================================================
+     GHI YÊU CẦU MỚI
+  ===================================================== */
+
+  async function write(
+    context,
+    action,
+    payload,
+    version,
+    localRevision
+  ) {
+
+    const pending = await PGDOutbox.prepare(
+      context,
+      {
+        action: action,
+        requestId: PGDDraft.createId(),
+        expectedVersion: version,
+        localRevision: localRevision,
+        payload: payload
+      }
+    );
+
+    try {
+
+      await PGDOutbox.markSending(
+        context,
+        pending.requestId
+      );
+
+      let server = await PGDAPI.sendPending(
+        pending
+      );
+
+      server = await verifyContent(
+        context, pending, server
+      );
+
+      return await acknowledge(
+        context, pending, server
+      );
+
+    } catch (error) {
+
+      await preserveFailure(
+        context, pending, error
+      );
+
+      throw error;
+
+    }
+
+  }
+
+  /* =====================================================
+     ĐỒNG BỘ TOÀN BỘ BẢN NHÁP
   ===================================================== */
 
   async function performSync(context) {
 
     assertSession(context);
 
-    const key = keyOf(context);
+    assert(
+      navigator.onLine,
+      "OFFLINE",
+      "Thiết bị đang mất mạng."
+    );
 
-    if (blocked.has(key) || pending.has(key)) {
+    const health = await PGDAPI.health();
 
-      throw fail(
+    assert(
+      health.requestStateEnabled === true,
+      "RECOVERY_API_DISABLED",
+      "Backend phục hồi chưa sẵn sàng."
+    );
 
-        "SYNC_BLOCKED",
+    // Luôn phục hồi yêu cầu cũ trước.
 
-        "Cần kiểm tra yêu cầu đồng bộ trước đó."
+    await recoverInternal(context);
 
-      );
-
-    }
-
-    if (!navigator.onLine) {
-
-      return {
-
-        success: false,
-
-        status: "OFFLINE"
-
-      };
-
-    }
-
-    const local = await global.PGDDraft.restoreLocal(context);
+    const local = await PGDDraft.restoreLocal(
+      context
+    );
 
     if (!local) {
-
       return {
-
         success: true,
-
         status: "EMPTY"
-
       };
-
     }
 
-    if (!editable(local.status)) {
+    assert(
+      editable(local.status),
+      "LOCKED",
+      "Bản nháp không còn được chỉnh sửa."
+    );
 
-      return {
+    let server = await PGDAPI.restoreDraft(context);
 
-        success: true,
+    assert(
+      local.serverVersion === server.version,
+      "VERSION_CONFLICT",
+      "Dữ liệu máy chủ đã thay đổi."
+    );
 
-        status: "LOCKED"
-
-      };
-
-    }
+    assert(
+      editable(server.status),
+      "LOCKED",
+      "Bản nháp máy chủ đã bị khóa."
+    );
 
     if (!local.dirty) {
 
       return {
-
         success: true,
-
         status: "SYNCED",
-
-        version: local.serverVersion
-
+        version: server.version
       };
 
     }
 
     const snapshot = clone(local);
 
-    if (
+    const fields = cleanFields(
+      snapshot.data, context
+    );
 
-      snapshot.catalogRevision !== "751"
+    const photos = snapshot.photos || {};
 
-    ) {
-
-      throw fail(
-
-        "CATALOG_MISMATCH",
-
-        "Bản nháp không đúng danh mục 751."
-
-      );
-
-    }
-
-    const server = await global.PGDAPI.restoreDraft(context);
-
-    if (
-
-      server.version !== snapshot.serverVersion ||
-
-      !editable(server.status)
-
-    ) {
-
-      throw fail(
-
-        "VERSION_CONFLICT",
-
-        "Dữ liệu máy chủ đã thay đổi."
-
-      );
-
-    }
-
-    let version = server.version;
-
-    let result;
-
-    const fields = clone(snapshot.data);
-
-    // Không cho trình duyệt tự nghiệm thu hoặc khóa cửa.
-
-    if (context.department === "TRUONG_CA") {
-
-      ["CL033", "CL034", "CL035", "CL036", "CL047"]
-
-        .forEach(id => delete fields.checklist[id]);
-
-      if (snapshot.photos.HA014) {
-
-        throw fail(
-
-          "FINAL_LOCK_DISABLED",
-
-          "Ảnh khóa cửa chỉ được mở ở giai đoạn 7.10."
-
-        );
-
-      }
-
-    }
+    assert(
+      !photos.HA014,
+      "LOCK_PHOTO_DISABLED",
+      "Chưa kích hoạt ảnh khóa cửa."
+    );
 
     const wasteChanged =
+      wasteSignature(fields) !==
+      wasteSignature(server.data || {});
 
-      wasteSignature(server.data || {}) !==
-
-      wasteSignature(fields);
-
-    const wasteNote = fields.wasteNote || "";
-
-    // Bước 1: lưu số lượng và nội dung.
+    // Backend sẽ xóa giải trình và ảnh hàng hủy
+    // khi số lượng hàng hủy thay đổi.
 
     if (wasteChanged) {
 
-      fields.wasteNote = "";
+      const firstFields = clone(fields);
 
-    }
+      firstFields.wasteNote = "";
 
-    result = await write(
-
-      context,
-
-      "saveDraft",
-
-      {data: fields},
-
-      version
-
-    );
-
-    await acknowledge(context, version, result);
-
-    version = result.version;
-
-
-    // Bước 2: lưu giải trình sau khi số lượng đã cập nhật.
-
-    if (wasteChanged && wasteNote.trim()) {
-
-      fields.wasteNote = wasteNote;
-
-      result = await write(
-
+      server = await write(
         context,
-
         "saveDraft",
-
-        {data: fields},
-
-        version
-
+        {data: firstFields},
+        server.version,
+        snapshot.localRevision
       );
 
-      await acknowledge(context, version, result);
+    }
 
-      version = result.version;
+    if (
+      !server.exists ||
+      !equal(
+        cleanFields(server.data, context),
+        fields
+      )
+    ) {
+
+      server = await write(
+        context,
+        "saveDraft",
+        {data: fields},
+        server.version,
+        snapshot.localRevision
+      );
 
     }
 
-
-    // Bước 3: xóa các liên kết ảnh không còn sử dụng.
+    // Xóa các liên kết ảnh đã được xóa trên thiết bị.
 
     for (const id of snapshot.removedPhotos || []) {
 
-      if (snapshot.photos[id]) continue;
+      if ((server.photos || {})[id]) {
 
-      if (!(result.photos || {})[id]) continue;
+        server = await write(
+          context,
+          "removePhoto",
+          {photoId: id},
+          server.version,
+          snapshot.localRevision
+        );
 
-      result = await write(
-
-        context,
-
-        "removePhoto",
-
-        {photoId: id},
-
-        version
-
-      );
-
-      await acknowledge(context, version, result);
-
-      version = result.version;
+      }
 
     }
 
+    // Gửi ảnh mới hoặc ảnh đã thay đổi.
 
-    // Bước 4: gửi ảnh lần lượt.
+    for (const id of Object.keys(photos)) {
 
-    const ids = Object.keys(snapshot.photos || {}).sort();
+      const photo = photos[id];
 
-    for (const id of ids) {
-
-      const photo = snapshot.photos[id];
-
-      const remote = (result.photos || {})[id];
+      const remote = (server.photos || {})[id];
 
       if (
-
-        !photo.dirty &&
-
-        remote &&
-
-        photo.fileId === remote.fileId
-
+        photo.dirty ||
+        !remote ||
+        remote.fileId !== photo.fileId
       ) {
 
-        continue;
-
-      }
-
-      if (!photo.data) {
-
-        throw fail(
-
-          "PHOTO_MISSING",
-
+        assert(
+          typeof photo.data === "string",
+          "LOCAL_PHOTO_MISSING",
           "Thiếu dữ liệu ảnh " + id
+        );
 
+        server = await write(
+          context,
+          "savePhoto",
+          {
+            photoId: id,
+            data: photo.data
+          },
+          server.version,
+          snapshot.localRevision
         );
 
       }
 
-      result = await write(
-
-        context,
-
-        "savePhoto",
-
-        {
-
-          photoId: id,
-
-          data: photo.data
-
-        },
-
-        version
-
-      );
-
-      if (!(result.photos || {})[id]) {
-
-        throw fail(
-
-          "PHOTO_NOT_CONFIRMED",
-
-          "Máy chủ chưa xác nhận ảnh " + id
-
-        );
-
-      }
-
-      await acknowledge(
-
-        context,
-
-        version,
-
-        result,
-
-        id,
-
-        photo
-
-      );
-
-      version = result.version;
-
     }
 
+    // Kiểm tra toàn bộ dữ liệu sau khi đồng bộ.
 
-    // Bước 5: kiểm tra lại dữ liệu máy chủ.
+    const latest = await PGDAPI.restoreDraft(context);
 
-    const confirmed = await global.PGDAPI.restoreDraft(context);
-
-    if (
-
-      confirmed.version !== version ||
-
-      !editable(confirmed.status)
-
-    ) {
-
-      throw fail(
-
-        "VERSION_CONFLICT",
-
-        "Máy chủ vừa phát sinh thay đổi."
-
-      );
-
-    }
-
-    const remoteIds = Object.keys(
-
-      confirmed.photos || {}
-
-    ).sort();
-
-    if (JSON.stringify(ids) !== JSON.stringify(remoteIds)) {
-
-      throw fail(
-
-        "PHOTO_MISMATCH",
-
-        "Danh sách ảnh máy chủ chưa khớp điện thoại."
-
-      );
-
-    }
-
-
-    // Bước 6: chỉ đánh dấu sạch nếu không có thay đổi mới.
-
-    const saved = await global.PGDDraft.markSynced(
-
-      context,
-
-      version,
-
-      snapshot.localRevision
-
+    assert(
+      latest.version === server.version &&
+      editable(latest.status),
+      "VERSION_CONFLICT",
+      "Máy chủ vừa thay đổi."
     );
 
+    assert(
+      equal(
+        cleanFields(latest.data, context),
+        fields
+      ),
+      "CONTENT_MISMATCH",
+      "Dữ liệu cuối cùng chưa trùng khớp."
+    );
+
+    assert(
+      equal(
+        Object.keys(latest.photos || {}).sort(),
+        Object.keys(photos).sort()
+      ),
+      "PHOTO_SET_MISMATCH",
+      "Danh sách ảnh chưa trùng khớp."
+    );
+
+    // Đối chiếu nội dung thực tế từng ảnh.
+
+    for (const id of Object.keys(photos)) {
+
+      const image = await PGDAPI.readPhoto(
+        context, id
+      );
+
+      assert(
+        image.data === photos[id].data,
+        "PHOTO_CONTENT_MISMATCH",
+        "Ảnh chưa trùng khớp: " + id
+      );
+
+    }
+
+    const finalServer =
+      await PGDAPI.restoreDraft(context);
+
+    assert(
+      finalServer.version === latest.version &&
+      finalServer.status === latest.status &&
+      equal(finalServer.data, latest.data) &&
+      equal(finalServer.photos, latest.photos),
+      "VERSION_CONFLICT",
+      "Máy chủ thay đổi khi kiểm tra cuối."
+    );
+
+    // Chỉ đánh dấu sạch nếu thiết bị không có
+    // chỉnh sửa mới trong lúc gửi dữ liệu.
+
+    const current = await atomicUpdate(
+      context,
+      function(record) {
+
+        assert(
+          record &&
+          record.serverVersion === finalServer.version,
+          "LOCAL_VERSION_CHANGED",
+          "Phiên bản thiết bị không khớp."
+        );
+
+        if (
+          record.localRevision !==
+            snapshot.localRevision ||
+          !editable(record.status)
+        ) {
+          return record;
+        }
+
+        record.dirty = false;
+
+        record.removedPhotos = [];
+
+        Object.keys(record.photos || {})
+          .forEach(id => {
+
+            record.photos[id].dirty = false;
+
+            record.photos[id].fileId =
+              finalServer.photos[id].fileId;
+
+          });
+
+        record.syncedAt =
+          new Date().toISOString();
+
+        return record;
+
+      }
+    );
+
+    blocked.delete(keyOf(context));
+
     return {
-
       success: true,
-
-      status: saved.dirty
-
-        ? "PENDING_CHANGES"
-
+      status: current.dirty
+        ? "PENDING"
         : "SYNCED",
-
-      version: version,
-
-      photoCount: ids.length
-
+      version: finalServer.version
     };
 
   }
-
-
-  /* =====================================================
-     09. CHỐNG ĐỒNG BỘ TRÙNG
-  ===================================================== */
 
   function syncNow(context) {
 
     const key = keyOf(context);
 
     if (running.has(key)) {
-
       return running.get(key);
-
     }
 
-    const task = performSync(context)
+    const task = withLock(
+      context,
+      () => performSync(context)
+    ).catch(error => {
 
-      .catch(function(error) {
+      if (isBlockingError(error)) {
 
-        if (
+        blocked.set(key, {
+          code: error.code
+        });
 
-          error.code === "VERSION_CONFLICT" ||
+      }
 
-          pending.has(key)
+      throw error;
 
-        ) {
-
-          blocked.set(key, {
-
-            code: error.code || "SYNC_ERROR",
-
-            message: error.message
-
-          });
-
-        }
-
-        throw error;
-
-      })
-
-      .finally(function() {
-
-        running.delete(key);
-
-      });
+    }).finally(() => {
+      running.delete(key);
+    });
 
     running.set(key, task);
 
@@ -1174,68 +941,238 @@
 
   }
 
+  /* =====================================================
+     KHÔI PHỤC BẢN NHÁP TỪ MÁY CHỦ
+  ===================================================== */
+
+  function restore(context) {
+
+    return withLock(context, async function() {
+
+      assertSession(context);
+
+      // Không ghi đè bản nháp nếu còn yêu cầu cũ.
+
+      await recoverInternal(context);
+
+      const local = await PGDDraft.restoreLocal(
+        context
+      );
+
+      const server = await PGDAPI.restoreDraft(
+        context
+      );
+
+      if (local && local.dirty) {
+
+        assert(
+          local.serverVersion === server.version,
+          "VERSION_CONFLICT",
+          "Bản nháp thiết bị khác máy chủ."
+        );
+
+        return {
+          source: "LOCAL",
+          record: local
+        };
+
+      }
+
+      if (!server.exists) {
+
+        assert(
+          !local || local.serverVersion === 0,
+          "SERVER_DRAFT_MISSING",
+          "Không tìm thấy bản nháp máy chủ."
+        );
+
+        return {
+          source: "LOCAL",
+          record: local
+        };
+
+      }
+
+      assert(
+        server.catalogRevision === "751",
+        "CATALOG_MISMATCH",
+        "Danh mục không tương thích."
+      );
+
+      const photos = {};
+
+      for (const id of Object.keys(server.photos || {})) {
+
+        const image = await PGDAPI.readPhoto(
+          context, id
+        );
+
+        assert(
+          typeof image.data === "string" &&
+          image.data.startsWith(
+            "data:image/jpeg;base64,"
+          ) &&
+          image.data.length <=
+            PGDDraft.config.MAX_PHOTO_LENGTH,
+          "INVALID_PHOTO",
+          "Không khôi phục được ảnh."
+        );
+
+        photos[id] = {
+          data: image.data,
+          fileId: server.photos[id].fileId,
+          dirty: false,
+          updatedAt: server.photos[id].receivedAt
+        };
+
+      }
+
+      const latest = await PGDAPI.restoreDraft(
+        context
+      );
+
+      assert(
+        latest.version === server.version &&
+        latest.status === server.status &&
+        equal(latest.data, server.data) &&
+        equal(latest.photos, server.photos),
+        "VERSION_CONFLICT",
+        "Máy chủ thay đổi khi khôi phục."
+      );
+
+      const record = await atomicUpdate(
+        context,
+        function(current, backups) {
+
+          assert(
+            Boolean(current) === Boolean(local),
+            "LOCAL_CHANGED",
+            "Thiết bị vừa thay đổi dữ liệu."
+          );
+
+          if (current) {
+
+            assert(
+              !current.dirty &&
+              current.localRevision ===
+                local.localRevision &&
+              current.serverVersion ===
+                local.serverVersion,
+              "LOCAL_CHANGED",
+              "Thiết bị vừa thay đổi dữ liệu."
+            );
+
+          }
+
+          backupRecord(
+            backups,
+            current,
+            "SERVER_RESTORE"
+          );
+
+          const time = new Date().toISOString();
+
+          return {
+            key: keyOf(context),
+            context: clone(context),
+            deviceId: PGDDraft.getDeviceId(),
+            catalogRevision: "751",
+            data: Object.assign(
+              emptyFields(),
+              clone(server.data || {})
+            ),
+            photos: photos,
+            removedPhotos: [],
+            serverVersion: server.version,
+            localRevision: current
+              ? current.localRevision + 1
+              : 1,
+            dirty: false,
+            status: server.status,
+            createdAt: current
+              ? current.createdAt
+              : time,
+            updatedAt: time,
+            syncedAt: time
+          };
+
+        }
+      );
+
+      blocked.delete(keyOf(context));
+
+      return {
+        source: "SERVER",
+        record: record
+      };
+
+    });
+
+  }
 
   /* =====================================================
-     10. TRẠNG THÁI ĐỒNG BỘ
+     TRẠNG THÁI ĐỒNG BỘ
   ===================================================== */
 
   async function getStatus(context) {
 
     const key = keyOf(context);
 
-    const record = await global.PGDDraft.restoreLocal(context);
+    const pending = await PGDOutbox.get(context);
 
-    if (blocked.has(key)) {
+    const record = await PGDDraft.restoreLocal(
+      context
+    );
+
+    if (
+      blocked.has(key) ||
+      (pending && pending.status === "BLOCKED")
+    ) {
 
       return {
-
         status: "BLOCKED",
-
-        details: blocked.get(key)
-
+        details: blocked.get(key) || {
+          code: pending.lastError
+        }
       };
 
     }
 
     if (running.has(key)) {
-
       return {status: "SYNCING"};
-
     }
 
     if (!navigator.onLine) {
-
       return {status: "OFFLINE"};
+    }
+
+    if (pending) {
+
+      return {
+        status: "RECOVERY_REQUIRED",
+        requestId: pending.requestId,
+        attempts: pending.attempts
+      };
 
     }
 
     if (!record) {
-
       return {status: "EMPTY"};
-
     }
 
     return {
-
       status: record.dirty
-
         ? "PENDING"
-
         : "SYNCED",
-
       version: record.serverVersion,
-
       updatedAt: record.updatedAt,
-
       syncedAt: record.syncedAt
-
     };
 
   }
 
-
   /* =====================================================
-     11. ĐỒNG BỘ TỰ ĐỘNG
+     ĐỒNG BỘ TỰ ĐỘNG
   ===================================================== */
 
   function start(context, callbacks) {
@@ -1247,39 +1184,46 @@
     stop(context);
 
     let busy = false;
-
     let stopped = false;
 
     async function tick() {
 
-      if (busy || stopped) return;
-
-      if (blocked.has(key)) return;
+      if (
+        busy ||
+        stopped ||
+        !navigator.onLine ||
+        blocked.has(key)
+      ) return;
 
       busy = true;
 
       try {
 
-        const record = await global.PGDDraft.restoreLocal(context);
+        const pending = await PGDOutbox.get(
+          context
+        );
+
+        if (pending && pending.status === "BLOCKED") {
+          return;
+        }
+
+        const local = await PGDDraft.restoreLocal(
+          context
+        );
 
         if (
-
-          navigator.onLine &&
-
-          record &&
-
-          record.dirty &&
-
-          editable(record.status)
-
+          pending ||
+          (
+            local &&
+            local.dirty &&
+            editable(local.status)
+          )
         ) {
 
           const result = await syncNow(context);
 
           if (callbacks.onSync) {
-
             callbacks.onSync(result);
-
           }
 
         }
@@ -1287,15 +1231,11 @@
       } catch (error) {
 
         if (callbacks.onError) {
-
           callbacks.onError(error);
-
         }
 
       } finally {
-
         busy = false;
-
       }
 
     }
@@ -1306,24 +1246,17 @@
 
       try {
 
-        const result = await global.PGDAPI.departmentStatus(
-
-          context
-
-        );
+        const result =
+          await PGDAPI.departmentStatus(context);
 
         if (callbacks.onProgress) {
-
           callbacks.onProgress(result);
-
         }
 
       } catch (error) {
 
         if (callbacks.onError) {
-
           callbacks.onError(error);
-
         }
 
       }
@@ -1331,43 +1264,29 @@
     }
 
     const syncTimer = setInterval(
-
       tick,
-
       CONFIG.AUTOSAVE_MS
-
     );
 
     const statusTimer = setInterval(
-
       refreshStatus,
-
       CONFIG.STATUS_REFRESH_MS
-
     );
 
     global.addEventListener("online", tick);
 
     controllers.set(key, {
-
       stop: function() {
-
         stopped = true;
-
         clearInterval(syncTimer);
-
         clearInterval(statusTimer);
-
         global.removeEventListener("online", tick);
-
       }
-
     });
 
     return true;
 
   }
-
 
   function stop(context) {
 
@@ -1376,82 +1295,63 @@
     const controller = controllers.get(key);
 
     if (controller) {
-
       controller.stop();
-
       controllers.delete(key);
-
     }
 
   }
-
-
-  /* =====================================================
-     12. KIỂM TRA XUNG ĐỘT
-     Không tự ghi đè dữ liệu.
-  ===================================================== */
 
   async function inspectConflict(context) {
 
     assertSession(context);
 
-    const key = keyOf(context);
+    const local = await PGDDraft.restoreLocal(
+      context
+    );
 
-    const local = await global.PGDDraft.restoreLocal(context);
+    const server = await PGDAPI.restoreDraft(
+      context
+    );
 
-    const server = await global.PGDAPI.restoreDraft(context);
+    const pending = await PGDOutbox.get(context);
 
     return {
-
-      localVersion: local ? local.serverVersion : 0,
-
-      serverVersion: server.version,
-
-      localDirty: Boolean(local && local.dirty),
-
-      localPhotoCount: local
-
-        ? Object.keys(local.photos || {}).length
-
+      localVersion: local
+        ? local.serverVersion
         : 0,
-
+      serverVersion: server.version,
+      localDirty: Boolean(local && local.dirty),
+      localPhotoCount: local
+        ? Object.keys(local.photos || {}).length
+        : 0,
       serverPhotoCount:
-
         Object.keys(server.photos || {}).length,
-
-      pendingRequest: pending.has(key),
-
-      blocked: blocked.has(key)
-
+      pendingRequest: Boolean(pending),
+      pendingRequestId: pending
+        ? pending.requestId
+        : null,
+      pendingStatus: pending
+        ? pending.status
+        : null,
+      blocked:
+        blocked.has(keyOf(context)) ||
+        Boolean(
+          pending &&
+          pending.status === "BLOCKED"
+        )
     };
 
   }
 
-
-  /* =====================================================
-     13. XUẤT MODULE
-  ===================================================== */
-
   global.PGDSync = Object.freeze({
-
     config: CONFIG,
-
     restore: restore,
-
     syncNow: syncNow,
-
+    recoverPending: recoverPending,
     getStatus: getStatus,
-
     start: start,
-
     stop: stop,
-
     inspectConflict: inspectConflict
-
   });
 
 })(window);
-
-/************************************************************
- * KẾT THÚC SYNC.JS
- ************************************************************/
