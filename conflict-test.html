@@ -1,1 +1,566 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>PGD V2 - Conflict Test</title>
+
+  <style>
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      background: #f1f5f9;
+      color: #172033;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      max-width: 850px;
+      margin: auto;
+      padding: 22px;
+      background: white;
+      border-radius: 14px;
+    }
+
+    h1 { font-size: 23px; }
+
+    h2 {
+      font-size: 18px;
+      margin-top: 25px;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      background: #172033;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .5;
+    }
+
+    pre {
+      padding: 15px;
+      background: #f8fafc;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .panel {
+      border: 1px solid #cbd5e1;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .version {
+      font-size: 28px;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    .difference {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+      overflow-wrap: anywhere;
+    }
+
+    .warning {
+      background: #fff7ed;
+      color: #9a3412;
+      padding: 12px;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+
+    .success { color: #15803d; }
+
+    .error { color: #dc2626; }
+
+    #score {
+      font-size: 30px;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<main>
+
+  <h1>PHỞ GÀ ĐỒI – SYSTEM V2.0</h1>
+
+  <p>7.8.4.3-A – Conflict Detection</p>
+
+  <div class="warning">
+    Trang kiểm thử chỉ đọc và so sánh xung đột.
+    Không có chức năng tự ghi đè hoặc
+    loại bỏ bản nháp.
+  </div>
+
+  <h2>1. Kiểm thử tự động</h2>
+
+  <div id="score">0/26</div>
+
+  <button onclick="run(test)">
+    Chạy 26 bài kiểm thử
+  </button>
+
+  <h2>2. Đăng nhập</h2>
+
+  <label>Tài khoản</label>
+  <input id="employee" value="TEST_API01">
+
+  <label>PIN</label>
+  <input id="pin" type="password">
+
+  <label>Cơ sở</label>
+  <select id="branch">
+    <option value="CS1">CS1</option>
+    <option value="CS2">CS2</option>
+  </select>
+
+  <button onclick="run(login)">
+    Đăng nhập
+  </button>
+
+  <h2>3. Phiên kiểm thử</h2>
+
+  <label>Ngày làm việc</label>
+  <input id="date"
+         type="date"
+         value="2026-12-07">
+
+  <label>Ca</label>
+  <select id="shift">
+    <option value="SANG">Ca sáng</option>
+    <option value="TOI">Ca tối</option>
+    <option value="DEM">Ca đêm</option>
+  </select>
+
+  <label>Bộ phận</label>
+  <select id="department">
+    <option value="BEP_PHO">Bếp phở</option>
+    <option value="BEP_VAT_TU">Bếp vật tư</option>
+    <option value="CHAY_BAN">Chạy bàn</option>
+    <option value="VE_SINH">Vệ sinh</option>
+  </select>
+
+  <label>Ghi chú kiểm thử</label>
+  <textarea id="note">CONFLICT_TEST</textarea>
+
+  <button onclick="run(restore)">
+    Khôi phục bản nháp
+  </button>
+
+  <button onclick="run(saveLocal)">
+    Lưu ghi chú trên thiết bị
+  </button>
+
+  <button onclick="run(sync)">
+    Đồng bộ bản nháp
+  </button>
+
+  <button onclick="run(inspect)">
+    So sánh xung đột
+  </button>
+
+  <h2>4. So sánh phiên bản</h2>
+
+  <div class="grid">
+
+    <div class="panel">
+      Thiết bị
+      <div id="localVersion"
+           class="version">--</div>
+    </div>
+
+    <div class="panel">
+      Máy chủ
+      <div id="serverVersion"
+           class="version">--</div>
+    </div>
+
+  </div>
+
+  <div id="state" class="warning">
+    Chưa kiểm tra
+  </div>
+
+  <h2>5. Chi tiết khác biệt</h2>
+
+  <div id="differences">
+    Chưa có kết quả
+  </div>
+
+  <h2>6. Nhật ký</h2>
+
+  <pre id="result">Sẵn sàng.</pre>
+
+</main>
+
+<script src="draft.js?v=752"></script>
+<script src="outbox.js?v=7842"></script>
+<script src="api.js?v=7842b"></script>
+<script src="sync.js?v=7842b"></script>
+<script src="conflict.js?v=7843a"></script>
+
+<script>
+
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+let busy = false;
+
+function log(value) {
+
+  $("result").textContent +=
+
+    (
+      typeof value === "string"
+        ? value
+        : JSON.stringify(value, null, 2)
+    ) + "\n";
+
+}
+
+async function run(callback) {
+
+  if (busy) return;
+
+  busy = true;
+
+  const buttons =
+    document.querySelectorAll("button");
+
+  buttons.forEach(
+    button => button.disabled = true
+  );
+
+  $("result").textContent = "";
+
+  try {
+
+    await callback();
+
+    log("THAO TÁC THÀNH CÔNG");
+
+  } catch (error) {
+
+    log(
+      "LỖI: " +
+      (error.code || "") +
+      " " +
+      error.message
+    );
+
+  } finally {
+
+    busy = false;
+
+    buttons.forEach(
+      button => button.disabled = false
+    );
+
+  }
+
+}
+
+function context() {
+
+  const code = $("employee").value
+    .trim().toUpperCase();
+
+  if (!code.startsWith("TEST_")) {
+
+    throw new Error(
+      "Chỉ sử dụng tài khoản TEST_."
+    );
+
+  }
+
+  return {
+
+    date: $("date").value,
+
+    branch: $("branch").value,
+
+    shift: $("shift").value,
+
+    department: $("department").value,
+
+    employee: code
+
+  };
+
+}
+
+async function test() {
+
+  const result = PGDConflict.selfTest();
+
+  $("score").textContent =
+    result.passed + "/" + result.total;
+
+  $("score").className =
+    result.success ? "success" : "error";
+
+  result.results.forEach(function(item) {
+
+    log(
+
+      (item.passed ? "ĐẠT - " : "LỖI - ") +
+
+      item.name +
+
+      (item.message
+        ? ": " + item.message
+        : "")
+
+    );
+
+  });
+
+  log(
+    result.success
+      ? "CONFLICT_TEST_PASSED"
+      : "CONFLICT_TEST_FAILED"
+  );
+
+}
+
+async function login() {
+
+  const ctx = context();
+
+  const profile = await PGDAPI.login(
+
+    ctx.employee,
+
+    ctx.branch,
+
+    $("pin").value
+
+  );
+
+  $("pin").value = "";
+
+  log(profile);
+
+}
+
+async function restore() {
+
+  const result =
+    await PGDSync.restore(context());
+
+  log({
+
+    source: result.source,
+
+    version: result.record
+      ? result.record.serverVersion
+      : 0
+
+  });
+
+}
+
+async function saveLocal() {
+
+  await PGDDraft.saveFieldsLocal(
+
+    context(),
+
+    {
+      generalNote: $("note").value
+    }
+
+  );
+
+  log("LOCAL_NOTE_SAVED");
+
+}
+
+async function sync() {
+
+  const result =
+    await PGDSync.syncNow(context());
+
+  log(result);
+
+}
+
+function appendDifference(title, a, b) {
+
+  const box = document.createElement("div");
+
+  box.className = "difference";
+
+  const heading = document.createElement("strong");
+
+  heading.textContent = title;
+
+  box.appendChild(heading);
+
+  const grid = document.createElement("div");
+
+  grid.className = "grid";
+
+  const local = document.createElement("div");
+
+  const server = document.createElement("div");
+
+  local.textContent =
+    "Thiết bị: " +
+    JSON.stringify(a);
+
+  server.textContent =
+    "Máy chủ: " +
+    JSON.stringify(b);
+
+  grid.appendChild(local);
+
+  grid.appendChild(server);
+
+  box.appendChild(grid);
+
+  $("differences").appendChild(box);
+
+}
+
+async function inspect() {
+
+  $("state").textContent = "Đang kiểm tra...";
+
+  $("localVersion").textContent = "--";
+
+  $("serverVersion").textContent = "--";
+
+  $("differences").textContent = "";
+
+  try {
+
+    const result =
+      await PGDConflict.inspect(context());
+
+    $("localVersion").textContent =
+      result.localVersion;
+
+    $("serverVersion").textContent =
+      result.serverVersion;
+
+    $("state").textContent =
+
+      result.state +
+
+      " | Khác biệt: " +
+
+      result.totalDifferences;
+
+    result.fieldDifferences.forEach(
+      function(item) {
+
+        appendDifference(
+
+          item.group + " - " + item.id,
+
+          item.local,
+
+          item.server
+
+        );
+
+      }
+    );
+
+    result.photoDifferences.forEach(
+      function(item) {
+
+        appendDifference(
+
+          "Ảnh " + item.id +
+          " - " + item.type,
+
+          item.localExists
+            ? "Có ảnh"
+            : "Không có ảnh",
+
+          item.serverExists
+            ? "Có ảnh"
+            : "Không có ảnh"
+
+        );
+
+      }
+    );
+
+    if (result.totalDifferences === 0) {
+
+      $("differences").textContent =
+        "Không phát hiện nội dung khác biệt.";
+
+    }
+
+    log(result);
+
+  } catch (error) {
+
+    $("state").textContent =
+      "Không xác minh được dữ liệu.";
+
+    throw error;
+
+  }
+
+}
+
+</script>
+
+</body>
+
+</html>
