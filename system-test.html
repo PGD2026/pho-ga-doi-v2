@@ -1,1 +1,4259 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>PHỞ GÀ ĐỒI - System Test C4.2</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --background: #f1f5f9;
+      --surface: #ffffff;
+      --text: #172033;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --success: #15803d;
+      --danger: #b91c1c;
+      --warning: #b45309;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    header {
+      background: #172033;
+      color: white;
+      padding: 28px 20px;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 25px;
+    }
+
+    header p {
+      margin: 4px 0;
+      color: #cbd5e1;
+    }
+
+    main {
+      max-width: 1250px;
+      margin: auto;
+      padding: 18px;
+    }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      margin: 0 0 15px;
+      font-size: 18px;
+    }
+
+    h3 {
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns:
+        repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f8fafc;
+      padding: 16px;
+    }
+
+    .metric small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 25px;
+      overflow-wrap: anywhere;
+    }
+
+    .warning {
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      padding: 14px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .notice {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      font-weight: 600;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      background: white;
+      font: inherit;
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: 0;
+      border-radius: 7px;
+      padding: 11px 16px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover {
+      opacity: 0.88;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    button.green {
+      background: var(--success);
+    }
+
+    button.gray {
+      background: #475569;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .pass {
+      color: var(--success);
+      font-weight: bold;
+    }
+
+    .fail {
+      color: var(--danger);
+      font-weight: bold;
+    }
+
+    .pending {
+      color: var(--warning);
+      font-weight: bold;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 12px;
+      background: #e2e8f0;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-top: 15px;
+    }
+
+    #progressBar {
+      height: 100%;
+      width: 0%;
+      background: var(--primary);
+      transition: width 0.2s;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 11px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: #f8fafc;
+      white-space: nowrap;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #dbeafe;
+      padding: 14px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      overflow: auto;
+      max-height: 450px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    #busyStatus {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px;
+      text-align: center;
+      background: #1e40af;
+      color: white;
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+
+      main {
+        padding: 10px;
+      }
+
+      section {
+        padding: 14px;
+      }
+
+      header h1 {
+        font-size: 20px;
+      }
+
+      button {
+        flex-grow: 1;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<header>
+
+  <h1>PHỞ GÀ ĐỒI - SYSTEM V2.0</h1>
+
+  <p>System Test 7.8.4.3-C4.2</p>
+
+  <p>Kiểm thử tự động tổng thể</p>
+
+  <p>TEST MODE - NON-DESTRUCTIVE</p>
+
+</header>
+
+<div id="busyStatus">
+  Đang thực hiện kiểm thử...
+</div>
+
+<main>
+
+  <!-- DASHBOARD -->
+
+  <section>
+
+    <div class="warning">
+
+      <strong>PHẠM VI KIỂM THỬ</strong>
+
+      <p>
+        Trang này chỉ sử dụng tài khoản TEST_.
+        Không gửi báo cáo, không tự động đồng bộ,
+        không xử lý xung đột thực tế,
+        không xóa dữ liệu vận hành.
+      </p>
+
+      Không tích hợp Telegram hoặc doanh thu.
+
+    </div>
+
+    <div class="grid">
+
+      <div class="metric">
+        <small>Kiểm thử tổng thể</small>
+        <strong id="systemScore">0/20</strong>
+      </div>
+
+      <div class="metric">
+        <small>Kiểm thử logic</small>
+        <strong id="logicScore">0/104</strong>
+      </div>
+
+      <div class="metric">
+        <small>Tiêu chí thất bại</small>
+        <strong id="failScore">0</strong>
+      </div>
+
+      <div class="metric">
+        <small>Chưa kiểm tra</small>
+        <strong id="pendingScore">20</strong>
+      </div>
+
+      <div class="metric">
+        <small>Kết nối mạng</small>
+        <strong id="networkStatus">--</strong>
+      </div>
+
+      <div class="metric">
+        <small>Trạng thái nghiệm thu</small>
+        <strong id="acceptanceStatus">PENDING</strong>
+      </div>
+
+    </div>
+
+    <div class="progress-track">
+      <div id="progressBar"></div>
+    </div>
+
+    <p id="currentTest" class="muted">
+      Chưa bắt đầu kiểm thử.
+    </p>
+
+  </section>
+
+  <!-- LOGIN -->
+
+  <section>
+
+    <h2>01. Tài khoản kiểm thử</h2>
+
+    <div class="grid">
+
+      <div class="field">
+
+        <label for="employee">
+          Mã nhân viên
+        </label>
+
+        <input id="employee"
+               value="TEST_API01">
+
+      </div>
+
+      <div class="field">
+
+        <label for="branch">
+          Cơ sở
+        </label>
+
+        <select id="branch">
+
+          <option value="CS1">
+            CS1 - 28 Võ Chí Công
+          </option>
+
+          <option value="CS2">
+            CS2 - An Khánh
+          </option>
+
+        </select>
+
+      </div>
+
+      <div class="field">
+
+        <label for="pin">
+          PIN nếu có
+        </label>
+
+        <input id="pin"
+               type="password"
+               autocomplete="off">
+
+      </div>
+
+    </div>
+
+    <div class="actions">
+
+      <button id="btnLogin" class="green">
+        Đăng nhập TEST
+      </button>
+
+      <button id="btnProfile">
+        Kiểm tra phiên
+      </button>
+
+      <button id="btnLogout" class="gray">
+        Đăng xuất
+      </button>
+
+    </div>
+
+    <pre id="loginOutput">Chưa đăng nhập.</pre>
+
+  </section>
+
+  <!-- CONTEXT -->
+
+  <section>
+
+    <h2>02. Phiên kiểm thử chỉ đọc</h2>
+
+    <div class="notice">
+
+      Sử dụng ngày kiểm thử mới chưa có dữ liệu.
+      Trang sẽ đọc trạng thái local, Outbox
+      và máy chủ, không tạo bản nháp mới.
+
+    </div>
+
+    <div class="grid">
+
+      <div class="field">
+
+        <label for="workDate">
+          Ngày làm việc
+        </label>
+
+        <input id="workDate"
+               type="date"
+               value="2026-12-24">
+
+      </div>
+
+      <div class="field">
+
+        <label for="shift">
+          Ca làm việc
+        </label>
+
+        <select id="shift">
+
+          <option value="SANG">
+            Ca sáng
+          </option>
+
+          <option value="TOI">
+            Ca tối
+          </option>
+
+          <option value="DEM">
+            Ca đêm
+          </option>
+
+        </select>
+
+      </div>
+
+      <div class="field">
+
+        <label for="department">
+          Bộ phận
+        </label>
+
+        <select id="department">
+
+          <option value="BEP_PHO">
+            Bếp phở
+          </option>
+
+          <option value="BEP_VAT_TU">
+            Bếp vật tư
+          </option>
+
+          <option value="CHAY_BAN">
+            Chạy bàn
+          </option>
+
+          <option value="VE_SINH">
+            Vệ sinh
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+    <div class="actions">
+
+      <button id="btnContext">
+        Kiểm tra phiên làm việc
+      </button>
+
+      <button id="btnReadState">
+        Đọc trạng thái hiện tại
+      </button>
+
+    </div>
+
+    <pre id="contextOutput">Chưa kiểm tra.</pre>
+
+  </section>
+
+  <!-- VERSION -->
+
+  <section>
+
+    <h2>03. Kiểm tra phiên bản module</h2>
+
+    <div class="actions">
+
+      <button id="btnVersions">
+        Kiểm tra phiên bản
+      </button>
+
+    </div>
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>File</th>
+            <th>Phiên bản yêu cầu</th>
+            <th>Phiên bản thực tế</th>
+            <th>Kết quả</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="versionTable"></tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+  <!-- SYSTEM TEST -->
+
+  <section>
+
+    <h2>04. Kiểm thử tự động tổng thể</h2>
+
+    <div class="actions">
+
+      <button id="btnRunAll" class="green">
+        CHẠY TOÀN BỘ 20 NHÓM KIỂM THỬ
+      </button>
+
+      <button id="btnHealth">
+        Kiểm tra API Health
+      </button>
+
+      <button id="btnLogic">
+        Chạy 104 bài kiểm thử logic
+      </button>
+
+      <button id="btnReset" class="gray">
+        Đặt lại kết quả hiển thị
+      </button>
+
+    </div>
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Mã</th>
+            <th>Nội dung kiểm thử</th>
+            <th>Trạng thái</th>
+            <th>Thời gian</th>
+            <th>Chi tiết</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="testTable"></tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+  <!-- LOGIC -->
+
+  <section>
+
+    <h2>05. Kiểm thử logic từng module</h2>
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Module</th>
+            <th>Đạt</th>
+            <th>Tổng</th>
+            <th>Kết quả</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="logicTable"></tbody>
+
+      </table>
+
+    </div>
+
+    <pre id="logicOutput">Chưa kiểm thử.</pre>
+
+  </section>
+
+  <!-- API -->
+
+  <section>
+
+    <h2>06. Thông tin API và backend</h2>
+
+    <pre id="healthOutput">Chưa kiểm tra.</pre>
+
+  </section>
+
+  <!-- SUMMARY -->
+
+  <section>
+
+    <h2>07. Báo cáo nghiệm thu C4.2</h2>
+
+    <div class="actions">
+
+      <button id="btnSummary" class="green">
+        Tổng hợp kết quả
+      </button>
+
+      <button id="btnCopy">
+        Sao chép báo cáo
+      </button>
+
+    </div>
+
+    <pre id="summaryOutput">Chưa tổng hợp.</pre>
+
+  </section>
+
+  <!-- LOG -->
+
+  <section>
+
+    <h2>08. Nhật ký kiểm thử</h2>
+
+    <button id="btnClearLog" class="gray">
+      Xóa nhật ký hiển thị
+    </button>
+
+    <pre id="logOutput">Đang khởi tạo...</pre>
+
+  </section>
+
+</main>
+
+<!-- MODULES -->
+
+<script src="draft.js?v=78442"></script>
+<script src="outbox.js?v=78442"></script>
+<script src="api.js?v=78442"></script>
+<script src="sync.js?v=78442"></script>
+<script src="conflict.js?v=78442"></script>
+<script src="conflict-backup.js?v=78442"></script>
+<script src="conflict-resolution.js?v=78442"></script>
+
+<script>
+
+(function() {
+
+  "use strict";
+
+  /* =====================================================
+     01. CONFIG
+  ===================================================== */
+
+  const CONFIG = Object.freeze({
+
+    VERSION: "7.8.4.3-C4.2",
+
+    MODE: "TEST",
+
+    CATALOG_REVISION: "751",
+
+    API_PROTOCOL: "7.8.1",
+
+    EXPECTED_SYSTEM_TESTS: 20,
+
+    EXPECTED_LOGIC_TESTS: 104,
+
+    BLOCK_PREFIX: "PGD_SYNC_BLOCK_C31_",
+
+    VERSIONS: Object.freeze({
+
+      draft: "7.5.2",
+
+      api: "7.8.4.3-C2.3-A",
+
+      sync: "7.8.4.3-C3.1",
+
+      cloud: "7.8.4.3-C2.3-C1",
+
+      resolution: "7.8.4.3-C3.2"
+
+    })
+
+  });
+
+  const state = {
+
+    busy: false,
+
+    logs: [],
+
+    results: [],
+
+    logicResults: [],
+
+    logicPassed: 0,
+
+    logicTotal: 0,
+
+    health: null,
+
+    conflictHealth: null,
+
+    baseline: null,
+
+    lastSummary: null,
+
+    runContext: null,
+
+    runStartedAt: null,
+
+    runFinishedAt: null
+
+  };
+
+  const $ = id =>
+    document.getElementById(id);
+
+  /* =====================================================
+     02. UTILITIES
+  ===================================================== */
+
+  function fail(code, message) {
+
+    const error = new Error(
+      message || code
+    );
+
+    error.code = code;
+
+    return error;
+
+  }
+
+  function assert(condition, code, message) {
+
+    if (!condition) {
+
+      throw fail(code, message);
+
+    }
+
+  }
+
+  function clone(value) {
+
+    if (value === undefined) {
+
+      return undefined;
+
+    }
+
+    return JSON.parse(
+      JSON.stringify(value)
+    );
+
+  }
+
+  function canonical(value) {
+
+    if (value === undefined) {
+
+      return "undefined";
+
+    }
+
+    if (Array.isArray(value)) {
+
+      return "[" +
+
+        value.map(canonical).join(",") +
+
+        "]";
+
+    }
+
+    if (value && typeof value === "object") {
+
+      return "{" +
+
+        Object.keys(value)
+          .sort()
+          .map(key =>
+
+            JSON.stringify(key) +
+
+            ":" +
+
+            canonical(value[key])
+
+          )
+          .join(",") +
+
+        "}";
+
+    }
+
+    return JSON.stringify(value);
+
+  }
+
+  function equal(a, b) {
+
+    return canonical(a) === canonical(b);
+
+  }
+
+  function safeDisplay(value) {
+
+    return JSON.stringify(
+
+      value,
+
+      function(key, item) {
+
+        if (
+
+          /token|password|authorization|^pin$/i
+            .test(key)
+
+        ) {
+
+          return "[HIDDEN]";
+
+        }
+
+        if (
+
+          typeof item === "string" &&
+
+          item.startsWith("data:image/")
+
+        ) {
+
+          return "[IMAGE " +
+
+            item.length +
+
+            " characters]";
+
+        }
+
+        return item;
+
+      },
+
+      2
+
+    );
+
+  }
+
+  function output(id, value) {
+
+    $(id).textContent =
+
+      typeof value === "string"
+
+        ? value
+
+        : safeDisplay(value) || "";
+
+  }
+
+  function metric(id, value, className) {
+
+    $(id).textContent = String(value);
+
+    $(id).className = className || "";
+
+  }
+
+  function log(message, details) {
+
+    const line =
+
+      "[" +
+
+      new Date().toLocaleTimeString("vi-VN") +
+
+      "] " +
+
+      message;
+
+    state.logs.push(
+
+      details === undefined
+
+        ? line
+
+        : line + "\n" + safeDisplay(details)
+
+    );
+
+    state.logs = state.logs.slice(-200);
+
+    output(
+
+      "logOutput",
+
+      state.logs.join("\n\n")
+
+    );
+
+  }
+
+  function updateNetwork() {
+
+    metric(
+
+      "networkStatus",
+
+      navigator.onLine
+
+        ? "ONLINE"
+
+        : "OFFLINE",
+
+      navigator.onLine
+
+        ? "pass"
+
+        : "fail"
+
+    );
+
+  }
+
+  function setBusy(value) {
+
+    state.busy = value;
+
+    $("busyStatus").style.display =
+
+      value ? "block" : "none";
+
+    document.querySelectorAll(
+
+      "button, input, select"
+
+    ).forEach(element => {
+
+      element.disabled = value;
+
+    });
+
+  }
+
+  function invalidateAcceptance() {
+
+    state.results = [];
+
+    state.baseline = null;
+
+    state.runContext = null;
+
+    state.lastSummary = null;
+
+    state.runStartedAt = null;
+
+    state.runFinishedAt = null;
+
+    renderTests();
+
+    updateDashboard();
+
+  }
+
+  async function runAction(name, callback) {
+
+    if (state.busy) {
+
+      return;
+
+    }
+
+    setBusy(true);
+
+    log("START: " + name);
+
+    try {
+
+      const result = await callback();
+
+      log("END: " + name, result);
+
+      return result;
+
+    } catch (error) {
+
+      const result = {
+
+        success: false,
+
+        code: error.code || "ERROR",
+
+        message: error.message
+
+      };
+
+      log("ERROR: " + name, result);
+
+      return result;
+
+    } finally {
+
+      setBusy(false);
+
+      updateNetwork();
+
+    }
+
+  }
+
+  function bind(id, name, callback) {
+
+    $(id).addEventListener(
+
+      "click",
+
+      () => runAction(name, callback)
+
+    );
+
+  }
+
+  function addCell(row, value, className) {
+
+    const cell = document.createElement("td");
+
+    cell.textContent = String(value);
+
+    if (className) {
+
+      cell.className = className;
+
+    }
+
+    row.appendChild(cell);
+
+    return cell;
+
+  }
+
+  function requireFunction(object, name) {
+
+    assert(
+
+      object &&
+
+      typeof object[name] === "function",
+
+      "FUNCTION_MISSING",
+
+      "Thiếu hàm " + name
+
+    );
+
+  }
+
+  function moduleVersion(object) {
+
+    return object && object.config
+
+      ? object.config.VERSION || ""
+
+      : "";
+
+  }
+
+  function requireVersion(object, version) {
+
+    const actual = moduleVersion(object);
+
+    assert(
+
+      actual === version,
+
+      "VERSION_MISMATCH",
+
+      "Yêu cầu " + version +
+
+      ", thực tế " + actual
+
+    );
+
+    return actual;
+
+  }
+
+  /* =====================================================
+     03. CONTEXT AND SESSION
+  ===================================================== */
+
+  function context() {
+
+    const ctx = {
+
+      date: $("workDate").value,
+
+      branch: $("branch").value,
+
+      shift: $("shift").value,
+
+      department: $("department").value,
+
+      employee:
+
+        $("employee").value
+          .trim()
+          .toUpperCase()
+
+    };
+
+    assert(
+
+      /^TEST_[A-Z0-9_]+$/.test(ctx.employee),
+
+      "TEST_ONLY",
+
+      "Chỉ sử dụng tài khoản TEST_."
+
+    );
+
+    assert(
+
+      /^\d{4}-\d{2}-\d{2}$/.test(ctx.date),
+
+      "INVALID_DATE"
+
+    );
+
+    assert(
+
+      ["CS1", "CS2"].includes(ctx.branch),
+
+      "INVALID_BRANCH"
+
+    );
+
+    assert(
+
+      ["SANG", "TOI", "DEM"].includes(ctx.shift),
+
+      "INVALID_SHIFT"
+
+    );
+
+    assert(
+
+      [
+
+        "BEP_PHO",
+
+        "BEP_VAT_TU",
+
+        "CHAY_BAN",
+
+        "VE_SINH"
+
+      ].includes(ctx.department),
+
+      "INVALID_DEPARTMENT"
+
+    );
+
+    PGDDraft.makeKey(ctx);
+
+    return ctx;
+
+  }
+
+  function requireSession(ctx) {
+
+    const profile = PGDAPI.getProfile();
+
+    assert(
+
+      profile &&
+
+      profile.code === ctx.employee &&
+
+      profile.branch === ctx.branch,
+
+      "LOGIN_REQUIRED",
+
+      "Đăng nhập đúng tài khoản và cơ sở."
+
+    );
+
+    return profile;
+
+  }
+
+  async function login() {
+
+    const ctx = context();
+
+    invalidateAcceptance();
+
+    try {
+
+      await PGDAPI.login(
+
+        ctx.employee,
+
+        ctx.branch,
+
+        $("pin").value
+
+      );
+
+    } finally {
+
+      $("pin").value = "";
+
+    }
+
+    const profile = requireSession(ctx);
+
+    output("loginOutput", profile);
+
+    return {
+
+      success: true,
+
+      employee: profile.code,
+
+      branch: profile.branch
+
+    };
+
+  }
+
+  async function logout() {
+
+    await PGDAPI.logout();
+
+    invalidateAcceptance();
+
+    output("loginOutput", "Đã đăng xuất.");
+
+    return {success: true};
+
+  }
+
+  /* =====================================================
+     04. VERSION CHECK
+  ===================================================== */
+
+  function checkVersions() {
+
+    const modules = [
+
+      {
+
+        file: "draft.js",
+
+        object: window.PGDDraft,
+
+        expected: CONFIG.VERSIONS.draft
+
+      },
+
+      {
+
+        file: "outbox.js",
+
+        object: window.PGDOutbox,
+
+        expected: null
+
+      },
+
+      {
+
+        file: "api.js",
+
+        object: window.PGDAPI,
+
+        expected: CONFIG.VERSIONS.api
+
+      },
+
+      {
+
+        file: "sync.js",
+
+        object: window.PGDSync,
+
+        expected: CONFIG.VERSIONS.sync
+
+      },
+
+      {
+
+        file: "conflict.js",
+
+        object: window.PGDConflict,
+
+        expected: null
+
+      },
+
+      {
+
+        file: "conflict-backup.js",
+
+        object: window.PGDCloudBackup,
+
+        expected: CONFIG.VERSIONS.cloud
+
+      },
+
+      {
+
+        file: "conflict-resolution.js",
+
+        object: window.PGDResolution,
+
+        expected: CONFIG.VERSIONS.resolution
+
+      }
+
+    ];
+
+    const tbody = $("versionTable");
+
+    tbody.replaceChildren();
+
+    const results = modules.map(item => {
+
+      const actual = moduleVersion(item.object);
+
+      const passed = Boolean(
+
+        item.object &&
+
+        actual &&
+
+        (
+
+          item.expected === null ||
+
+          actual === item.expected
+
+        )
+
+      );
+
+      const row = document.createElement("tr");
+
+      addCell(row, item.file);
+
+      addCell(
+
+        row,
+
+        item.expected || "Kiểm tra giao diện hàm"
+
+      );
+
+      addCell(row, actual || "MISSING");
+
+      addCell(
+
+        row,
+
+        passed
+
+          ? item.expected
+
+            ? "PASS"
+
+            : "PRESENT"
+
+          : "FAIL",
+
+        passed ? "pass" : "fail"
+
+      );
+
+      tbody.appendChild(row);
+
+      return {
+
+        file: item.file,
+
+        expected: item.expected,
+
+        actual,
+
+        passed,
+
+        exactVersionVerified:
+
+          Boolean(item.expected && passed)
+
+      };
+
+    });
+
+    return {
+
+      success: results.every(item => item.passed),
+
+      passed:
+
+        results.filter(item => item.passed).length,
+
+      total: results.length,
+
+      results
+
+    };
+
+  }
+
+  /* =====================================================
+     05. API HEALTH
+  ===================================================== */
+
+  async function checkHealth() {
+
+    assert(
+
+      navigator.onLine,
+
+      "OFFLINE"
+
+    );
+
+    const health = await PGDAPI.health();
+
+    const conflict = await PGDAPI.conflictHealth();
+
+    state.health = clone(health);
+
+    state.conflictHealth = clone(conflict);
+
+    const result = {
+
+      health,
+
+      conflict
+
+    };
+
+    output("healthOutput", result);
+
+    return result;
+
+  }
+
+  /* =====================================================
+     06. READ-ONLY SNAPSHOT
+  ===================================================== */
+
+  async function captureSnapshot(ctx) {
+
+    requireSession(ctx);
+
+    const key = PGDDraft.makeKey(ctx);
+
+    const local =
+
+      await PGDDraft.restoreLocal(ctx);
+
+    const pending =
+
+      await PGDOutbox.get(ctx);
+
+    const server =
+
+      await PGDAPI.restoreDraft(ctx);
+
+    const block =
+
+      localStorage.getItem(
+
+        CONFIG.BLOCK_PREFIX + key
+
+      );
+
+    assert(
+
+      server && server.success === true,
+
+      "SERVER_RESTORE_FAILED"
+
+    );
+
+    return {
+
+      context: clone(ctx),
+
+      key,
+
+      local: clone(local || null),
+
+      pending: clone(pending || null),
+
+      server: clone(server),
+
+      block
+
+    };
+
+  }
+
+  async function readState() {
+
+    const ctx = context();
+
+    const snapshot = await captureSnapshot(ctx);
+
+    const status =
+
+      await PGDSync.getStatus(ctx);
+
+    const result = {
+
+      context: ctx,
+
+      key: snapshot.key,
+
+      localExists: Boolean(snapshot.local),
+
+      serverExists: snapshot.server.exists,
+
+      serverVersion: snapshot.server.version,
+
+      pending: Boolean(snapshot.pending),
+
+      blocked: snapshot.block !== null,
+
+      status
+
+    };
+
+    output("contextOutput", result);
+
+    return result;
+
+  }
+
+  /* =====================================================
+     07. LOGIC TEST SUITES
+  ===================================================== */
+
+  const LOGIC_SUITES = [
+
+    {
+
+      name: "Cloud Backup",
+
+      expected: 42,
+
+      run: () => PGDCloudBackup.selfTest()
+
+    },
+
+    {
+
+      name: "Conflict Resolution",
+
+      expected: 44,
+
+      run: () => PGDResolution.selfTest()
+
+    },
+
+    {
+
+      name: "Sync C3.1",
+
+      expected: 8,
+
+      run: () => PGDSync.selfTestC31()
+
+    },
+
+    {
+
+      name: "Resolution C3.2",
+
+      expected: 10,
+
+      run: () => PGDResolution.selfTestC32()
+
+    }
+
+  ];
+
+  function renderLogic() {
+
+    const tbody = $("logicTable");
+
+    tbody.replaceChildren();
+
+    LOGIC_SUITES.forEach(suite => {
+
+      const result =
+
+        state.logicResults.find(
+
+          item => item.name === suite.name
+
+        );
+
+      const row = document.createElement("tr");
+
+      addCell(row, suite.name);
+
+      addCell(row, result ? result.passed : 0);
+
+      addCell(row, suite.expected);
+
+      addCell(
+
+        row,
+
+        result
+
+          ? result.success
+
+            ? "PASS"
+
+            : "FAIL"
+
+          : "PENDING",
+
+        result
+
+          ? result.success
+
+            ? "pass"
+
+            : "fail"
+
+          : "pending"
+
+      );
+
+      tbody.appendChild(row);
+
+    });
+
+    metric(
+
+      "logicScore",
+
+      state.logicPassed +
+
+      "/" +
+
+      CONFIG.EXPECTED_LOGIC_TESTS,
+
+      state.logicPassed ===
+
+        CONFIG.EXPECTED_LOGIC_TESTS
+
+          ? "pass"
+
+          : "pending"
+
+    );
+
+  }
+
+  async function runLogicTests() {
+
+    state.logicResults = [];
+
+    state.logicPassed = 0;
+
+    state.logicTotal = 0;
+
+    renderLogic();
+
+    for (const suite of LOGIC_SUITES) {
+
+      let result;
+
+      try {
+
+        const raw = await suite.run();
+
+        assert(
+
+          raw &&
+
+          Number.isInteger(raw.passed) &&
+
+          raw.total === suite.expected &&
+
+          raw.passed >= 0 &&
+
+          raw.passed <= raw.total,
+
+          "INVALID_TEST_RESULT",
+
+          "Kết quả không đúng cấu trúc."
+
+        );
+
+        result = {
+
+          name: suite.name,
+
+          success:
+
+            raw.passed === suite.expected &&
+
+            raw.success !== false,
+
+          passed: raw.passed,
+
+          total: raw.total,
+
+          details: raw
+
+        };
+
+      } catch (error) {
+
+        result = {
+
+          name: suite.name,
+
+          success: false,
+
+          passed: 0,
+
+          total: suite.expected,
+
+          error: error.message
+
+        };
+
+      }
+
+      state.logicResults.push(result);
+
+      state.logicPassed += result.passed;
+
+      state.logicTotal += result.total;
+
+      renderLogic();
+
+      log("LOGIC SUITE", result);
+
+    }
+
+    const result = {
+
+      success:
+
+        state.logicPassed ===
+
+          CONFIG.EXPECTED_LOGIC_TESTS &&
+
+        state.logicTotal ===
+
+          CONFIG.EXPECTED_LOGIC_TESTS &&
+
+        state.logicResults.every(
+
+          item => item.success
+
+        ),
+
+      passed: state.logicPassed,
+
+      total: state.logicTotal,
+
+      results: state.logicResults
+
+    };
+
+    output("logicOutput", result);
+
+    return result;
+
+  }
+
+  /* =====================================================
+     08. TEMPORARY INDEXEDDB TEST
+  ===================================================== */
+
+  async function testTemporaryIndexedDB() {
+
+    const dbName =
+
+      "PGD_C42_TEMP_" +
+
+      crypto.randomUUID();
+
+    let db = null;
+
+    try {
+
+      db = await new Promise((resolve, reject) => {
+
+        const request = indexedDB.open(dbName, 1);
+
+        request.onupgradeneeded = () => {
+
+          request.result.createObjectStore(
+
+            "test",
+
+            {keyPath: "id"}
+
+          );
+
+        };
+
+        request.onsuccess = () =>
+
+          resolve(request.result);
+
+        request.onerror = () =>
+
+          reject(request.error);
+
+        request.onblocked = () =>
+
+          reject(fail("TEMP_DB_BLOCKED"));
+
+      });
+
+      const sample = {
+
+        id: "C42",
+
+        note: "SYSTEM_TEST_ONLY",
+
+        revision: 1
+
+      };
+
+      await new Promise((resolve, reject) => {
+
+        const tx = db.transaction(
+
+          "test",
+
+          "readwrite"
+
+        );
+
+        tx.objectStore("test").put(sample);
+
+        tx.oncomplete = resolve;
+
+        tx.onerror = () => reject(tx.error);
+
+        tx.onabort = () => reject(tx.error);
+
+      });
+
+      const restored =
+
+        await new Promise((resolve, reject) => {
+
+          const tx = db.transaction(
+
+            "test",
+
+            "readonly"
+
+          );
+
+          const request =
+
+            tx.objectStore("test").get("C42");
+
+          request.onsuccess = () =>
+
+            resolve(request.result);
+
+          request.onerror = () =>
+
+            reject(request.error);
+
+        });
+
+      assert(
+
+        equal(sample, restored),
+
+        "TEMP_DB_DATA_MISMATCH"
+
+      );
+
+      return {
+
+        success: true,
+
+        write: true,
+
+        read: true,
+
+        productionDatabaseWritten: false
+
+      };
+
+    } finally {
+
+      if (db) {
+
+        db.close();
+
+      }
+
+      await new Promise((resolve, reject) => {
+
+        const request =
+
+          indexedDB.deleteDatabase(dbName);
+
+        request.onsuccess = resolve;
+
+        request.onerror = () =>
+
+          reject(request.error);
+
+        request.onblocked = () =>
+
+          reject(fail("TEMP_DB_CLEANUP_BLOCKED"));
+
+      });
+
+    }
+
+  }
+
+  /* =====================================================
+     09. WEB LOCK TEST
+  ===================================================== */
+
+  async function testWebLock() {
+
+    const name =
+
+      "PGD_C42_TEMP_LOCK_" +
+
+      crypto.randomUUID();
+
+    let secondBlocked = false;
+
+    await navigator.locks.request(
+
+      name,
+
+      {mode: "exclusive"},
+
+      async firstLock => {
+
+        assert(firstLock, "FIRST_LOCK_FAILED");
+
+        await navigator.locks.request(
+
+          name,
+
+          {
+
+            mode: "exclusive",
+
+            ifAvailable: true
+
+          },
+
+          secondLock => {
+
+            secondBlocked = secondLock === null;
+
+          }
+
+        );
+
+      }
+
+    );
+
+    let released = false;
+
+    await navigator.locks.request(
+
+      name,
+
+      {
+
+        mode: "exclusive",
+
+        ifAvailable: true
+
+      },
+
+      lock => {
+
+        released = Boolean(lock);
+
+      }
+
+    );
+
+    assert(
+
+      secondBlocked && released,
+
+      "WEB_LOCK_TEST_FAILED"
+
+    );
+
+    return {
+
+      secondBlocked,
+
+      released,
+
+      temporaryLockOnly: true
+
+    };
+
+  }
+
+  /* =====================================================
+     10. BROADCAST CHANNEL TEST
+  ===================================================== */
+
+  async function testBroadcastChannel() {
+
+    const channelName =
+
+      "PGD_C42_TEMP_CHANNEL_" +
+
+      crypto.randomUUID();
+
+    const sender =
+
+      new BroadcastChannel(channelName);
+
+    const receiver =
+
+      new BroadcastChannel(channelName);
+
+    const nonce = crypto.randomUUID();
+
+    try {
+
+      const received =
+
+        await new Promise((resolve, reject) => {
+
+          const timer = setTimeout(
+
+            () => reject(
+
+              fail("BROADCAST_TIMEOUT")
+
+            ),
+
+            3000
+
+          );
+
+          receiver.onmessage = event => {
+
+            clearTimeout(timer);
+
+            resolve(event.data);
+
+          };
+
+          sender.postMessage({
+
+            type: "C42_TEST",
+
+            nonce
+
+          });
+
+        });
+
+      assert(
+
+        received &&
+
+        received.type === "C42_TEST" &&
+
+        received.nonce === nonce,
+
+        "BROADCAST_DATA_MISMATCH"
+
+      );
+
+      return {
+
+        success: true,
+
+        messageVerified: true,
+
+        scope: "TWO_CHANNEL_OBJECTS"
+
+      };
+
+    } finally {
+
+      sender.close();
+
+      receiver.close();
+
+    }
+
+  }
+
+  /* =====================================================
+     11. CRYPTO TEST
+  ===================================================== */
+
+  async function testCrypto() {
+
+    const expected =
+
+      "ba7816bf8f01cfea414140de5dae2223" +
+
+      "b00361a396177a9cb410ff61f20015ad";
+
+    const hash =
+
+      await PGDCloudBackup.hashText("abc");
+
+    assert(
+
+      hash === expected,
+
+      "SHA256_MISMATCH"
+
+    );
+
+    const hashA =
+
+      await PGDCloudBackup.hashJson({
+
+        b: 2,
+
+        a: 1
+
+      });
+
+    const hashB =
+
+      await PGDCloudBackup.hashJson({
+
+        a: 1,
+
+        b: 2
+
+      });
+
+    const hashC =
+
+      await PGDCloudBackup.hashJson({
+
+        a: 1,
+
+        b: 3
+
+      });
+
+    assert(
+
+      hashA === hashB,
+
+      "CANONICAL_HASH_MISMATCH"
+
+    );
+
+    assert(
+
+      hashA !== hashC,
+
+      "HASH_CHANGE_NOT_DETECTED"
+
+    );
+
+    return {
+
+      sha256Verified: true,
+
+      canonicalVerified: true,
+
+      changedContentDetected: true
+
+    };
+
+  }
+
+  /* =====================================================
+     12. SYSTEM TEST DEFINITIONS
+  ===================================================== */
+
+  const TESTS = [
+
+    {
+
+      id: "C42-01",
+
+      name: "Kiểm tra môi trường trình duyệt",
+
+      run: async () => {
+
+        assert(
+
+          window.isSecureContext === true,
+
+          "INSECURE_CONTEXT"
+
+        );
+
+        assert(
+
+          Boolean(window.indexedDB),
+
+          "INDEXEDDB_UNAVAILABLE"
+
+        );
+
+        assert(
+
+          navigator.locks &&
+
+          typeof navigator.locks.request ===
+
+            "function",
+
+          "WEB_LOCK_UNAVAILABLE"
+
+        );
+
+        assert(
+
+          typeof BroadcastChannel === "function",
+
+          "BROADCAST_UNAVAILABLE"
+
+        );
+
+        assert(
+
+          crypto.subtle &&
+
+          typeof crypto.randomUUID === "function",
+
+          "CRYPTO_UNAVAILABLE"
+
+        );
+
+        return {
+
+          secureContext: true,
+
+          indexedDB: true,
+
+          webLocks: true,
+
+          broadcastChannel: true,
+
+          crypto: true
+
+        };
+
+      }
+
+    },
+
+    {
+
+      id: "C42-02",
+
+      name: "Kiểm tra đủ 7 module và phiên bản",
+
+      run: async () => {
+
+        const result = checkVersions();
+
+        assert(
+
+          result.success && result.passed === 7,
+
+          "MODULE_VERSION_FAILED"
+
+        );
+
+        return result;
+
+      }
+
+    },
+
+    {
+
+      id: "C42-03",
+
+      name: "Kiểm tra giao diện Draft",
+
+      run: async () => {
+
+        requireVersion(
+
+          PGDDraft,
+
+          CONFIG.VERSIONS.draft
+
+        );
+
+        [
+
+          "makeKey",
+
+          "restoreLocal",
+
+          "saveLocal",
+
+          "saveFieldsLocal",
+
+          "savePhotoLocal",
+
+          "removePhotoLocal",
+
+          "markSynced",
+
+          "listBackups"
+
+        ].forEach(name =>
+
+          requireFunction(PGDDraft, name)
+
+        );
+
+        assert(
+
+          PGDDraft.config.CATALOG_REVISION ===
+
+            CONFIG.CATALOG_REVISION,
+
+          "DRAFT_CATALOG_MISMATCH"
+
+        );
+
+        return {
+
+          version: PGDDraft.config.VERSION,
+
+          functionsVerified: 8,
+
+          catalogRevision: CONFIG.CATALOG_REVISION
+
+        };
+
+      }
+
+    },
+
+    {
+
+      id: "C42-04",
+
+      name: "Kiểm tra giao diện Outbox",
+
+      run: async () => {
+
+        [
+
+          "prepare",
+
+          "get",
+
+          "markSending",
+
+          "markUncertain",
+
+          "markBlocked",
+
+          "complete",
+
+          "health"
+
+        ].forEach(name =>
+
+          requireFunction(PGDOutbox, name)
+
+        );
+
+        return {
+
+          functionsVerified: 7,
+
+          version: moduleVersion(PGDOutbox),
+
+          scope: "INTERFACE_CHECK"
+
+        };
+
+      }
+
+    },
+
+    {
+
+      id: "C42-05",
+
+      name: "Kiểm tra giao diện API",
+
+      run: async () => {
+
+        [
+
+          "health",
+
+          "login",
+
+          "logout",
+
+          "getProfile",
+
+          "restoreDraft",
+
+          "saveDraft",
+
+          "savePhoto",
+
+          "readPhoto",
+
+          "removePhoto",
+
+          "inventoryCatalog",
+
+          "checklistCatalog",
+
+          "requestState",
+
+          "sendPending",
+
+          "conflictHealth",
+
+          "conflictBackupBegin",
+
+          "conflictBackupLocalPhoto",
+
+          "conflictBackupServerPhoto",
+
+          "conflictBackupStatus",
+
+          "conflictBackupVerify",
+
+          "conflictBackupConfirm"
+
+        ].forEach(name =>
+
+          requireFunction(PGDAPI, name)
+
+        );
+
+        return {
+
+          functionsVerified: 20,
+
+          version: moduleVersion(PGDAPI),
+
+          scope: "INTERFACE_CHECK"
+
+        };
+
+      }
+
+    },
+
+    {
+
+      id: "C42-06",
+
+      name: "Kiểm tra Sync C3.1",
+
+      run: async () => {
+
+        requireVersion(
+
+          PGDSync,
+
+          CONFIG.VERSIONS.sync
+
+        );
+
+        [
+
+          "restore",
+
+          "syncNow",
+
+          "recoverPending",
+
+          "getStatus",
+
+          "start",
+
+          "stop",
+
+          "inspectConflict",
+
+          "releaseAfterResolution",
+
+          "selfTestC31"
+
+        ].forEach(name =>
+
+          requireFunction(PGDSync, name)
+
+        );
+
+        return {
+
+          version: PGDSync.config.VERSION,
+
+          functionsVerified: 9
+
+        };
+
+      }
+
+    },
+
+    {
+
+      id: "C42-07",
+
+      name: "Kiểm tra Conflict module",
+
+      run: async () => {
+
+        [
+
+          "compareFields",
+
+          "comparePhotos",
+
+          "classify",
+
+          "inspect",
+
+          "selfTest"
+
+        ].forEach(name =>
+
+          requireFunction(PGDConflict, name)
+
+        );
+
+        return {
+
+          version: moduleVersion(PGDConflict),
+
+          functionsVerified: 5,
+
+          scope: "INTERFACE_CHECK"
+
+        };
+
+      }
+
+    },
+
+    {
+
+      id: "C42-08",
+
+      name: "Kiểm tra Cloud Backup",
+
+      run: async () => {
+
+        requireVersion(
+
+          PGDCloudBackup,
+
+          CONFIG.VERSIONS.cloud
+
+        );
+
+        [
+
+          "canonical",
+
+          "hashText",
+
+          "hashJson",
+
+          "hashPhoto",
+
+          "hashPhotos",
+
+          "backup",
+
+          "withSession",
+
+          "captureInSession",
+
+          "backupInSession",
+
+          "verifyInSession",
+
+          "selfTest"
+
+        ].forEach(name =>
+
+          requireFunction(PGDCloudBackup, name)
+
+        );
+
+        return {
+
+          version: PGDCloudBackup.config.VERSION,
+
+          functionsVerified: 11
+
+        };
+
+      }
+
+    },
+
+    {
+
+      id: "C42-09",
+
+      name: "Kiểm tra Resolution C3.2",
+
+      run: async () => {
+
+        requireVersion(
+
+          PGDResolution,
+
+          CONFIG.VERSIONS.resolution
+
+        );
+
+        [
+
+          "preview",
+
+          "resolveConflict",
+
+          "listBackups",
+
+          "getBackup",
+
+          "retryRelease",
+
+          "selfTest",
+
+          "selfTestC32"
+
+        ].forEach(name =>
+
+          requireFunction(PGDResolution, name)
+
+        );
+
+        return {
+
+          version: PGDResolution.config.VERSION,
+
+          functionsVerified: 7
+
+        };
+
+      }
+
+    },
+
+    {
+
+      id: "C42-10",
+
+      name: "Kiểm tra API Health và Request State",
+
+      run: async () => {
+
+        await checkHealth();
+
+        assert(
+
+          state.health &&
+
+          state.health.success === true,
+
+          "API_HEALTH_FAILED"
+
+        );
+
+        assert(
+
+          state.health.requestStateEnabled === true,
+
+          "REQUEST_STATE_DISABLED"
+
+        );
+
+        return {
+
+          health: true,
+
+          requestStateEnabled: true
+
+        };
+
+      }
+
+    },
+
+    {
+
+      id: "C42-11",
+
+      name: "Kiểm tra Conflict API và chế độ TEST",
+
+      run: async () => {
+
+        if (!state.conflictHealth) {
+
+          await checkHealth();
+
+        }
+
+        const health = state.conflictHealth;
+
+        assert(
+
+          health && health.enabled === true,
+
+          "CONFLICT_API_DISABLED"
+
+        );
+
+        assert(
+
+          health.ready === true &&
+
+          health.integrated === true &&
+
+          health.upgradeReady === true,
+
+          "CONFLICT_API_NOT_READY"
+
+        );
+
+        assert(
+
+          health.backupReady === true &&
+
+          health.verificationReady === true,
+
+          "BACKUP_VERIFICATION_NOT_READY"
+
+        );
+
+        assert(
+
+          health.catalogRevision ===
+
+            CONFIG.CATALOG_REVISION,
+
+          "CONFLICT_CATALOG_MISMATCH"
+
+        );
+
+        assert(
+
+          health.telegramEnabled === false &&
+
+          health.revenueEnabled === false,
+
+          "UNEXPECTED_FEATURE_ENABLED"
+
+        );
+
+        assert(
+
+          /^TEST_/.test(state.runContext.employee),
+
+          "TEST_ACCOUNT_REQUIRED"
+
+        );
+
+        return {
+
+          enabled: true,
+
+          integrated: true,
+
+          upgradeReady: true,
+
+          backupReady: true,
+
+          verificationReady: true,
+
+          telegramEnabled: false,
+
+          revenueEnabled: false,
+
+          testAccount: true
+
+        };
+
+      }
+
+    },
+
+    {
+
+      id: "C42-12",
+
+      name: "Kiểm tra phiên đăng nhập và khóa dữ liệu",
+
+      run: async () => {
+
+        const ctx = state.runContext;
+
+        const profile = requireSession(ctx);
+
+        const key = PGDDraft.makeKey(ctx);
+
+        const expectedKey =
+
+          ctx.date.replace(/-/g, "") +
+
+          "-" + ctx.branch +
+
+          "-" + ctx.shift +
+
+          "-" + ctx.department +
+
+          "-" + ctx.employee;
+
+        assert(
+
+          key === expectedKey,
+
+          "DRAFT_KEY_MISMATCH"
+
+        );
+
+        return {
+
+          employee: profile.code,
+
+          branch: profile.branch,
+
+          draftKey: key
+
+        };
+
+      }
+
+    },
+
+    {
+
+      id: "C42-13",
+
+      name: "Kiểm tra ghi đọc IndexedDB tạm",
+
+      run: testTemporaryIndexedDB
+
+    },
+
+    {
+
+      id: "C42-14",
+
+      name: "Kiểm tra Web Lock độc quyền",
+
+      run: testWebLock
+
+    },
+
+    {
+
+      id: "C42-15",
+
+      name: "Kiểm tra BroadcastChannel",
+
+      run: testBroadcastChannel
+
+    },
+
+    {
+
+      id: "C42-16",
+
+      name: "Kiểm tra SHA-256 và canonical JSON",
+
+      run: testCrypto
+
+    },
+
+    {
+
+      id: "C42-17",
+
+      name: "Kiểm tra phiên trống và dữ liệu ban đầu",
+
+      run: async () => {
+
+        const snapshot =
+
+          await captureSnapshot(state.runContext);
+
+        assert(
+
+          !snapshot.local,
+
+          "LOCAL_DRAFT_ALREADY_EXISTS",
+
+          "Hãy chọn ngày kiểm thử mới."
+
+        );
+
+        assert(
+
+          snapshot.server.exists === false &&
+
+          snapshot.server.version === 0,
+
+          "SERVER_DRAFT_ALREADY_EXISTS",
+
+          "Hãy chọn ngày kiểm thử mới."
+
+        );
+
+        assert(
+
+          !snapshot.pending,
+
+          "OUTBOX_NOT_EMPTY"
+
+        );
+
+        assert(
+
+          snapshot.block === null,
+
+          "SYNC_ALREADY_BLOCKED"
+
+        );
+
+        state.baseline = clone(snapshot);
+
+        return {
+
+          localEmpty: true,
+
+          serverEmpty: true,
+
+          outboxEmpty: true,
+
+          sharedBlockEmpty: true,
+
+          draftKey: snapshot.key
+
+        };
+
+      }
+
+    },
+
+    {
+
+      id: "C42-18",
+
+      name: "Chạy lại toàn bộ 104 kiểm thử logic",
+
+      run: async () => {
+
+        assert(
+
+          state.baseline,
+
+          "BASELINE_REQUIRED"
+
+        );
+
+        const result = await runLogicTests();
+
+        assert(
+
+          result.success,
+
+          "LOGIC_TEST_FAILED",
+
+          "Kết quả " +
+
+          result.passed +
+
+          "/" +
+
+          result.total
+
+        );
+
+        return {
+
+          passed: result.passed,
+
+          total: result.total,
+
+          suites: result.results.map(item => ({
+
+            name: item.name,
+
+            passed: item.passed,
+
+            total: item.total
+
+          }))
+
+        };
+
+      }
+
+    },
+
+    {
+
+      id: "C42-19",
+
+      name: "Kiểm tra trạng thái đồng bộ và Outbox",
+
+      run: async () => {
+
+        assert(
+
+          state.baseline,
+
+          "BASELINE_REQUIRED"
+
+        );
+
+        const ctx = state.runContext;
+
+        const pending =
+
+          await PGDOutbox.get(ctx);
+
+        const status =
+
+          await PGDSync.getStatus(ctx);
+
+        assert(
+
+          !pending,
+
+          "UNEXPECTED_PENDING_REQUEST"
+
+        );
+
+        assert(
+
+          status &&
+
+          typeof status.status === "string",
+
+          "INVALID_SYNC_STATUS"
+
+        );
+
+        assert(
+
+          status.status !== "BLOCKED",
+
+          "UNEXPECTED_SYNC_BLOCK"
+
+        );
+
+        const block =
+
+          localStorage.getItem(
+
+            CONFIG.BLOCK_PREFIX +
+
+            PGDDraft.makeKey(ctx)
+
+          );
+
+        assert(
+
+          block === null,
+
+          "SHARED_BLOCK_CREATED"
+
+        );
+
+        return {
+
+          outboxEmpty: true,
+
+          sharedBlockEmpty: true,
+
+          syncStatus: status.status
+
+        };
+
+      }
+
+    },
+
+    {
+
+      id: "C42-20",
+
+      name: "Đối chiếu dữ liệu trước và sau kiểm thử",
+
+      run: async () => {
+
+        assert(
+
+          state.baseline,
+
+          "BASELINE_REQUIRED"
+
+        );
+
+        const current =
+
+          await captureSnapshot(state.runContext);
+
+        const checks = {
+
+          contextUnchanged:
+
+            equal(
+
+              state.baseline.context,
+
+              current.context
+
+            ),
+
+          localUnchanged:
+
+            equal(
+
+              state.baseline.local,
+
+              current.local
+
+            ),
+
+          serverUnchanged:
+
+            equal(
+
+              state.baseline.server,
+
+              current.server
+
+            ),
+
+          outboxUnchanged:
+
+            equal(
+
+              state.baseline.pending,
+
+              current.pending
+
+            ),
+
+          blockUnchanged:
+
+            equal(
+
+              state.baseline.block,
+
+              current.block
+
+            )
+
+        };
+
+        assert(
+
+          Object.values(checks).every(Boolean),
+
+          "DATA_CHANGED_DURING_TEST",
+
+          safeDisplay(checks)
+
+        );
+
+        return {
+
+          success: true,
+
+          checks,
+
+          scope: "SELECTED_TEST_CONTEXT_ONLY"
+
+        };
+
+      }
+
+    }
+
+  ];
+
+  /* =====================================================
+     13. TEST RENDERING
+  ===================================================== */
+
+  function renderTests() {
+
+    const tbody = $("testTable");
+
+    tbody.replaceChildren();
+
+    for (const test of TESTS) {
+
+      const result = state.results.find(
+
+        item => item.id === test.id
+
+      );
+
+      const status = result
+
+        ? result.status
+
+        : "PENDING";
+
+      const row = document.createElement("tr");
+
+      addCell(row, test.id);
+
+      addCell(row, test.name);
+
+      addCell(
+
+        row,
+
+        status,
+
+        status === "PASS"
+
+          ? "pass"
+
+          : status === "FAIL"
+
+            ? "fail"
+
+            : "pending"
+
+      );
+
+      addCell(
+
+        row,
+
+        result &&
+
+        Number.isFinite(result.durationMs)
+
+          ? result.durationMs + " ms"
+
+          : "--"
+
+      );
+
+      addCell(
+
+        row,
+
+        result
+
+          ? result.error ||
+
+            (
+
+              status === "PASS"
+
+                ? "Kiểm tra thành công"
+
+                : "--"
+
+            )
+
+          : "--"
+
+      );
+
+      tbody.appendChild(row);
+
+    }
+
+  }
+
+  function updateDashboard() {
+
+    const passed = state.results.filter(
+
+      item => item.status === "PASS"
+
+    ).length;
+
+    const failed = state.results.filter(
+
+      item => item.status === "FAIL"
+
+    ).length;
+
+    const completed = passed + failed;
+
+    const pending =
+
+      CONFIG.EXPECTED_SYSTEM_TESTS -
+
+      completed;
+
+    const ready =
+
+      passed === CONFIG.EXPECTED_SYSTEM_TESTS &&
+
+      failed === 0 &&
+
+      state.logicPassed ===
+
+        CONFIG.EXPECTED_LOGIC_TESTS &&
+
+      state.logicTotal ===
+
+        CONFIG.EXPECTED_LOGIC_TESTS &&
+
+      state.logicResults.every(
+
+        item => item.success
+
+      ) &&
+
+      Boolean(state.runFinishedAt);
+
+    metric(
+
+      "systemScore",
+
+      passed + "/" +
+
+      CONFIG.EXPECTED_SYSTEM_TESTS,
+
+      ready
+
+        ? "pass"
+
+        : failed > 0
+
+          ? "fail"
+
+          : "pending"
+
+    );
+
+    metric(
+
+      "failScore",
+
+      failed,
+
+      failed > 0 ? "fail" : "pass"
+
+    );
+
+    metric(
+
+      "pendingScore",
+
+      pending,
+
+      pending > 0 ? "pending" : "pass"
+
+    );
+
+    metric(
+
+      "acceptanceStatus",
+
+      ready
+
+        ? "PASS"
+
+        : failed > 0
+
+          ? "FAIL"
+
+          : "PENDING",
+
+      ready
+
+        ? "pass"
+
+        : failed > 0
+
+          ? "fail"
+
+          : "pending"
+
+    );
+
+    $("progressBar").style.width =
+
+      Math.round(
+
+        completed /
+
+        CONFIG.EXPECTED_SYSTEM_TESTS *
+
+        100
+
+      ) + "%";
+
+    return {
+
+      passed,
+
+      failed,
+
+      pending,
+
+      completed,
+
+      ready
+
+    };
+
+  }
+
+  /* =====================================================
+     14. RUN SYSTEM TESTS
+  ===================================================== */
+
+  async function runAllTests() {
+
+    assert(
+
+      navigator.onLine,
+
+      "OFFLINE",
+
+      "Cần kết nối mạng để kiểm thử tổng thể."
+
+    );
+
+    const ctx = context();
+
+    requireSession(ctx);
+
+    state.results = [];
+
+    state.logicResults = [];
+
+    state.logicPassed = 0;
+
+    state.logicTotal = 0;
+
+    state.health = null;
+
+    state.conflictHealth = null;
+
+    state.baseline = null;
+
+    state.lastSummary = null;
+
+    state.runContext = clone(ctx);
+
+    state.runStartedAt =
+
+      new Date().toISOString();
+
+    state.runFinishedAt = null;
+
+    renderTests();
+
+    renderLogic();
+
+    updateDashboard();
+
+    for (let i = 0; i < TESTS.length; i++) {
+
+      const test = TESTS[i];
+
+      $("currentTest").textContent =
+
+        "Đang kiểm tra " +
+
+        (i + 1) +
+
+        "/" +
+
+        TESTS.length +
+
+        ": " +
+
+        test.name;
+
+      const started = performance.now();
+
+      let result;
+
+      try {
+
+        assert(
+
+          equal(context(), state.runContext),
+
+          "CONTEXT_CHANGED"
+
+        );
+
+        assert(
+
+          navigator.onLine,
+
+          "OFFLINE_DURING_TEST"
+
+        );
+
+        requireSession(state.runContext);
+
+        const details = await test.run();
+
+        assert(
+
+          !details ||
+
+          details.success !== false,
+
+          "TEST_RETURNED_FAILURE"
+
+        );
+
+        result = {
+
+          id: test.id,
+
+          name: test.name,
+
+          status: "PASS",
+
+          durationMs: Math.round(
+
+            performance.now() - started
+
+          ),
+
+          details
+
+        };
+
+      } catch (error) {
+
+        result = {
+
+          id: test.id,
+
+          name: test.name,
+
+          status: "FAIL",
+
+          durationMs: Math.round(
+
+            performance.now() - started
+
+          ),
+
+          code: error.code || "ERROR",
+
+          error: error.message
+
+        };
+
+      }
+
+      state.results.push(result);
+
+      renderTests();
+
+      updateDashboard();
+
+      log(
+
+        test.id + " - " + result.status,
+
+        result
+
+      );
+
+    }
+
+    state.runFinishedAt =
+
+      new Date().toISOString();
+
+    const dashboard = updateDashboard();
+
+    $("currentTest").textContent =
+
+      dashboard.ready
+
+        ? "Hoàn thành kiểm thử C4.2."
+
+        : "Kiểm thử kết thúc. Cần xem các lỗi.";
+
+    return buildSummary();
+
+  }
+
+  /* =====================================================
+     15. SUMMARY
+  ===================================================== */
+
+  function buildSummary() {
+
+    const dashboard = updateDashboard();
+
+    const result = {
+
+      system: "PHO_GA_DOI_V2",
+
+      stage: "C4.2",
+
+      version: CONFIG.VERSION,
+
+      mode: CONFIG.MODE,
+
+      context: clone(state.runContext),
+
+      startedAt: state.runStartedAt,
+
+      finishedAt: state.runFinishedAt,
+
+      generatedAt: new Date().toISOString(),
+
+      systemTests: {
+
+        passed: dashboard.passed,
+
+        failed: dashboard.failed,
+
+        pending: dashboard.pending,
+
+        total: CONFIG.EXPECTED_SYSTEM_TESTS
+
+      },
+
+      logicTests: {
+
+        passed: state.logicPassed,
+
+        total: state.logicTotal,
+
+        expected: CONFIG.EXPECTED_LOGIC_TESTS
+
+      },
+
+      dataIntegrityCheck:
+
+        state.results.some(
+
+          item =>
+
+            item.id === "C42-20" &&
+
+            item.status === "PASS"
+
+        ),
+
+      acceptance: dashboard.ready
+
+        ? "PASS"
+
+        : dashboard.failed > 0
+
+          ? "FAIL"
+
+          : "PENDING",
+
+      audit: {
+
+        executedByThisPage: false,
+
+        errorCount: null,
+
+        requiredFunction:
+
+          "auditApiStorageV2"
+
+      },
+
+      realDeviceTesting: {
+
+        executedByThisPage: false,
+
+        requiredStage: "C4.3"
+
+      },
+
+      failureRecoveryTesting: {
+
+        executedByThisPage: false,
+
+        requiredStage: "C4.4"
+
+      },
+
+      testScope: {
+
+        interfaceChecks: true,
+
+        logicSelfTests: true,
+
+        temporaryBrowserStorageTests: true,
+
+        selectedContextReadOnlyComparison: true,
+
+        globalDatabaseAudit: false,
+
+        liveConflictResolution: false,
+
+        liveCloudBackupCreation: false
+
+      },
+
+      automaticBusinessSyncStarted: false,
+
+      telegramIntegrationAdded: false,
+
+      revenueIntegrationAdded: false,
+
+      results: clone(state.results),
+
+      logicResults: clone(state.logicResults)
+
+    };
+
+    state.lastSummary = clone(result);
+
+    output("summaryOutput", result);
+
+    return result;
+
+  }
+
+  async function copySummary() {
+
+    const summary = buildSummary();
+
+    const text = safeDisplay(summary);
+
+    assert(
+
+      navigator.clipboard &&
+
+      typeof navigator.clipboard.writeText ===
+
+        "function",
+
+      "CLIPBOARD_UNAVAILABLE",
+
+      "Hãy sao chép thủ công báo cáo."
+
+    );
+
+    await navigator.clipboard.writeText(text);
+
+    return {
+
+      success: true,
+
+      copied: true
+
+    };
+
+  }
+
+  function resetDisplay() {
+
+    state.results = [];
+
+    state.logicResults = [];
+
+    state.logicPassed = 0;
+
+    state.logicTotal = 0;
+
+    state.health = null;
+
+    state.conflictHealth = null;
+
+    state.baseline = null;
+
+    state.lastSummary = null;
+
+    state.runContext = null;
+
+    state.runStartedAt = null;
+
+    state.runFinishedAt = null;
+
+    renderTests();
+
+    renderLogic();
+
+    updateDashboard();
+
+    output(
+
+      "logicOutput",
+
+      "Chưa kiểm thử."
+
+    );
+
+    output(
+
+      "healthOutput",
+
+      "Chưa kiểm tra."
+
+    );
+
+    output(
+
+      "summaryOutput",
+
+      "Chưa tổng hợp."
+
+    );
+
+    $("currentTest").textContent =
+
+      "Đã đặt lại kết quả hiển thị.";
+
+    return {
+
+      success: true,
+
+      displayOnly: true,
+
+      localStorageDeleted: false,
+
+      indexedDBDeleted: false,
+
+      serverDataDeleted: false
+
+    };
+
+  }
+
+  /* =====================================================
+     16. BUTTON EVENTS
+  ===================================================== */
+
+  bind(
+
+    "btnLogin",
+
+    "LOGIN",
+
+    login
+
+  );
+
+  bind(
+
+    "btnLogout",
+
+    "LOGOUT",
+
+    logout
+
+  );
+
+  bind(
+
+    "btnProfile",
+
+    "PROFILE",
+
+    () => {
+
+      const profile = PGDAPI.getProfile();
+
+      output("loginOutput", profile);
+
+      return profile;
+
+    }
+
+  );
+
+  bind(
+
+    "btnContext",
+
+    "CONTEXT",
+
+    () => {
+
+      const ctx = context();
+
+      const result = {
+
+        context: ctx,
+
+        draftKey: PGDDraft.makeKey(ctx)
+
+      };
+
+      output("contextOutput", result);
+
+      return result;
+
+    }
+
+  );
+
+  bind(
+
+    "btnReadState",
+
+    "READ STATE",
+
+    readState
+
+  );
+
+  bind(
+
+    "btnVersions",
+
+    "CHECK VERSIONS",
+
+    checkVersions
+
+  );
+
+  bind(
+
+    "btnHealth",
+
+    "API HEALTH",
+
+    checkHealth
+
+  );
+
+  bind(
+
+    "btnLogic",
+
+    "LOGIC TESTS",
+
+    async () => {
+
+      invalidateAcceptance();
+
+      const ctx = context();
+
+      requireSession(ctx);
+
+      const before = await captureSnapshot(ctx);
+
+      assert(
+
+        !before.local &&
+
+        !before.pending &&
+
+        before.block === null &&
+
+        before.server.exists === false &&
+
+        before.server.version === 0,
+
+        "FRESH_CONTEXT_REQUIRED",
+
+        "Hãy chọn phiên kiểm thử trống."
+
+      );
+
+      const result = await runLogicTests();
+
+      const after = await captureSnapshot(ctx);
+
+      assert(
+
+        equal(before, after),
+
+        "DATA_CHANGED_DURING_LOGIC_TEST"
+
+      );
+
+      return result;
+
+    }
+
+  );
+
+  bind(
+
+    "btnRunAll",
+
+    "SYSTEM TEST C4.2",
+
+    runAllTests
+
+  );
+
+  bind(
+
+    "btnReset",
+
+    "RESET DISPLAY",
+
+    resetDisplay
+
+  );
+
+  bind(
+
+    "btnSummary",
+
+    "SUMMARY",
+
+    buildSummary
+
+  );
+
+  bind(
+
+    "btnCopy",
+
+    "COPY SUMMARY",
+
+    copySummary
+
+  );
+
+  $("btnClearLog").addEventListener(
+
+    "click",
+
+    () => {
+
+      state.logs = [];
+
+      output(
+
+        "logOutput",
+
+        "Đã xóa nhật ký hiển thị."
+
+      );
+
+    }
+
+  );
+
+  [
+
+    "employee",
+
+    "branch",
+
+    "workDate",
+
+    "shift",
+
+    "department"
+
+  ].forEach(id => {
+
+    $(id).addEventListener(
+
+      "change",
+
+      () => {
+
+        invalidateAcceptance();
+
+        output(
+
+          "summaryOutput",
+
+          "Phiên đã thay đổi. Cần kiểm thử lại."
+
+        );
+
+      }
+
+    );
+
+  });
+
+  /* =====================================================
+     17. INITIALIZATION
+  ===================================================== */
+
+  window.addEventListener(
+
+    "online",
+
+    () => {
+
+      updateNetwork();
+
+      log("NETWORK ONLINE");
+
+    }
+
+  );
+
+  window.addEventListener(
+
+    "offline",
+
+    () => {
+
+      updateNetwork();
+
+      log("NETWORK OFFLINE");
+
+    }
+
+  );
+
+  updateNetwork();
+
+  renderTests();
+
+  renderLogic();
+
+  updateDashboard();
+
+  try {
+
+    checkVersions();
+
+  } catch (error) {
+
+    log("VERSION CHECK ERROR", {
+
+      message: error.message
+
+    });
+
+  }
+
+  log("SYSTEM TEST READY", {
+
+    version: CONFIG.VERSION,
+
+    mode: CONFIG.MODE,
+
+    systemTests: CONFIG.EXPECTED_SYSTEM_TESTS,
+
+    logicTests: CONFIG.EXPECTED_LOGIC_TESTS,
+
+    autoSyncStarted: false,
+
+    auditAutomaticallyExecuted: false
+
+  });
+
+})();
+
+</script>
+
+</body>
+
+</html>
