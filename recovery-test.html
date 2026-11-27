@@ -1,1 +1,619 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>PGD - Recovery Test</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      background: #f1f5f9;
+      color: #172033;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      max-width: 760px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 14px;
+    }
+
+    h1 { font-size: 23px; }
+
+    h2 {
+      font-size: 18px;
+      margin-top: 25px;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      padding: 13px;
+      margin-top: 9px;
+      background: #172033;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:disabled { opacity: .5; }
+
+    pre {
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.6;
+    }
+
+    .info {
+      color: #64748b;
+      line-height: 1.6;
+    }
+  </style>
+
+</head>
+
+<body>
+
+<main>
+
+  <h1>PHỞ GÀ ĐỒI V2.0</h1>
+
+  <div class="info">
+    7.8.4.2-B – API Recovery Test<br>
+    Chỉ dùng dữ liệu kiểm thử.
+  </div>
+
+  <button onclick="run(checkHealth)">
+    Kiểm tra kết nối API
+  </button>
+
+  <h2>1. Đăng nhập</h2>
+
+  <label>Tài khoản</label>
+  <input id="employee" value="TEST_API01">
+
+  <label>PIN</label>
+  <input id="pin" type="password">
+
+  <label>Cơ sở</label>
+  <select id="branch">
+    <option value="CS1">CS1</option>
+    <option value="CS2">CS2</option>
+  </select>
+
+  <button onclick="run(login)">
+    Đăng nhập
+  </button>
+
+  <h2>2. Phiên kiểm thử</h2>
+
+  <label>Ngày làm việc</label>
+  <input id="date" type="date"
+         value="2026-12-06">
+
+  <label>Ca</label>
+  <select id="shift">
+    <option value="SANG">Ca sáng</option>
+    <option value="TOI">Ca tối</option>
+    <option value="DEM">Ca đêm</option>
+  </select>
+
+  <label>Bộ phận</label>
+  <select id="department">
+    <option value="BEP_PHO">Bếp phở</option>
+    <option value="BEP_VAT_TU">Bếp vật tư</option>
+    <option value="CHAY_BAN">Chạy bàn</option>
+    <option value="VE_SINH">Vệ sinh</option>
+  </select>
+
+  <label>Ghi chú kiểm thử</label>
+  <textarea id="note">RECOVERY_TEST</textarea>
+
+  <button onclick="run(restore)">
+    Mở và khôi phục bản nháp
+  </button>
+
+  <button onclick="run(saveLocal)">
+    Lưu ghi chú trên thiết bị
+  </button>
+
+  <button onclick="run(sync)">
+    Đồng bộ bình thường
+  </button>
+
+  <h2>3. Kiểm thử mất phản hồi</h2>
+
+  <button onclick="run(prepareOnly)">
+    A. Lưu yêu cầu nhưng chưa gửi
+  </button>
+
+  <button onclick="run(sendWithoutAck)">
+    B. Gửi API nhưng bỏ qua xác nhận
+  </button>
+
+  <button onclick="run(recover)">
+    C. Phục hồi yêu cầu đang chờ
+  </button>
+
+  <button onclick="run(inspect)">
+    Kiểm tra trạng thái và phiên bản
+  </button>
+
+  <button onclick="location.reload()">
+    Tải lại website
+  </button>
+
+  <h2>4. Kiểm thử hình ảnh</h2>
+
+  <button onclick="run(preparePhoto)">
+    Tạo yêu cầu lưu ảnh kiểm thử
+  </button>
+
+  <button onclick="run(prepareRemove)">
+    Tạo yêu cầu xóa liên kết ảnh
+  </button>
+
+  <h2>Kết quả</h2>
+
+  <pre id="result">Sẵn sàng.</pre>
+
+</main>
+
+<script src="draft.js?v=752"></script>
+<script src="outbox.js?v=7842"></script>
+<script src="api.js?v=7842b"></script>
+<script src="sync.js?v=7842b"></script>
+
+<script>
+
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+let busy = false;
+
+function log(value) {
+
+  $("result").textContent +=
+    (
+      typeof value === "string"
+        ? value
+        : JSON.stringify(value, null, 2)
+    ) + "\n";
+
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+async function run(callback) {
+
+  if (busy) return;
+
+  busy = true;
+
+  const buttons =
+    document.querySelectorAll("button");
+
+  buttons.forEach(b => b.disabled = true);
+
+  $("result").textContent = "";
+
+  try {
+
+    await callback();
+
+    log("THAO TÁC THÀNH CÔNG");
+
+  } catch (error) {
+
+    log(
+      "LỖI: " +
+      (error.code || "") +
+      " " + error.message
+    );
+
+  } finally {
+
+    busy = false;
+
+    buttons.forEach(b => b.disabled = false);
+
+  }
+
+}
+
+function context() {
+
+  const code = $("employee").value
+    .trim().toUpperCase();
+
+  assert(
+    code.startsWith("TEST_"),
+    "Chỉ được dùng tài khoản TEST_."
+  );
+
+  return {
+    date: $("date").value,
+    branch: $("branch").value,
+    shift: $("shift").value,
+    department: $("department").value,
+    employee: code
+  };
+
+}
+
+async function checkHealth() {
+
+  const health = await PGDAPI.health();
+
+  assert(
+    health.requestStateEnabled === true,
+    "Backend chưa hỗ trợ requestState."
+  );
+
+  assert(
+    navigator.locks,
+    "Trình duyệt chưa hỗ trợ Web Locks."
+  );
+
+  log(health);
+
+  log(await PGDOutbox.health());
+
+  log({
+    apiVersion: PGDAPI.config.VERSION,
+    syncVersion: PGDSync.config.VERSION
+  });
+
+}
+
+async function login() {
+
+  const result = await PGDAPI.login(
+    $("employee").value,
+    $("branch").value,
+    $("pin").value
+  );
+
+  $("pin").value = "";
+
+  log(result);
+
+}
+
+async function restore() {
+
+  const result = await PGDSync.restore(
+    context()
+  );
+
+  log({
+    source: result.source,
+    version: result.record
+      ? result.record.serverVersion
+      : 0
+  });
+
+}
+
+async function saveLocal() {
+
+  await PGDDraft.saveFieldsLocal(
+    context(),
+    {
+      generalNote: $("note").value
+    }
+  );
+
+  log("LOCAL_NOTE_SAVED");
+
+}
+
+async function sync() {
+
+  const result = await PGDSync.syncNow(
+    context()
+  );
+
+  log(result);
+
+}
+
+async function prepareOnly() {
+
+  const ctx = context();
+
+  assert(
+    !(await PGDOutbox.get(ctx)),
+    "Đang có yêu cầu chưa hoàn thành."
+  );
+
+  await saveLocal();
+
+  const local = await PGDDraft.restoreLocal(ctx);
+
+  const server = await PGDAPI.restoreDraft(ctx);
+
+  assert(
+    local.serverVersion === server.version,
+    "Phiên bản không khớp."
+  );
+
+  const pending = await PGDOutbox.prepare(
+    ctx,
+    {
+      action: "saveDraft",
+      requestId: PGDDraft.createId(),
+      expectedVersion: local.serverVersion,
+      localRevision: local.localRevision,
+      payload: {
+        data: local.data
+      }
+    }
+  );
+
+  log({
+    requestId: pending.requestId,
+    version: pending.expectedVersion,
+    status: pending.status
+  });
+
+  log("PREPARED_NOT_SENT");
+
+}
+
+async function sendWithoutAck() {
+
+  const ctx = context();
+
+  return navigator.locks.request(
+    "PGD_SYNC_" + PGDDraft.makeKey(ctx),
+    async function() {
+
+      const pending = await PGDOutbox.get(ctx);
+
+      assert(
+        pending &&
+        pending.status === "PREPARED",
+        "Cần tạo yêu cầu PREPARED trước."
+      );
+
+      await PGDOutbox.markSending(
+        ctx,
+        pending.requestId
+      );
+
+      const response = await PGDAPI.sendPending(
+        pending
+      );
+
+      // Cố ý không cập nhật version thiết bị.
+      // Cố ý không xóa Outbox.
+      // Mô phỏng mất phản hồi sau khi máy chủ ghi.
+
+      await PGDOutbox.markUncertain(
+        ctx,
+        pending.requestId,
+        "SIMULATED_RESPONSE_LOSS"
+      );
+
+      log({
+        requestId: pending.requestId,
+        serverVersion: response.version,
+        localVersion: pending.expectedVersion
+      });
+
+      log("SIMULATED_RESPONSE_LOSS");
+
+    }
+  );
+
+}
+
+async function recover() {
+
+  const result = await PGDSync.recoverPending(
+    context()
+  );
+
+  log(result);
+
+  log(
+    await PGDSync.getStatus(context())
+  );
+
+}
+
+async function inspect() {
+
+  log(
+    await PGDSync.inspectConflict(context())
+  );
+
+  const pending = await PGDOutbox.get(
+    context()
+  );
+
+  log(
+    pending
+      ? {
+          requestId: pending.requestId,
+          action: pending.action,
+          status: pending.status,
+          expectedVersion: pending.expectedVersion,
+          attempts: pending.attempts,
+          lastError: pending.lastError
+        }
+      : "OUTBOX_EMPTY"
+  );
+
+}
+
+function photoId() {
+
+  const ids = {
+    BEP_PHO: "HA001",
+    BEP_VAT_TU: "HA003",
+    CHAY_BAN: "HA006",
+    VE_SINH: "HA008"
+  };
+
+  return ids[context().department];
+
+}
+
+async function preparePhoto() {
+
+  const ctx = context();
+
+  assert(
+    !(await PGDOutbox.get(ctx)),
+    "Còn yêu cầu chưa hoàn thành."
+  );
+
+  const server = await PGDAPI.restoreDraft(ctx);
+
+  const before = await PGDDraft.restoreLocal(ctx);
+
+  assert(
+    server.exists &&
+    before &&
+    before.serverVersion === server.version,
+    "Cần đồng bộ bản nháp trước."
+  );
+
+  const canvas = document.createElement("canvas");
+
+  canvas.width = 640;
+  canvas.height = 360;
+
+  const g = canvas.getContext("2d");
+
+  g.fillStyle = "#ffffff";
+  g.fillRect(0, 0, 640, 360);
+
+  g.fillStyle = "#172033";
+  g.font = "28px Arial";
+  g.fillText("PGD RECOVERY TEST", 35, 100);
+
+  g.font = "20px Arial";
+  g.fillText(new Date().toISOString(), 35, 160);
+
+  const data = canvas.toDataURL(
+    "image/jpeg", 0.8
+  );
+
+  const id = photoId();
+
+  await PGDDraft.savePhotoLocal(
+    ctx, id, data
+  );
+
+  const local = await PGDDraft.restoreLocal(ctx);
+
+  const pending = await PGDOutbox.prepare(
+    ctx,
+    {
+      action: "savePhoto",
+      requestId: PGDDraft.createId(),
+      expectedVersion: local.serverVersion,
+      localRevision: local.localRevision,
+      payload: {
+        photoId: id,
+        data: data
+      }
+    }
+  );
+
+  log({
+    requestId: pending.requestId,
+    photoId: id,
+    status: pending.status
+  });
+
+}
+
+async function prepareRemove() {
+
+  const ctx = context();
+
+  assert(
+    !(await PGDOutbox.get(ctx)),
+    "Còn yêu cầu chưa hoàn thành."
+  );
+
+  const id = photoId();
+
+  const server = await PGDAPI.restoreDraft(ctx);
+
+  const before = await PGDDraft.restoreLocal(ctx);
+
+  assert(
+    before &&
+    before.serverVersion === server.version &&
+    server.photos &&
+    server.photos[id],
+    "Chưa có ảnh máy chủ phù hợp."
+  );
+
+  await PGDDraft.removePhotoLocal(ctx, id);
+
+  const local = await PGDDraft.restoreLocal(ctx);
+
+  const pending = await PGDOutbox.prepare(
+    ctx,
+    {
+      action: "removePhoto",
+      requestId: PGDDraft.createId(),
+      expectedVersion: local.serverVersion,
+      localRevision: local.localRevision,
+      payload: {
+        photoId: id
+      }
+    }
+  );
+
+  log({
+    requestId: pending.requestId,
+    photoId: id,
+    status: pending.status
+  });
+
+}
+
+</script>
+
+</body>
+</html>
