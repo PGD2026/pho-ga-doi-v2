@@ -1,1 +1,797 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1">
+
+<title>PGD - Conflict Resolution</title>
+
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  background: #f1f5f9;
+  color: #172033;
+  font-family: Arial, sans-serif;
+}
+
+main {
+  max-width: 850px;
+  margin: auto;
+  background: white;
+  padding: 22px;
+  border-radius: 14px;
+}
+
+h1 {
+  font-size: 23px;
+}
+
+h2 {
+  font-size: 18px;
+  margin-top: 26px;
+}
+
+label {
+  display: block;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  background: #172033;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+.primary {
+  background: #166534;
+}
+
+.warning-button {
+  background: #9a3412;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.panel {
+  border: 1px solid #cbd5e1;
+  padding: 15px;
+  border-radius: 9px;
+  overflow-wrap: anywhere;
+}
+
+.version {
+  font-size: 30px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.warning {
+  padding: 14px;
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #9a3412;
+  line-height: 1.6;
+}
+
+pre {
+  padding: 15px;
+  background: #f8fafc;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+
+.confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+
+.confirm input {
+  width: auto;
+}
+
+#score {
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.success {
+  color: #15803d;
+}
+
+.error {
+  color: #dc2626;
+}
+
+img {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 8px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<main>
+
+<h1>PHỞ GÀ ĐỒI V2.0</h1>
+
+<p>7.8.4.3-B – Xử lý xung đột</p>
+
+<div class="warning">
+  Chỉ sử dụng tài khoản kiểm thử.
+  Cả hai phiên bản phải được sao lưu
+  trước khi xử lý.
+</div>
+
+<h2>1. Kiểm thử tự động</h2>
+
+<div id="score">0/28</div>
+
+<button onclick="run(test)">
+  Chạy 28 bài kiểm thử
+</button>
+
+<h2>2. Đăng nhập</h2>
+
+<label>Tài khoản</label>
+
+<input id="employee" value="TEST_API01">
+
+<label>PIN</label>
+
+<input id="pin" type="password">
+
+<label>Cơ sở</label>
+
+<select id="branch">
+  <option value="CS1">CS1</option>
+  <option value="CS2">CS2</option>
+</select>
+
+<button onclick="run(login)">
+  Đăng nhập
+</button>
+
+<h2>3. Phiên làm việc</h2>
+
+<label>Ngày làm việc</label>
+
+<input id="date"
+       type="date"
+       value="2026-12-07">
+
+<label>Ca</label>
+
+<select id="shift">
+  <option value="SANG">Ca sáng</option>
+  <option value="TOI">Ca tối</option>
+  <option value="DEM">Ca đêm</option>
+</select>
+
+<label>Bộ phận</label>
+
+<select id="department">
+  <option value="BEP_PHO">Bếp phở</option>
+  <option value="BEP_VAT_TU">Bếp vật tư</option>
+  <option value="CHAY_BAN">Chạy bàn</option>
+  <option value="VE_SINH">Vệ sinh</option>
+</select>
+
+<label>Ghi chú kiểm thử</label>
+
+<textarea id="note">RESOLUTION_TEST</textarea>
+
+<button onclick="run(restore)">
+  Khôi phục bản nháp
+</button>
+
+<button onclick="run(saveLocal)">
+  Lưu ghi chú thiết bị
+</button>
+
+<button onclick="run(sync)">
+  Đồng bộ bản nháp
+</button>
+
+<h2>4. So sánh trước khi xử lý</h2>
+
+<button onclick="run(preview)">
+  So sánh hai phiên bản
+</button>
+
+<div class="grid">
+
+  <div class="panel">
+
+    Thiết bị
+
+    <div id="localVersion"
+         class="version">--</div>
+
+    <div id="localNote">Chưa kiểm tra</div>
+
+  </div>
+
+  <div class="panel">
+
+    Máy chủ
+
+    <div id="serverVersion"
+         class="version">--</div>
+
+    <div id="serverNote">Chưa kiểm tra</div>
+
+  </div>
+
+</div>
+
+<pre id="differences">
+Chưa có kết quả.
+</pre>
+
+<h2>5. Lựa chọn xử lý</h2>
+
+<div class="warning">
+
+  Giữ bản thiết bị:
+  sao lưu cả hai bản, sau đó chuẩn bị
+  bản thiết bị để đồng bộ.
+
+  <hr>
+
+  Giữ bản máy chủ:
+  sao lưu cả hai bản, sau đó thay
+  bản nháp thiết bị bằng bản máy chủ.
+
+</div>
+
+<label class="confirm">
+
+  <input id="confirmed"
+         type="checkbox"
+         onchange="updateButtons()">
+
+  Tôi đã kiểm tra hai phiên bản và
+  xác nhận lựa chọn dữ liệu.
+
+</label>
+
+<button id="keepLocal"
+        class="warning-button"
+        disabled
+        onclick="run(() => resolve('KEEP_LOCAL'))">
+
+  Sao lưu và giữ bản thiết bị
+
+</button>
+
+<button id="keepServer"
+        class="primary"
+        disabled
+        onclick="run(() => resolve('KEEP_SERVER'))">
+
+  Sao lưu và giữ bản máy chủ
+
+</button>
+
+<h2>6. Kiểm tra bản sao lưu</h2>
+
+<button onclick="run(listBackups)">
+  Danh sách bản sao lưu
+</button>
+
+<label>Mã bản sao lưu</label>
+
+<input id="backupId">
+
+<button onclick="run(readBackup)">
+  Đọc và kiểm tra bản sao
+</button>
+
+<div id="backupPhotos"></div>
+
+<h2>7. Nhật ký</h2>
+
+<pre id="result">Sẵn sàng.</pre>
+
+</main>
+
+<script src="draft.js?v=752"></script>
+<script src="outbox.js?v=7842"></script>
+<script src="api.js?v=7842b"></script>
+<script src="sync.js?v=7842b"></script>
+<script src="conflict.js?v=7843a"></script>
+<script src="conflict-resolution.js?v=7843b"></script>
+
+<script>
+
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+let busy = false;
+
+let activePreview = null;
+
+function log(value) {
+
+  $("result").textContent +=
+
+    (
+      typeof value === "string"
+        ? value
+        : JSON.stringify(value, null, 2)
+    ) + "\n";
+
+}
+
+function context() {
+
+  const employee = $("employee").value
+    .trim().toUpperCase();
+
+  if (!employee.startsWith("TEST_")) {
+    throw new Error(
+      "Chỉ sử dụng tài khoản TEST_."
+    );
+  }
+
+  return {
+
+    employee: employee,
+
+    branch: $("branch").value,
+
+    date: $("date").value,
+
+    shift: $("shift").value,
+
+    department: $("department").value
+
+  };
+
+}
+
+function invalidatePreview() {
+
+  activePreview = null;
+
+  $("confirmed").checked = false;
+
+  updateButtons();
+
+}
+
+function updateButtons() {
+
+  const enabled = Boolean(
+
+    !busy &&
+
+    activePreview &&
+
+    $("confirmed").checked
+
+  );
+
+  $("keepLocal").disabled = !enabled;
+
+  $("keepServer").disabled = !enabled;
+
+}
+
+[
+  "employee",
+  "branch",
+  "date",
+  "shift",
+  "department"
+].forEach(id => {
+
+  $(id).addEventListener(
+    "change",
+    invalidatePreview
+  );
+
+});
+
+async function run(callback) {
+
+  if (busy) return;
+
+  busy = true;
+
+  const buttons =
+    document.querySelectorAll("button");
+
+  buttons.forEach(
+    button => button.disabled = true
+  );
+
+  $("result").textContent = "";
+
+  try {
+
+    await callback();
+
+    log("THAO TÁC THÀNH CÔNG");
+
+  } catch (error) {
+
+    invalidatePreview();
+
+    log(
+      "LỖI: " +
+      (error.code || "") +
+      " " +
+      error.message
+    );
+
+  } finally {
+
+    busy = false;
+
+    buttons.forEach(
+      button => button.disabled = false
+    );
+
+    updateButtons();
+
+  }
+
+}
+
+async function test() {
+
+  const result = PGDResolution.selfTest();
+
+  $("score").textContent =
+    result.passed + "/" + result.total;
+
+  $("score").className =
+    result.success ? "success" : "error";
+
+  result.results.forEach(item => {
+
+    log(
+      (item.passed ? "ĐẠT - " : "LỖI - ") +
+      item.name +
+      (item.message
+        ? ": " + item.message
+        : "")
+    );
+
+  });
+
+  log(
+    result.success
+      ? "RESOLUTION_TEST_PASSED"
+      : "RESOLUTION_TEST_FAILED"
+  );
+
+}
+
+async function login() {
+
+  invalidatePreview();
+
+  const ctx = context();
+
+  const result = await PGDAPI.login(
+
+    ctx.employee,
+
+    ctx.branch,
+
+    $("pin").value
+
+  );
+
+  $("pin").value = "";
+
+  log(result);
+
+}
+
+async function restore() {
+
+  invalidatePreview();
+
+  const result = await PGDSync.restore(
+    context()
+  );
+
+  log({
+
+    source: result.source,
+
+    version: result.record
+      ? result.record.serverVersion
+      : 0
+
+  });
+
+}
+
+async function saveLocal() {
+
+  invalidatePreview();
+
+  await PGDDraft.saveFieldsLocal(
+
+    context(),
+
+    {
+      generalNote: $("note").value
+    }
+
+  );
+
+  log("LOCAL_NOTE_SAVED");
+
+}
+
+async function sync() {
+
+  invalidatePreview();
+
+  const result = await PGDSync.syncNow(
+    context()
+  );
+
+  log(result);
+
+}
+
+async function preview() {
+
+  invalidatePreview();
+
+  const result = await PGDResolution.preview(
+    context()
+  );
+
+  activePreview = result;
+
+  $("localVersion").textContent =
+    result.localVersion;
+
+  $("serverVersion").textContent =
+    result.serverVersion;
+
+  $("localNote").textContent =
+    result.localNote;
+
+  $("serverNote").textContent =
+    result.serverNote;
+
+  $("differences").textContent =
+    JSON.stringify(
+      {
+        fields: result.fieldDifferences,
+        photos: result.photoDifferences
+      },
+      null,
+      2
+    );
+
+  log(result);
+
+}
+
+async function resolve(choice) {
+
+  if (!activePreview) {
+
+    throw new Error(
+      "Cần so sánh trước khi xử lý."
+    );
+
+  }
+
+  if (!$("confirmed").checked) {
+
+    throw new Error(
+      "Cần xác nhận lựa chọn."
+    );
+
+  }
+
+  const message =
+    choice === "KEEP_LOCAL"
+      ? "Sao lưu cả hai bản và giữ bản thiết bị?"
+      : "Sao lưu cả hai bản và giữ bản máy chủ?";
+
+  if (!window.confirm(message)) {
+
+    log("ĐÃ HỦY THAO TÁC");
+
+    return;
+
+  }
+
+  const result =
+    await PGDResolution.resolveConflict(
+
+      context(),
+
+      activePreview.previewId,
+
+      choice,
+
+      true
+
+    );
+
+  $("backupId").value = result.backupId;
+
+  invalidatePreview();
+
+  log(result);
+
+  log(
+    await PGDSync.inspectConflict(
+      context()
+    )
+  );
+
+}
+
+async function listBackups() {
+
+  const result =
+    await PGDResolution.listBackups(
+      context()
+    );
+
+  log(result);
+
+}
+
+function showPhotos(title, photos) {
+
+  const heading =
+    document.createElement("h3");
+
+  heading.textContent = title;
+
+  $("backupPhotos").appendChild(heading);
+
+  for (const id of Object.keys(photos || {})) {
+
+    const label =
+      document.createElement("p");
+
+    label.textContent = id;
+
+    $("backupPhotos").appendChild(label);
+
+    const data = photos[id].data;
+
+    if (
+      typeof data === "string" &&
+      data.startsWith(
+        "data:image/jpeg;base64,"
+      )
+    ) {
+
+      const image =
+        document.createElement("img");
+
+      image.src = data;
+
+      image.alt = id;
+
+      $("backupPhotos").appendChild(image);
+
+    }
+
+  }
+
+}
+
+async function readBackup() {
+
+  const backup =
+    await PGDResolution.getBackup(
+
+      context(),
+
+      $("backupId").value.trim()
+
+    );
+
+  $("backupPhotos").textContent = "";
+
+  log({
+
+    backupId: backup.backupId,
+
+    createdAt: backup.createdAt,
+
+    choice: backup.choice,
+
+    localVersion:
+      backup.local.serverVersion,
+
+    serverVersion:
+      backup.server.version,
+
+    localData: backup.local.data,
+
+    serverData: backup.server.data,
+
+    localPhotoCount:
+      Object.keys(
+        backup.local.photos || {}
+      ).length,
+
+    serverPhotoCount:
+      Object.keys(
+        backup.serverPhotos || {}
+      ).length
+
+  });
+
+  showPhotos(
+    "Ảnh sao lưu thiết bị",
+    backup.local.photos
+  );
+
+  showPhotos(
+    "Ảnh sao lưu máy chủ",
+    backup.serverPhotos
+  );
+
+  log("BACKUP_READ_SUCCESS");
+
+}
+
+</script>
+
+</body>
+
+</html>
