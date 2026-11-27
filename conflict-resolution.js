@@ -2,13 +2,13 @@
 /************************************************************
  * PHỞ GÀ ĐỒI - SYSTEM V2.0
  * FILE: conflict-resolution.js
- * VERSION: 7.8.4.3-C2.3-C2
+ * VERSION: 7.8.4.3-C3.2
  *
- * Bắt buộc sao lưu IndexedDB + Google Drive.
- * Bắt buộc xác minh độc lập trước khi xử lý.
- * Sử dụng chung Web Lock với PGDCloudBackup.
- * Không ghi trực tiếp dữ liệu nghiệp vụ lên máy chủ.
- * Chỉ sử dụng tài khoản TEST.
+ * IndexedDB + Google Drive Backup
+ * Independent Content Verification
+ * Conditional Sync Release
+ * Multi-tab Web Locks
+ * TEST MODE ONLY
  ************************************************************/
 
 (function(global) {
@@ -16,83 +16,61 @@
   "use strict";
 
   const CONFIG = Object.freeze({
-
-    VERSION: "7.8.4.3-C2.3-C2",
-
+    VERSION: "7.8.4.3-C3.2",
     CATALOG_REVISION: "751",
-
     CLOUD_BACKUP_VERSION: "7.8.4.3-C2.3-C1",
-
+    SYNC_VERSION: "7.8.4.3-C3.1",
     VERIFY_VERSION: "7.8.4.3-C2.1",
-
     DB_NAME: "PGD_CONFLICT_BACKUP_V2",
-
     DB_VERSION: 1,
-
     STORE_NAME: "conflict_backups",
-
     CHOICES: Object.freeze([
       "KEEP_LOCAL",
       "KEEP_SERVER"
     ]),
-
     EDITABLE: Object.freeze([
       "DRAFT",
       "REJECTED"
     ])
-
   });
 
   const previews = new Map();
+  const resolving = new Map();
+  const releasing = new Map();
 
   /* =====================================================
      01. TIỆN ÍCH
   ===================================================== */
 
   function fail(code, message) {
-
     const error = new Error(message || code);
-
     error.code = code;
-
     return error;
-
   }
 
   function assert(condition, code, message) {
-
     if (!condition) {
-
       throw fail(code, message);
-
     }
-
   }
 
   function clone(value) {
-
     return JSON.parse(JSON.stringify(value));
-
   }
 
   function canonical(value) {
 
     if (value === undefined) {
-
       return "undefined";
-
     }
 
     if (Array.isArray(value)) {
-
       return "[" +
         value.map(canonical).join(",") +
         "]";
-
     }
 
     if (value && typeof value === "object") {
-
       return "{" +
         Object.keys(value)
           .sort()
@@ -103,76 +81,55 @@
           )
           .join(",") +
         "}";
-
     }
 
     return JSON.stringify(value);
-
   }
 
   function equal(a, b) {
-
     return canonical(a) === canonical(b);
-
   }
 
   function editable(status) {
-
     return CONFIG.EDITABLE.includes(status);
-
   }
 
   function keyOf(context) {
-
     return PGDDraft.makeKey(context);
-
   }
 
   function validHash(hash) {
-
     return typeof hash === "string" &&
       /^[a-f0-9]{64}$/.test(hash);
-
   }
 
   function validateChoice(choice) {
-
     assert(
       CONFIG.CHOICES.includes(choice),
       "INVALID_CHOICE",
       "Lựa chọn xử lý không hợp lệ."
     );
-
   }
 
   function notify(callback, stage, details) {
 
     if (typeof callback !== "function") {
-
       return;
-
     }
 
     try {
-
       callback({
-
         stage: stage,
-
         details: details || {}
-
       });
-
     } catch (_) {
-
-      // Lỗi giao diện không thay đổi kết quả xử lý.
-
+      // Lỗi giao diện không thay đổi dữ liệu.
     }
 
   }
 
   /* =====================================================
-     02. KIỂM TRA MODULE VÀ PHIÊN ĐĂNG NHẬP
+     02. MODULE VÀ PHIÊN ĐĂNG NHẬP
   ===================================================== */
 
   function requireModules() {
@@ -190,7 +147,7 @@
     assert(
       global.PGDCloudBackup,
       "CLOUD_BACKUP_REQUIRED",
-      "Chưa tải module sao lưu Google Drive."
+      "Chưa tải module Cloud Backup."
     );
 
     assert(
@@ -201,35 +158,40 @@
     );
 
     assert(
+      PGDSync.config.VERSION ===
+        CONFIG.SYNC_VERSION,
+      "SYNC_VERSION_MISMATCH",
+      "Cần sử dụng sync.js C3.1."
+    );
+
+    assert(
+      typeof PGDSync.releaseAfterResolution ===
+        "function",
+      "SYNC_RELEASE_REQUIRED",
+      "Thiếu hàm giải phóng trạng thái chặn."
+    );
+
+    assert(
       PGDDraft.config.CATALOG_REVISION ===
         CONFIG.CATALOG_REVISION,
       "CATALOG_MISMATCH"
     );
 
     const required = [
-
       "withSession",
-
       "captureInSession",
-
       "backupInSession",
-
       "verifyInSession",
-
       "hashJson",
-
       "hashPhotos"
-
     ];
 
     for (const name of required) {
-
       assert(
         typeof PGDCloudBackup[name] === "function",
         "CLOUD_BACKUP_METHOD_MISSING",
         "Thiếu hàm: " + name
       );
-
     }
 
     assert(
@@ -273,9 +235,6 @@
 
   /* =====================================================
      03. KHO SAO LƯU INDEXEDDB
-
-     Giữ nguyên DB_NAME, DB_VERSION và STORE_NAME.
-     Không xóa hoặc nâng cấp cấu trúc cũ.
   ===================================================== */
 
   function openBackupDatabase() {
@@ -283,11 +242,8 @@
     return new Promise((resolve, reject) => {
 
       const request = indexedDB.open(
-
         CONFIG.DB_NAME,
-
         CONFIG.DB_VERSION
-
       );
 
       let blocked = false;
@@ -303,21 +259,14 @@
         ) {
 
           const store = db.createObjectStore(
-
             CONFIG.STORE_NAME,
-
             {keyPath: "backupId"}
-
           );
 
           store.createIndex(
-
             "draftKey",
-
             "draftKey",
-
             {unique: false}
-
           );
 
         }
@@ -329,11 +278,8 @@
         const db = request.result;
 
         if (blocked) {
-
           db.close();
-
           return;
-
         }
 
         db.onversionchange = () => db.close();
@@ -371,11 +317,8 @@
       return await new Promise((resolve, reject) => {
 
         const tx = db.transaction(
-
           CONFIG.STORE_NAME,
-
           mode
-
         );
 
         const store = tx.objectStore(
@@ -383,7 +326,6 @@
         );
 
         let result;
-
         let failure;
 
         tx.oncomplete = () => resolve(result);
@@ -395,10 +337,7 @@
           reject(
             failure ||
             tx.error ||
-            fail(
-              "BACKUP_FAILED",
-              "Không thể lưu bản sao."
-            )
+            fail("BACKUP_FAILED")
           );
 
         try {
@@ -406,15 +345,12 @@
           const request = callback(store);
 
           request.onsuccess = function() {
-
             result = request.result;
-
           };
 
         } catch (error) {
 
           failure = error;
-
           tx.abort();
 
         }
@@ -422,9 +358,7 @@
       });
 
     } finally {
-
       db.close();
-
     }
 
   }
@@ -432,11 +366,8 @@
   function readBackup(backupId) {
 
     return backupOperation(
-
       "readonly",
-
       store => store.get(backupId)
-
     );
 
   }
@@ -444,11 +375,8 @@
   async function saveBackup(record) {
 
     await backupOperation(
-
       "readwrite",
-
       store => store.add(record)
-
     );
 
     const saved = await readBackup(
@@ -474,11 +402,8 @@
       await new Promise((resolve, reject) => {
 
         const tx = db.transaction(
-
           CONFIG.STORE_NAME,
-
           "readwrite"
-
         );
 
         const store = tx.objectStore(
@@ -524,7 +449,6 @@
           } catch (error) {
 
             failure = error;
-
             tx.abort();
 
           }
@@ -534,9 +458,7 @@
       });
 
     } finally {
-
       db.close();
-
     }
 
     const saved = await readBackup(
@@ -544,8 +466,7 @@
     );
 
     assert(
-      saved &&
-      equal(saved, replacement),
+      saved && equal(saved, replacement),
       "BACKUP_UPDATE_VERIFY_FAILED"
     );
 
@@ -558,26 +479,23 @@
     assertSession(context);
 
     const records = await backupOperation(
-
       "readonly",
-
       store => store.index("draftKey").getAll(
         keyOf(context)
       )
-
     );
 
     return records.map(record => ({
 
       backupId: record.backupId,
-
       createdAt: record.createdAt,
-
       choice: record.choice,
 
-      localVersion: record.local.serverVersion,
+      localVersion:
+        record.local.serverVersion,
 
-      serverVersion: record.server.version,
+      serverVersion:
+        record.server.version,
 
       localPhotoCount:
         Object.keys(
@@ -596,7 +514,8 @@
         record.cloudVerified === true,
 
       backupStatus:
-        record.backupStatus || "LEGACY_LOCAL_ONLY",
+        record.backupStatus ||
+        "LEGACY_LOCAL_ONLY",
 
       moduleVersion:
         record.moduleVersion || ""
@@ -631,29 +550,27 @@
     return Boolean(
 
       local &&
-
       server &&
-
       server.exists === true &&
-
       local.dirty === true &&
-
       editable(local.status) &&
-
       editable(server.status) &&
 
-      Number.isSafeInteger(local.serverVersion) &&
+      Number.isSafeInteger(
+        local.serverVersion
+      ) &&
 
-      Number.isSafeInteger(local.localRevision) &&
+      Number.isSafeInteger(
+        local.localRevision
+      ) &&
 
-      Number.isSafeInteger(server.version) &&
+      Number.isSafeInteger(
+        server.version
+      ) &&
 
       local.serverVersion >= 0 &&
-
       local.localRevision >= 0 &&
-
       server.version > local.serverVersion &&
-
       !pending
 
     );
@@ -689,7 +606,8 @@
     );
 
     assert(
-      snapshot.draftKey === keyOf(snapshot.context),
+      snapshot.draftKey ===
+        keyOf(snapshot.context),
       "DRAFT_KEY_MISMATCH"
     );
 
@@ -699,9 +617,6 @@
 
   /* =====================================================
      05. CHUẨN HÓA ẢNH MÁY CHỦ
-
-     Cloud Backup lưu nội dung ảnh.
-     Resolution bổ sung metadata từ server.photos.
   ===================================================== */
 
   function serverPhotosForRecord(snapshot) {
@@ -725,7 +640,6 @@
     for (const id of Object.keys(metadata)) {
 
       const photo = photos[id];
-
       const meta = metadata[id];
 
       assert(
@@ -741,9 +655,7 @@
       result[id] = {
 
         data: photo.data,
-
         fileId: meta.fileId,
-
         dirty: false,
 
         updatedAt:
@@ -761,9 +673,6 @@
 
   /* =====================================================
      06. XEM TRƯỚC XUNG ĐỘT
-
-     Không thay đổi bản nháp.
-     Không tạo sao lưu Google Drive ở bước preview.
   ===================================================== */
 
   function preview(context) {
@@ -773,7 +682,6 @@
     const safeContext = clone(context);
 
     assertSession(safeContext);
-
     assertOnline();
 
     return PGDCloudBackup.withSession(
@@ -792,23 +700,16 @@
         const previewId = PGDDraft.createId();
 
         previews.set(
-
           keyOf(safeContext),
-
           {
-
             previewId: previewId,
-
             snapshot: clone(snapshot)
-
           }
-
         );
 
         return {
 
           success: true,
-
           previewId: previewId,
 
           localVersion:
@@ -828,26 +729,18 @@
 
           fieldDifferences:
             PGDConflict.compareFields(
-
               snapshot.local.data,
-
               snapshot.server.data
-
             ),
 
           photoDifferences:
             PGDConflict.comparePhotos(
-
               snapshot.local.photos,
-
               serverPhotosForRecord(snapshot)
-
             ),
 
           cloudBackupRequired: true,
-
           localBackupRequired: true,
-
           choices: CONFIG.CHOICES.slice()
 
         };
@@ -859,7 +752,7 @@
   }
 
   /* =====================================================
-     07. CHUẨN BỊ BẢN GHI ĐƯỢC CHỌN
+     07. CHUẨN BỊ BẢN GHI
   ===================================================== */
 
   function buildRecord(snapshot, choice) {
@@ -867,7 +760,6 @@
     validateChoice(choice);
 
     const local = snapshot.local;
-
     const server = snapshot.server;
 
     const remotePhotos =
@@ -883,50 +775,41 @@
       local.localRevision + 1;
 
     record.status = server.status;
-
     record.updatedAt = now;
 
     if (choice === "KEEP_SERVER") {
 
       record.data = clone(server.data || {});
-
       record.photos = clone(remotePhotos);
-
       record.removedPhotos = [];
-
       record.dirty = false;
-
       record.syncedAt = now;
 
     } else {
 
       record.data = clone(local.data);
-
       record.photos = clone(local.photos || {});
 
       record.removedPhotos =
-        Object.keys(server.photos || {}).filter(
-
-          id => !record.photos[id]
-
-        );
+        Object.keys(server.photos || {})
+          .filter(id => !record.photos[id]);
 
       Object.keys(record.photos).forEach(id => {
 
         const photo = record.photos[id];
-
         const remote = remotePhotos[id];
 
-        if (remote && remote.data === photo.data) {
+        if (
+          remote &&
+          remote.data === photo.data
+        ) {
 
           photo.fileId = remote.fileId;
-
           photo.dirty = false;
 
         } else {
 
           delete photo.fileId;
-
           photo.dirty = true;
 
         }
@@ -934,7 +817,6 @@
       });
 
       record.dirty = true;
-
       record.syncedAt = null;
 
     }
@@ -957,12 +839,10 @@
     );
 
     for (const id of Object.keys(map)) {
-
       assert(
         validHash(map[id]),
         "INVALID_PHOTO_HASH"
       );
-
     }
 
     return true;
@@ -970,15 +850,10 @@
   }
 
   function assertCloudReceipt(
-
     receipt,
-
     snapshot,
-
     choice,
-
     backupId
-
   ) {
 
     assert(
@@ -1022,10 +897,10 @@
     );
 
     assertHashMap(receipt.localPhotoHashes);
-
     assertHashMap(receipt.serverPhotoHashes);
 
     assert(
+
       equal(
         Object.keys(
           receipt.localPhotoHashes
@@ -1034,6 +909,7 @@
           snapshot.local.photos || {}
         ).sort()
       ) &&
+
       equal(
         Object.keys(
           receipt.serverPhotoHashes
@@ -1042,7 +918,9 @@
           snapshot.serverPhotos || {}
         ).sort()
       ),
+
       "CLOUD_PHOTO_SET_MISMATCH"
+
     );
 
     assert(
@@ -1054,42 +932,64 @@
     const confirmation = receipt.confirmation;
 
     assert(
+
       confirmation &&
       confirmation.success === true &&
       confirmation.status === "VERIFIED" &&
       confirmation.contentVerified === true &&
+
       confirmation.verificationVersion ===
         CONFIG.VERIFY_VERSION &&
+
       confirmation.catalogRevision ===
         CONFIG.CATALOG_REVISION &&
+
       confirmation.backupId === backupId &&
       confirmation.draftId === snapshot.draftKey &&
       confirmation.choice === choice &&
+
       confirmation.localVersion ===
         receipt.localVersion &&
+
       confirmation.localRevision ===
         receipt.localRevision &&
+
       confirmation.serverVersion ===
         receipt.serverVersion &&
-      confirmation.localHash === receipt.localHash &&
-      confirmation.serverHash === receipt.serverHash &&
+
+      confirmation.localHash ===
+        receipt.localHash &&
+
+      confirmation.serverHash ===
+        receipt.serverHash &&
+
       equal(
         confirmation.localPhotoHashes,
         receipt.localPhotoHashes
       ) &&
+
       equal(
         confirmation.serverPhotoHashes,
         receipt.serverPhotoHashes
       ) &&
+
       confirmation.localPhotoCount ===
-        Object.keys(receipt.localPhotoHashes).length &&
+        Object.keys(
+          receipt.localPhotoHashes
+        ).length &&
+
       confirmation.serverPhotoCount ===
-        Object.keys(receipt.serverPhotoHashes).length &&
+        Object.keys(
+          receipt.serverPhotoHashes
+        ).length &&
+
       confirmation.serverWritten === false &&
       confirmation.businessDataWritten === false &&
       confirmation.resolutionAuthorized === false &&
       confirmation.resolutionIntegrated === false,
+
       "INDEPENDENT_VERIFICATION_REQUIRED"
+
     );
 
     return true;
@@ -1097,11 +997,8 @@
   }
 
   async function verifySnapshotHashes(
-
     receipt,
-
     snapshot
-
   ) {
 
     const localHash =
@@ -1125,17 +1022,22 @@
       );
 
     assert(
+
       receipt.localHash === localHash &&
       receipt.serverHash === serverHash &&
+
       equal(
         receipt.localPhotoHashes,
         localPhotoHashes
       ) &&
+
       equal(
         receipt.serverPhotoHashes,
         serverPhotoHashes
       ),
+
       "CLOUD_CONTENT_HASH_MISMATCH"
+
     );
 
     return true;
@@ -1145,27 +1047,16 @@
   function assertSameReceipt(first, final) {
 
     const fields = [
-
       "backupId",
-
       "draftKey",
-
       "choice",
-
       "localVersion",
-
       "localRevision",
-
       "serverVersion",
-
       "localHash",
-
       "serverHash",
-
       "localPhotoHashes",
-
       "serverPhotoHashes"
-
     ];
 
     for (const field of fields) {
@@ -1183,7 +1074,7 @@
   }
 
   /* =====================================================
-     09. KIỂM TRA DỮ LIỆU TRƯỚC KHI GHI
+     09. KIỂM TRA TRƯỚC KHI GHI
   ===================================================== */
 
   async function assertCurrent(snapshot) {
@@ -1191,7 +1082,6 @@
     const context = snapshot.context;
 
     assertOnline();
-
     assertSession(context);
 
     const pending =
@@ -1234,7 +1124,6 @@
     );
 
     assertSession(context);
-
     assertOnline();
 
     return true;
@@ -1242,36 +1131,25 @@
   }
 
   /* =====================================================
-     10. GIAO DỊCH GHI INDEXEDDB CÓ ĐIỀU KIỆN
-
-     So sánh bản ghi thực tế trong cùng giao dịch.
-     Nếu bản ghi thay đổi thì abort.
+     10. GHI INDEXEDDB CÓ ĐIỀU KIỆN
   ===================================================== */
 
   async function replaceLocal(
-
     context,
-
     expected,
-
     replacement
-
   ) {
 
     const db = await PGDDraft.openDatabase();
 
     assertSession(context);
-
     assertOnline();
 
     return new Promise((resolve, reject) => {
 
       const tx = db.transaction(
-
         ["drafts"],
-
         "readwrite"
-
       );
 
       const store = tx.objectStore("drafts");
@@ -1303,7 +1181,6 @@
         try {
 
           assertSession(context);
-
           assertOnline();
 
           assert(
@@ -1329,7 +1206,6 @@
         } catch (error) {
 
           failure = error;
-
           tx.abort();
 
         }
@@ -1345,94 +1221,92 @@
   ===================================================== */
 
   function createBackupRecord(
-
     snapshot,
-
     choice,
-
     backupId
-
   ) {
 
     return {
 
       backupId: backupId,
-
       cloudBackupId: backupId,
-
       draftKey: snapshot.draftKey,
-
       context: clone(snapshot.context),
-
       createdAt: new Date().toISOString(),
-
       moduleVersion: CONFIG.VERSION,
-
       choice: choice,
 
       local: clone(snapshot.local),
-
       server: clone(snapshot.server),
 
       serverPhotos:
         serverPhotosForRecord(snapshot),
 
       cloudVerified: false,
-
       cloudReceipt: null,
-
       finalReceipt: null,
 
-      backupStatus: "LOCAL_BACKUP_SAVED"
+      backupStatus:
+        "LOCAL_BACKUP_SAVED"
 
     };
 
   }
 
   /* =====================================================
-     12. CỔNG KIỂM TRA CUỐI CÙNG
+     12. CỔNG KIỂM TRA CUỐI
   ===================================================== */
 
   function assertCommitGate(
-
     localBackup,
-
     firstReceipt,
-
     finalReceipt,
-
     snapshot,
-
     choice,
-
     backupId
-
   ) {
 
     assert(
+
       localBackup &&
       localBackup.backupId === backupId &&
       localBackup.cloudBackupId === backupId &&
       localBackup.draftKey === snapshot.draftKey &&
       localBackup.choice === choice &&
-      equal(localBackup.local, snapshot.local) &&
-      equal(localBackup.server, snapshot.server) &&
+
+      equal(
+        localBackup.local,
+        snapshot.local
+      ) &&
+
+      equal(
+        localBackup.server,
+        snapshot.server
+      ) &&
+
       equal(
         localBackup.context,
         snapshot.context
       ),
+
       "LOCAL_BACKUP_REQUIRED"
+
     );
 
     assert(
+
       localBackup.cloudVerified === true &&
+
       localBackup.backupStatus ===
         "CLOUD_BACKUP_VERIFIED" &&
+
       equal(
         localBackup.cloudReceipt,
         firstReceipt
       ),
+
       "VERIFIED_LOCAL_RECEIPT_REQUIRED"
+
     );
 
     const savedPhotos =
@@ -1442,55 +1316,49 @@
       snapshot.serverPhotos || {};
 
     assert(
+
       equal(
         Object.keys(savedPhotos).sort(),
         Object.keys(expectedPhotos).sort()
       ),
+
       "LOCAL_BACKUP_PHOTO_SET_MISMATCH"
+
     );
 
     for (const id of Object.keys(expectedPhotos)) {
 
       assert(
+
         savedPhotos[id].data ===
           expectedPhotos[id].data &&
+
         savedPhotos[id].fileId ===
           snapshot.server.photos[id].fileId,
+
         "LOCAL_BACKUP_PHOTO_MISMATCH"
+
       );
 
     }
 
     assertCloudReceipt(
-
       firstReceipt,
-
       snapshot,
-
       choice,
-
       backupId
-
     );
 
     assertCloudReceipt(
-
       finalReceipt,
-
       snapshot,
-
       choice,
-
       backupId
-
     );
 
     assertSameReceipt(
-
       firstReceipt,
-
       finalReceipt
-
     );
 
     return true;
@@ -1498,58 +1366,263 @@
   }
 
   /* =====================================================
-     13. XỬ LÝ XUNG ĐỘT
-
-     Không gọi Web Lock lồng nhau.
-     Không có đường xử lý bỏ qua Cloud Backup.
+     13. C3.2 - ĐIỀU KIỆN GIẢI PHÓNG CHẶN
   ===================================================== */
 
-  function resolveConflict(
+  function canAttemptRelease(result) {
 
-    context,
+    return Boolean(
 
-    previewId,
+      result &&
+      result.success === true &&
+      result.localCommitted === true &&
+      result.backupMetadataUpdated === true &&
+      result.backupVerified === true &&
+      result.localBackupVerified === true &&
+      result.cloudBackupVerified === true &&
+      result.contentVerified === true &&
+      result.finalVerificationPassed === true &&
+      result.serverWritten === false &&
 
-    choice,
+      typeof result.backupId === "string" &&
+      result.backupId.length > 0 &&
 
-    confirmed,
+      result.cloudBackupId ===
+        result.backupId &&
 
-    options
+      CONFIG.CHOICES.includes(
+        result.choice
+      )
 
-  ) {
-
-    requireModules();
-
-    validateChoice(choice);
-
-    assert(
-      confirmed === true,
-      "CONFIRMATION_REQUIRED",
-      "Cần xác nhận lựa chọn."
     );
 
-    const safeContext = clone(context);
+  }
 
-    options = options || {};
+  function assertReleaseResult(
+    released,
+    expected
+  ) {
 
-    const onProgress = options.onProgress;
+    assert(
 
-    assertSession(safeContext);
+      released &&
+      released.success === true &&
+      released.status === "RELEASED" &&
 
-    assertOnline();
+      released.backupId ===
+        expected.backupId &&
+
+      released.choice ===
+        expected.choice &&
+
+      released.serverVersion ===
+        expected.serverVersion &&
+
+      released.dirty ===
+        expected.dirty &&
+
+      released.serverWritten === false,
+
+      "SYNC_RELEASE_NOT_VERIFIED",
+      "Chưa xác nhận được kết quả mở chặn."
+
+    );
+
+    return true;
+
+  }
+
+  function releaseSuccess(result, released) {
+
+    assertReleaseResult(
+      released,
+      result
+    );
+
+    return {
+
+      ...result,
+
+      syncReleaseAttempted: true,
+      syncReleased: true,
+      syncReleaseStatus: "RELEASED",
+      syncReleaseError: null,
+      syncReleaseReceipt: clone(released),
+
+      nextAction:
+        result.choice === "KEEP_LOCAL"
+          ? "SYNC_REQUIRED"
+          : "SERVER_RESTORED"
+
+    };
+
+  }
+
+  function releaseFailure(
+    result,
+    error,
+    attempted
+  ) {
+
+    const message =
+      error && error.message
+        ? error.message
+        : "Chưa giải phóng được trạng thái chặn.";
+
+    const warning = [
+
+      result.warning,
+
+      "Bản nháp đã được xử lý và sao lưu. " +
+      "Chưa xác nhận mở chặn đồng bộ: " +
+      message
+
+    ].filter(Boolean).join(" | ");
+
+    return {
+
+      ...result,
+
+      success: true,
+      localCommitted: true,
+
+      syncReleaseAttempted:
+        attempted === true,
+
+      syncReleased: false,
+
+      syncReleaseStatus:
+        attempted === true
+          ? "RELEASE_FAILED"
+          : "RELEASE_SKIPPED",
+
+      syncReleaseError: {
+
+        code:
+          error && error.code
+            ? error.code
+            : "SYNC_RELEASE_FAILED",
+
+        message: message
+
+      },
+
+      syncReleaseReceipt: null,
+
+      warning: warning,
+
+      nextAction: "RETRY_RELEASE_REQUIRED"
+
+    };
+
+  }
+
+  /* =====================================================
+     14. C3.2 - MỞ CHẶN SAU KHI WEB LOCK KẾT THÚC
+
+     Hàm này không được gọi từ bên trong
+     PGDCloudBackup.withSession().
+  ===================================================== */
+
+  async function releaseAfterCommit(
+    context,
+    result,
+    onProgress
+  ) {
+
+    if (!canAttemptRelease(result)) {
+
+      return releaseFailure(
+        result,
+        fail(
+          "RELEASE_GATE_FAILED",
+          "Chưa đủ điều kiện giải phóng chặn."
+        ),
+        false
+      );
+
+    }
+
+    notify(
+      onProgress,
+      "SYNC_RELEASE_STARTED",
+      {
+        backupId: result.backupId
+      }
+    );
+
+    try {
+
+      assertSession(context);
+      assertOnline();
+
+      const released =
+        await PGDSync.releaseAfterResolution(
+          context,
+          result.backupId
+        );
+
+      const finalResult =
+        releaseSuccess(
+          result,
+          released
+        );
+
+      notify(
+        onProgress,
+        "SYNC_RELEASE_COMPLETED",
+        {
+          backupId: result.backupId,
+          choice: result.choice,
+          serverVersion: result.serverVersion
+        }
+      );
+
+      return finalResult;
+
+    } catch (error) {
+
+      notify(
+        onProgress,
+        "SYNC_RELEASE_FAILED",
+        {
+          backupId: result.backupId,
+          code: error.code || "SYNC_RELEASE_FAILED",
+          message: error.message
+        }
+      );
+
+      return releaseFailure(
+        result,
+        error,
+        true
+      );
+
+    }
+
+  }
+
+  /* =====================================================
+     15. XỬ LÝ XUNG ĐỘT TRONG WEB LOCK
+  ===================================================== */
+
+  function resolveInsideSession(
+    context,
+    previewId,
+    choice,
+    onProgress
+  ) {
 
     return PGDCloudBackup.withSession(
 
-      safeContext,
+      context,
 
       async function(token) {
 
-        const key = keyOf(safeContext);
+        const key = keyOf(context);
 
         let backupId = null;
-
         let committed = false;
-
         let stage = "PREVIEW_CHECK";
 
         try {
@@ -1575,73 +1648,56 @@
           assert(
             equal(prepared.snapshot, snapshot),
             "PREVIEW_EXPIRED",
-            "Dữ liệu đã thay đổi. Cần so sánh lại."
+            "Dữ liệu đã thay đổi."
           );
 
           backupId = PGDDraft.createId();
 
-          /* ---------------------------------------------
-             A. Sao lưu IndexedDB
-          --------------------------------------------- */
+          /* A. Sao lưu IndexedDB */
 
           stage = "LOCAL_BACKUP";
 
-          notify(onProgress, stage, {
-
-            backupId: backupId
-
-          });
+          notify(
+            onProgress,
+            stage,
+            {backupId: backupId}
+          );
 
           let localBackup =
             await saveBackup(
-
               createBackupRecord(
-
                 snapshot,
-
                 choice,
-
                 backupId
-
               )
-
             );
 
-          /* ---------------------------------------------
-             B. Sao lưu Google Drive
-          --------------------------------------------- */
+          /* B. Sao lưu Google Drive */
 
           stage = "CLOUD_BACKUP";
 
-          notify(onProgress, stage, {
-
-            backupId: backupId
-
-          });
+          notify(
+            onProgress,
+            stage,
+            {backupId: backupId}
+          );
 
           const firstReceipt =
             await PGDCloudBackup.backupInSession(
 
               token,
-
               snapshot,
-
               choice,
 
               {
-
                 backupId: backupId,
 
                 onProgress: function(progress) {
 
                   notify(
-
                     onProgress,
-
                     "CLOUD_PROGRESS",
-
                     progress
-
                   );
 
                 }
@@ -1651,28 +1707,18 @@
             );
 
           assertCloudReceipt(
-
             firstReceipt,
-
             snapshot,
-
             choice,
-
             backupId
-
           );
 
           await verifySnapshotHashes(
-
             firstReceipt,
-
             snapshot
-
           );
 
-          /* ---------------------------------------------
-             C. Lưu biên nhận vào IndexedDB
-          --------------------------------------------- */
+          /* C. Lưu biên nhận */
 
           stage = "SAVE_CLOUD_RECEIPT";
 
@@ -1684,9 +1730,11 @@
 
             cloudVerified: true,
 
-            cloudReceipt: clone(firstReceipt),
+            cloudReceipt:
+              clone(firstReceipt),
 
-            backupStatus: "CLOUD_BACKUP_VERIFIED",
+            backupStatus:
+              "CLOUD_BACKUP_VERIFIED",
 
             cloudVerifiedAt:
               new Date().toISOString()
@@ -1694,28 +1742,18 @@
           };
 
           localBackup = await updateBackup(
-
             localBackup,
-
             verifiedBackup
-
           );
 
-          /* ---------------------------------------------
-             D. Chuẩn bị bản ghi mới
-          --------------------------------------------- */
+          /* D. Chuẩn bị bản ghi mới */
 
           const replacement = buildRecord(
-
             snapshot,
-
             choice
-
           );
 
-          /* ---------------------------------------------
-             E. Xác minh độc lập lần cuối
-          --------------------------------------------- */
+          /* E. Xác minh độc lập lần cuối */
 
           stage = "FINAL_VERIFICATION";
 
@@ -1723,44 +1761,32 @@
 
           const finalReceipt =
             await PGDCloudBackup.verifyInSession(
-
               token,
-
               snapshot,
-
               choice,
-
               backupId
-
             );
 
           assertCommitGate(
-
             localBackup,
-
             firstReceipt,
-
             finalReceipt,
-
             snapshot,
-
             choice,
-
             backupId
-
           );
 
-          /* ---------------------------------------------
-             F. Lưu biên nhận cuối
-          --------------------------------------------- */
+          /* F. Lưu biên nhận cuối */
 
           const finalBackup = {
 
             ...clone(localBackup),
 
-            finalReceipt: clone(finalReceipt),
+            finalReceipt:
+              clone(finalReceipt),
 
-            backupStatus: "READY_FOR_LOCAL_COMMIT",
+            backupStatus:
+              "READY_FOR_LOCAL_COMMIT",
 
             finalVerifiedAt:
               new Date().toISOString()
@@ -1768,16 +1794,11 @@
           };
 
           localBackup = await updateBackup(
-
             localBackup,
-
             finalBackup
-
           );
 
-          /* ---------------------------------------------
-             G. Kiểm tra lần cuối
-          --------------------------------------------- */
+          /* G. Kiểm tra trước commit */
 
           stage = "PRE_COMMIT_CHECK";
 
@@ -1785,41 +1806,28 @@
 
           await assertCurrent(snapshot);
 
-          assertSession(safeContext);
-
+          assertSession(context);
           assertOnline();
 
-          /* ---------------------------------------------
-             H. Ghi bản nháp
-          --------------------------------------------- */
+          /* H. Ghi bản nháp */
 
           stage = "LOCAL_COMMIT";
 
           notify(onProgress, stage);
 
           await replaceLocal(
-
-            safeContext,
-
+            context,
             snapshot.local,
-
             replacement
-
           );
 
           committed = true;
 
           previews.delete(key);
 
-          /* ---------------------------------------------
-             I. Cập nhật trạng thái bản sao lưu
-
-             Nếu cập nhật metadata thất bại sau commit,
-             không báo nhầm rằng bản nháp chưa thay đổi.
-          --------------------------------------------- */
+          /* I. Cập nhật metadata */
 
           let backupMetadataUpdated = false;
-
           let warning = null;
 
           try {
@@ -1828,7 +1836,8 @@
 
               ...clone(localBackup),
 
-              backupStatus: "LOCAL_COMMIT_COMPLETED",
+              backupStatus:
+                "LOCAL_COMMIT_COMPLETED",
 
               resolvedAt:
                 new Date().toISOString(),
@@ -1839,11 +1848,8 @@
             };
 
             await updateBackup(
-
               localBackup,
-
               completedBackup
-
             );
 
             backupMetadataUpdated = true;
@@ -1851,41 +1857,31 @@
           } catch (error) {
 
             warning =
-
               "Bản nháp đã cập nhật, nhưng chưa " +
-
-              "cập nhật được trạng thái cuối " +
-
-              "của bản sao lưu: " +
-
+              "cập nhật được metadata bản sao lưu: " +
               error.message;
 
           }
 
-          notify(onProgress, "COMPLETED", {
-
-            backupId: backupId
-
-          });
+          notify(
+            onProgress,
+            "LOCAL_COMMIT_COMPLETED",
+            {backupId: backupId}
+          );
 
           return {
 
             success: true,
-
             choice: choice,
-
             backupId: backupId,
 
             backupVerified: true,
-
             localBackupVerified: true,
 
             cloudBackupId: backupId,
-
             cloudBackupVerified: true,
 
             contentVerified: true,
-
             finalVerificationPassed: true,
 
             localCommitted: true,
@@ -1901,14 +1897,17 @@
             localRevision:
               replacement.localRevision,
 
-            dirty: replacement.dirty,
+            dirty:
+              replacement.dirty,
 
             serverWritten: false,
 
+            syncReleaseAttempted: false,
+            syncReleased: false,
+            syncReleaseStatus: "PENDING",
+
             nextAction:
-              choice === "KEEP_LOCAL"
-                ? "SYNC_REQUIRED"
-                : "SERVER_RESTORED"
+              "SYNC_RELEASE_REQUIRED"
 
           };
 
@@ -1917,9 +1916,7 @@
           previews.delete(key);
 
           error.backupId = backupId;
-
           error.resolutionStage = stage;
-
           error.localCommitted = committed;
 
           throw error;
@@ -1933,12 +1930,347 @@
   }
 
   /* =====================================================
-     14. KIỂM THỬ LOGIC
+     16. PUBLIC RESOLVE
 
-     28 bài kiểm thử cũ.
-     16 bài kiểm thử bổ sung.
-     Không ghi Google Drive.
-     Không ghi IndexedDB.
+     C3.2:
+     1. Xử lý trong Web Lock.
+     2. Chờ Web Lock kết thúc.
+     3. Mở chặn bằng Web Lock mới.
+     4. Không tự gọi syncNow().
+  ===================================================== */
+
+  async function runResolution(
+    context,
+    previewId,
+    choice,
+    onProgress
+  ) {
+
+    const result =
+      await resolveInsideSession(
+        context,
+        previewId,
+        choice,
+        onProgress
+      );
+
+    // withSession đã hoàn tất.
+    // Không còn giữ Web Lock cũ.
+
+    notify(
+      onProgress,
+      "WEB_LOCK_RELEASED",
+      {
+        backupId: result.backupId
+      }
+    );
+
+    const finalResult =
+      await releaseAfterCommit(
+        context,
+        result,
+        onProgress
+      );
+
+    notify(
+      onProgress,
+      "COMPLETED",
+      {
+        backupId: result.backupId,
+        localCommitted: true,
+        syncReleased: finalResult.syncReleased
+      }
+    );
+
+    return finalResult;
+
+  }
+
+  function resolveConflict(
+    context,
+    previewId,
+    choice,
+    confirmed,
+    options
+  ) {
+
+    requireModules();
+
+    validateChoice(choice);
+
+    assert(
+      confirmed === true,
+      "CONFIRMATION_REQUIRED",
+      "Cần xác nhận lựa chọn."
+    );
+
+    const safeContext = clone(context);
+
+    options = options || {};
+
+    assertSession(safeContext);
+    assertOnline();
+
+    const key = keyOf(safeContext);
+
+    assert(
+      !resolving.has(key) &&
+      !releasing.has(key),
+      "RESOLUTION_BUSY",
+      "Bản nháp đang được xử lý."
+    );
+
+    const task = Promise.resolve()
+
+      .then(() =>
+        runResolution(
+          safeContext,
+          previewId,
+          choice,
+          options.onProgress
+        )
+      )
+
+      .finally(() => {
+        resolving.delete(key);
+      });
+
+    resolving.set(key, task);
+
+    return task;
+
+  }
+
+  /* =====================================================
+     17. C3.2 - THỬ LẠI MỞ CHẶN
+
+     Không xử lý lại xung đột.
+     Không tạo bản sao lưu mới.
+     Không thay đổi nội dung bản nháp.
+  ===================================================== */
+
+  function assertRetryBackup(
+    backup,
+    context,
+    backupId
+  ) {
+
+    assert(
+
+      backup &&
+      backup.backupId === backupId &&
+      backup.cloudBackupId === backupId &&
+      backup.draftKey === keyOf(context) &&
+      equal(backup.context, context) &&
+
+      backup.backupStatus ===
+        "LOCAL_COMMIT_COMPLETED" &&
+
+      backup.cloudVerified === true &&
+
+      backup.local &&
+      backup.server &&
+      backup.cloudReceipt &&
+      backup.finalReceipt &&
+
+      backup.finalReceipt.contentVerified === true &&
+
+      Number.isSafeInteger(
+        backup.resolvedLocalRevision
+      ) &&
+
+      backup.resolvedLocalRevision ===
+        backup.local.localRevision + 1,
+
+      "RETRY_BACKUP_NOT_READY",
+      "Bản sao lưu chưa đủ điều kiện mở chặn."
+
+    );
+
+    validateChoice(backup.choice);
+
+    const snapshot = {
+
+      context: backup.context,
+      draftKey: backup.draftKey,
+      local: backup.local,
+      server: backup.server,
+      serverPhotos: backup.serverPhotos
+
+    };
+
+    assertCloudReceipt(
+      backup.cloudReceipt,
+      snapshot,
+      backup.choice,
+      backupId
+    );
+
+    assertCloudReceipt(
+      backup.finalReceipt,
+      snapshot,
+      backup.choice,
+      backupId
+    );
+
+    assertSameReceipt(
+      backup.cloudReceipt,
+      backup.finalReceipt
+    );
+
+    return true;
+
+  }
+
+  async function runRetryRelease(
+    context,
+    backupId,
+    onProgress
+  ) {
+
+    assertSession(context);
+    assertOnline();
+
+    const backup = await getBackup(
+      context,
+      backupId
+    );
+
+    assertRetryBackup(
+      backup,
+      context,
+      backupId
+    );
+
+    const result = {
+
+      success: true,
+
+      choice: backup.choice,
+      backupId: backupId,
+
+      backupVerified: true,
+      localBackupVerified: true,
+
+      cloudBackupId: backupId,
+      cloudBackupVerified: true,
+
+      contentVerified: true,
+      finalVerificationPassed: true,
+      localCommitted: true,
+      backupMetadataUpdated: true,
+
+      warning: null,
+
+      serverVersion:
+        backup.server.version,
+
+      localRevision:
+        backup.resolvedLocalRevision,
+
+      dirty:
+        backup.choice === "KEEP_LOCAL",
+
+      serverWritten: false,
+
+      retryOnly: true
+
+    };
+
+    return releaseAfterCommit(
+      context,
+      result,
+      onProgress
+    );
+
+  }
+
+  function retryRelease(
+    context,
+    backupId,
+    options
+  ) {
+
+    requireModules();
+
+    const safeContext = clone(context);
+
+    assertSession(safeContext);
+    assertOnline();
+
+    assert(
+      typeof backupId === "string" &&
+      backupId.length > 0,
+      "BACKUP_ID_REQUIRED"
+    );
+
+    const key = keyOf(safeContext);
+
+    assert(
+      !resolving.has(key) &&
+      !releasing.has(key),
+      "RESOLUTION_BUSY",
+      "Bản nháp đang được xử lý."
+    );
+
+    options = options || {};
+
+    const task = Promise.resolve()
+
+      .then(() =>
+        runRetryRelease(
+          safeContext,
+          backupId,
+          options.onProgress
+        )
+      )
+
+      .finally(() => {
+        releasing.delete(key);
+      });
+
+    releasing.set(key, task);
+
+    return task;
+
+  }
+
+  /* =====================================================
+     18. KIỂM TRA TRẠNG THÁI MODULE
+  ===================================================== */
+
+  function getResolutionStatus(context) {
+
+    assertSession(context);
+
+    const key = keyOf(context);
+
+    return {
+
+      version: CONFIG.VERSION,
+
+      resolving:
+        resolving.has(key),
+
+      releasing:
+        releasing.has(key),
+
+      previewAvailable:
+        previews.has(key),
+
+      syncReleaseSupported:
+        Boolean(
+          global.PGDSync &&
+          typeof PGDSync.releaseAfterResolution
+            === "function"
+        )
+
+    };
+
+  }
+
+  /* =====================================================
+     19. 44 BÀI KIỂM THỬ HỒI QUY
   ===================================================== */
 
   function selfTest() {
@@ -1956,23 +2288,16 @@
         );
 
         results.push({
-
           name: name,
-
           passed: true
-
         });
 
       } catch (error) {
 
         results.push({
-
           name: name,
-
           passed: false,
-
           message: error.message
-
         });
 
       }
@@ -1984,12 +2309,12 @@
       try {
 
         callback();
-
         return false;
 
       } catch (error) {
 
-        return !code || error.code === code;
+        return !code ||
+          error.code === code;
 
       }
 
@@ -1998,31 +2323,20 @@
     const local = {
 
       serverVersion: 1,
-
       localRevision: 5,
-
       status: "DRAFT",
-
       dirty: true,
-
       catalogRevision: "751",
 
       data: {
-
         generalNote: "LOCAL"
-
       },
 
       photos: {
-
         HA001: {
-
           data: "IMAGE_A",
-
           dirty: true
-
         }
-
       },
 
       removedPhotos: []
@@ -2032,35 +2346,22 @@
     const server = {
 
       success: true,
-
       exists: true,
-
       version: 2,
-
       status: "DRAFT",
-
       catalogRevision: "751",
 
       data: {
-
         generalNote: "SERVER"
-
       },
 
       photos: {
-
         HA001: {
-
           fileId: "FILE_B"
-
         },
-
         HA002: {
-
           fileId: "FILE_C"
-
         }
-
       }
 
     };
@@ -2068,393 +2369,234 @@
     const snapshot = {
 
       context: {
-
         date: "2026-12-17",
-
         branch: "CS1",
-
         shift: "SANG",
-
         department: "BEP_PHO",
-
         employee: "TEST_API01"
-
       },
 
       draftKey:
         "20261217-CS1-SANG-BEP_PHO-TEST_API01",
 
       local: local,
-
       server: server,
 
       serverPhotos: {
-
         HA001: {
-
           data: "IMAGE_B"
-
         },
-
         HA002: {
-
           data: "IMAGE_C"
-
         }
-
       }
 
     };
 
-    /* 28 bài kiểm thử cũ */
-
     test("01. Phiên bản module", () =>
-
-      CONFIG.VERSION === "7.8.4.3-C2.3-C2"
-
+      CONFIG.VERSION === "7.8.4.3-C3.2"
     );
 
     test("02. Danh mục 751", () =>
-
       CONFIG.CATALOG_REVISION === "751"
-
     );
 
-    test("03. Cho phép xung đột hợp lệ", () =>
-
+    test("03. Xung đột hợp lệ", () =>
       canResolve(local, server, null)
-
     );
 
-    test("04. Chặn khi còn Outbox", () =>
-
+    test("04. Chặn Outbox", () =>
       !canResolve(local, server, {})
-
     );
 
-    test("05. Chặn báo cáo SUBMITTED", () =>
-
+    test("05. Chặn SUBMITTED", () =>
       !canResolve(
-
         local,
-
         {...server, status: "SUBMITTED"},
-
         null
-
       )
-
     );
 
-    test("06. Chặn báo cáo APPROVED", () =>
-
+    test("06. Chặn APPROVED", () =>
       !canResolve(
-
         local,
-
         {...server, status: "APPROVED"},
-
         null
-
       )
-
     );
 
-    test("07. Chặn báo cáo FINALIZED", () =>
-
+    test("07. Chặn FINALIZED", () =>
       !canResolve(
-
         local,
-
         {...server, status: "FINALIZED"},
-
         null
-
       )
-
     );
 
-    test("08. Chặn thiết bị bị khóa", () =>
-
+    test("08. Chặn thiết bị khóa", () =>
       !canResolve(
-
         {...local, status: "APPROVED"},
-
         server,
-
         null
-
       )
-
     );
 
-    test("09. Chặn khi thiếu bản nháp", () =>
-
+    test("09. Thiếu bản nháp", () =>
       !canResolve(null, server, null)
-
     );
 
-    test("10. Chặn khi máy chủ không tồn tại", () =>
-
+    test("10. Máy chủ không tồn tại", () =>
       !canResolve(
-
         local,
-
         {...server, exists: false},
-
         null
-
       )
-
     );
 
-    test("11. Chặn phiên bản giống nhau", () =>
-
+    test("11. Phiên bản giống nhau", () =>
       !canResolve(
-
         local,
-
         {...server, version: 1},
-
         null
-
       )
-
     );
 
-    test("12. Chặn phiên bản bất thường", () =>
-
+    test("12. Phiên bản bất thường", () =>
       !canResolve(
-
         local,
-
         {...server, version: 0},
-
         null
-
       )
-
     );
 
-    test("13. Chặn bản nháp sạch", () =>
-
+    test("13. Bản nháp sạch", () =>
       !canResolve(
-
         {...local, dirty: false},
-
         server,
-
         null
-
       )
-
     );
 
-    test("14. Giữ ghi chú thiết bị", () =>
-
+    test("14. Giữ ghi chú local", () =>
       buildRecord(
-
         snapshot,
-
         "KEEP_LOCAL"
-
       ).data.generalNote === "LOCAL"
-
     );
 
-    test("15. Giữ ghi chú máy chủ", () =>
-
+    test("15. Giữ ghi chú server", () =>
       buildRecord(
-
         snapshot,
-
         "KEEP_SERVER"
-
       ).data.generalNote === "SERVER"
-
     );
 
-    test("16. Cập nhật phiên bản gốc", () =>
-
+    test("16. Cập nhật serverVersion", () =>
       buildRecord(
-
         snapshot,
-
         "KEEP_LOCAL"
-
       ).serverVersion === 2
-
     );
 
     test("17. Tăng localRevision", () =>
-
       buildRecord(
-
         snapshot,
-
         "KEEP_LOCAL"
-
       ).localRevision === 6
-
     );
 
-    test("18. Bản thiết bị cần đồng bộ", () =>
-
+    test("18. KEEP_LOCAL dirty", () =>
       buildRecord(
-
         snapshot,
-
         "KEEP_LOCAL"
-
       ).dirty === true
-
     );
 
-    test("19. Bản máy chủ đánh dấu sạch", () =>
-
+    test("19. KEEP_SERVER clean", () =>
       buildRecord(
-
         snapshot,
-
         "KEEP_SERVER"
-
       ).dirty === false
-
     );
 
-    test("20. Giữ ảnh thiết bị", () =>
-
+    test("20. Giữ ảnh local", () =>
       buildRecord(
-
         snapshot,
-
         "KEEP_LOCAL"
-
       ).photos.HA001.data === "IMAGE_A"
-
     );
 
-    test("21. Giữ ảnh máy chủ", () =>
-
+    test("21. Giữ ảnh server", () =>
       buildRecord(
-
         snapshot,
-
         "KEEP_SERVER"
-
       ).photos.HA001.data === "IMAGE_B"
-
     );
 
     test("22. Ảnh khác phải gửi lại", () =>
-
       buildRecord(
-
         snapshot,
-
         "KEEP_LOCAL"
-
       ).photos.HA001.dirty === true
-
     );
 
-    test("23. Ghi nhận ảnh cần loại bỏ", () =>
-
+    test("23. Ghi nhận ảnh cần xóa", () =>
       buildRecord(
-
         snapshot,
-
         "KEEP_LOCAL"
-
       ).removedPhotos.includes("HA002")
-
     );
 
-    test("24. Bản máy chủ không có ảnh chờ xóa", () =>
-
+    test("24. Server không có ảnh chờ xóa", () =>
       buildRecord(
-
         snapshot,
-
         "KEEP_SERVER"
-
       ).removedPhotos.length === 0
-
     );
 
-    test("25. Không thay đổi bản gốc", () => {
+    test("25. Bảo toàn snapshot", () => {
 
       const before = canonical(snapshot);
 
       buildRecord(snapshot, "KEEP_LOCAL");
-
       buildRecord(snapshot, "KEEP_SERVER");
 
       return before === canonical(snapshot);
 
     });
 
-    test("26. Chặn lựa chọn không hợp lệ", () =>
-
+    test("26. Lựa chọn không hợp lệ", () =>
       rejects(
-
         () => buildRecord(snapshot, "UNKNOWN"),
-
         "INVALID_CHOICE"
-
       )
-
     );
 
-    test("27. Giữ trạng thái REJECTED", () =>
-
+    test("27. Giữ REJECTED", () =>
       buildRecord(
-
         {
-
           ...snapshot,
-
           server: {
-
             ...server,
-
             status: "REJECTED"
-
           }
-
         },
-
         "KEEP_LOCAL"
-
       ).status === "REJECTED"
-
     );
 
-    test("28. Phát hiện nội dung thay đổi", () =>
-
+    test("28. Phát hiện thay đổi", () =>
       !equal(
-
         snapshot,
-
         {
-
           ...snapshot,
-
           local: {
-
             ...local,
-
             localRevision: 6
-
           }
-
         }
-
       )
-
     );
-
-    /* 16 bài kiểm thử mới */
 
     const backupId =
       "TEST_BACKUP_123456789";
@@ -2466,43 +2608,29 @@
       const receipt = {
 
         success: true,
-
         status: "VERIFIED",
-
         backupId: backupId,
-
         draftKey: snapshot.draftKey,
-
         choice: choice,
 
         localVersion: 1,
-
         localRevision: 5,
-
         serverVersion: 2,
 
         localHash: "a".repeat(64),
-
         serverHash: "b".repeat(64),
 
         localPhotoHashes: {
-
           HA001: "c".repeat(64)
-
         },
 
         serverPhotoHashes: {
-
           HA001: "d".repeat(64),
-
           HA002: "e".repeat(64)
-
         },
 
         contentVerified: true,
-
         resolutionAuthorized: false,
-
         businessDataWritten: false
 
       };
@@ -2510,7 +2638,6 @@
       receipt.confirmation = {
 
         success: true,
-
         status: "VERIFIED",
 
         verificationVersion:
@@ -2519,19 +2646,14 @@
         catalogRevision: "751",
 
         backupId: backupId,
-
         draftId: snapshot.draftKey,
-
         choice: choice,
 
         localVersion: 1,
-
         localRevision: 5,
-
         serverVersion: 2,
 
         localHash: receipt.localHash,
-
         serverHash: receipt.serverHash,
 
         localPhotoHashes:
@@ -2541,17 +2663,12 @@
           clone(receipt.serverPhotoHashes),
 
         localPhotoCount: 1,
-
         serverPhotoCount: 2,
 
         contentVerified: true,
-
         serverWritten: false,
-
         businessDataWritten: false,
-
         resolutionAuthorized: false,
-
         resolutionIntegrated: false
 
       };
@@ -2563,15 +2680,10 @@
     function checkReceipt(receipt) {
 
       return assertCloudReceipt(
-
         receipt,
-
         snapshot,
-
         choice,
-
         backupId
-
       );
 
     }
@@ -2579,13 +2691,9 @@
     function makeVerifiedBackup() {
 
       const backup = createBackupRecord(
-
         snapshot,
-
         choice,
-
         backupId
-
       );
 
       backup.cloudVerified = true;
@@ -2600,278 +2708,420 @@
     }
 
     test("29. Cloud Backup version", () =>
-
       CONFIG.CLOUD_BACKUP_VERSION ===
         "7.8.4.3-C2.3-C1"
-
     );
 
-    test("30. Chặn thiếu biên nhận Cloud", () =>
-
+    test("30. Thiếu biên nhận", () =>
       rejects(
-
         () => checkReceipt(null),
-
         "CLOUD_BACKUP_NOT_VERIFIED"
-
       )
-
     );
 
-    test("31. Chấp nhận biên nhận hợp lệ", () =>
-
+    test("31. Biên nhận hợp lệ", () =>
       checkReceipt(makeReceipt())
-
     );
 
-    test("32. Chặn Cloud chưa xác minh", () => {
+    test("32. Cloud chưa xác minh", () => {
 
       const receipt = makeReceipt();
 
       receipt.contentVerified = false;
 
       return rejects(
-
         () => checkReceipt(receipt),
-
         "CLOUD_BACKUP_NOT_VERIFIED"
-
       );
 
     });
 
-    test("33. Chặn sai Backup ID", () => {
+    test("33. Sai Backup ID", () => {
 
       const receipt = makeReceipt();
 
       receipt.backupId = "OTHER_BACKUP";
 
       return rejects(
-
         () => checkReceipt(receipt),
-
         "CLOUD_BACKUP_ID_MISMATCH"
-
       );
 
     });
 
-    test("34. Chặn sai bản nháp", () => {
+    test("34. Sai bản nháp", () => {
 
       const receipt = makeReceipt();
 
       receipt.draftKey = "OTHER_DRAFT";
 
       return rejects(
-
         () => checkReceipt(receipt),
-
         "CLOUD_DRAFT_KEY_MISMATCH"
-
       );
 
     });
 
-    test("35. Chặn sai lựa chọn", () => {
+    test("35. Sai lựa chọn", () => {
 
       const receipt = makeReceipt();
 
       receipt.choice = "KEEP_SERVER";
 
       return rejects(
-
         () => checkReceipt(receipt),
-
         "CLOUD_CHOICE_MISMATCH"
-
       );
 
     });
 
-    test("36. Chặn localRevision thay đổi", () => {
+    test("36. Sai localRevision", () => {
 
       const receipt = makeReceipt();
 
       receipt.localRevision++;
 
       return rejects(
-
         () => checkReceipt(receipt),
-
         "CLOUD_VERSION_MISMATCH"
-
       );
 
     });
 
-    test("37. Chặn serverVersion thay đổi", () => {
+    test("37. Sai serverVersion", () => {
 
       const receipt = makeReceipt();
 
       receipt.serverVersion++;
 
       return rejects(
-
         () => checkReceipt(receipt),
-
         "CLOUD_VERSION_MISMATCH"
-
       );
 
     });
 
-    test("38. Chặn SHA-256 không hợp lệ", () => {
+    test("38. SHA-256 không hợp lệ", () => {
 
       const receipt = makeReceipt();
 
       receipt.localHash = "INVALID";
 
       return rejects(
-
         () => checkReceipt(receipt),
-
         "CLOUD_HASH_INVALID"
-
       );
 
     });
 
-    test("39. Chặn thiếu ảnh trong biên nhận", () => {
+    test("39. Thiếu ảnh trong biên nhận", () => {
 
       const receipt = makeReceipt();
 
       delete receipt.serverPhotoHashes.HA002;
 
       return rejects(
-
         () => checkReceipt(receipt),
-
         "CLOUD_PHOTO_SET_MISMATCH"
-
       );
 
     });
 
-    test("40. Chặn thiếu xác minh độc lập", () => {
+    test("40. Thiếu xác minh độc lập", () => {
 
       const receipt = makeReceipt();
 
       receipt.confirmation = null;
 
       return rejects(
-
         () => checkReceipt(receipt),
-
         "INDEPENDENT_VERIFICATION_REQUIRED"
-
       );
 
     });
 
-    test("41. Chặn biên nhận cuối sai hash", () => {
+    test("41. Biên nhận cuối sai hash", () => {
 
       const first = makeReceipt();
-
       const final = makeReceipt();
 
       final.localHash = "f".repeat(64);
 
       return rejects(
-
         () => assertSameReceipt(first, final),
-
         "FINAL_RECEIPT_MISMATCH"
-
       );
 
     });
 
-    test("42. Chặn thiếu sao lưu IndexedDB", () =>
-
+    test("42. Thiếu sao lưu IndexedDB", () =>
       rejects(
-
         () => assertCommitGate(
-
           null,
-
           makeReceipt(),
-
           makeReceipt(),
-
           snapshot,
-
           choice,
-
           backupId
-
         ),
-
         "LOCAL_BACKUP_REQUIRED"
-
       )
-
     );
 
-    test("43. Chặn thiếu biên nhận cuối", () =>
-
+    test("43. Thiếu biên nhận cuối", () =>
       rejects(
-
         () => assertCommitGate(
-
           makeVerifiedBackup(),
-
           makeReceipt(),
-
           null,
-
           snapshot,
-
           choice,
-
           backupId
-
         ),
-
         "CLOUD_BACKUP_NOT_VERIFIED"
-
       )
-
     );
 
     test("44. Cổng kiểm tra đầy đủ", () =>
-
       assertCommitGate(
-
         makeVerifiedBackup(),
-
         makeReceipt(),
-
         makeReceipt(),
-
         snapshot,
-
         choice,
-
         backupId
-
       )
-
     );
 
     const passed = results.filter(
-
       item => item.passed
+    ).length;
 
+    return {
+      success: passed === results.length,
+      passed: passed,
+      total: results.length,
+      results: results
+    };
+
+  }
+
+  /* =====================================================
+     20. C3.2 - 10 BÀI KIỂM THỬ BỔ SUNG
+
+     Chỉ kiểm thử logic.
+     Không ghi Google Drive.
+     Không ghi IndexedDB.
+     Không gửi yêu cầu đồng bộ.
+  ===================================================== */
+
+  function selfTestC32() {
+
+    const results = [];
+
+    function test(name, callback) {
+
+      try {
+
+        assert(
+          callback() === true,
+          "TEST_FAILED",
+          name
+        );
+
+        results.push({
+          name: name,
+          passed: true
+        });
+
+      } catch (error) {
+
+        results.push({
+          name: name,
+          passed: false,
+          message: error.message
+        });
+
+      }
+
+    }
+
+    function makeResult(choice) {
+
+      return {
+
+        success: true,
+
+        choice: choice,
+
+        backupId: "TEST_BACKUP_C32",
+        cloudBackupId: "TEST_BACKUP_C32",
+
+        backupVerified: true,
+        localBackupVerified: true,
+        cloudBackupVerified: true,
+        contentVerified: true,
+        finalVerificationPassed: true,
+
+        localCommitted: true,
+        backupMetadataUpdated: true,
+
+        serverVersion: 2,
+        localRevision: 6,
+
+        dirty:
+          choice === "KEEP_LOCAL",
+
+        serverWritten: false,
+
+        warning: null
+
+      };
+
+    }
+
+    function makeRelease(choice) {
+
+      return {
+
+        success: true,
+        status: "RELEASED",
+        backupId: "TEST_BACKUP_C32",
+        choice: choice,
+        serverVersion: 2,
+
+        dirty:
+          choice === "KEEP_LOCAL",
+
+        serverWritten: false
+
+      };
+
+    }
+
+    test("01. Tương thích sync.js C3.1", () =>
+      CONFIG.SYNC_VERSION === "7.8.4.3-C3.1"
+    );
+
+    test("02. KEEP_LOCAL đủ điều kiện", () =>
+      canAttemptRelease(
+        makeResult("KEEP_LOCAL")
+      )
+    );
+
+    test("03. KEEP_SERVER đủ điều kiện", () =>
+      canAttemptRelease(
+        makeResult("KEEP_SERVER")
+      )
+    );
+
+    test("04. Chặn khi chưa commit", () =>
+      !canAttemptRelease({
+        ...makeResult("KEEP_LOCAL"),
+        localCommitted: false
+      })
+    );
+
+    test("05. Chặn thiếu metadata", () =>
+      !canAttemptRelease({
+        ...makeResult("KEEP_LOCAL"),
+        backupMetadataUpdated: false
+      })
+    );
+
+    test("06. Chặn Cloud chưa xác minh", () =>
+      !canAttemptRelease({
+        ...makeResult("KEEP_LOCAL"),
+        cloudBackupVerified: false
+      })
+    );
+
+    test("07. KEEP_LOCAL sau mở chặn", () => {
+
+      const result = releaseSuccess(
+        makeResult("KEEP_LOCAL"),
+        makeRelease("KEEP_LOCAL")
+      );
+
+      return (
+        result.syncReleased === true &&
+        result.dirty === true &&
+        result.serverWritten === false &&
+        result.nextAction === "SYNC_REQUIRED"
+      );
+
+    });
+
+    test("08. KEEP_SERVER sau mở chặn", () => {
+
+      const result = releaseSuccess(
+        makeResult("KEEP_SERVER"),
+        makeRelease("KEEP_SERVER")
+      );
+
+      return (
+        result.syncReleased === true &&
+        result.dirty === false &&
+        result.serverWritten === false &&
+        result.nextAction === "SERVER_RESTORED"
+      );
+
+    });
+
+    test("09. Mất mạng sau commit", () => {
+
+      const result = releaseFailure(
+        makeResult("KEEP_LOCAL"),
+        fail("OFFLINE"),
+        true
+      );
+
+      return (
+        result.success === true &&
+        result.localCommitted === true &&
+        result.cloudBackupVerified === true &&
+        result.syncReleased === false &&
+        result.serverWritten === false &&
+        result.nextAction ===
+          "RETRY_RELEASE_REQUIRED"
+      );
+
+    });
+
+    test("10. Từ chối biên nhận mở chặn sai", () => {
+
+      try {
+
+        releaseSuccess(
+          makeResult("KEEP_LOCAL"),
+          {
+            ...makeRelease("KEEP_LOCAL"),
+            backupId: "OTHER_BACKUP"
+          }
+        );
+
+        return false;
+
+      } catch (error) {
+
+        return error.code ===
+          "SYNC_RELEASE_NOT_VERIFIED";
+
+      }
+
+    });
+
+    const passed = results.filter(
+      item => item.passed
     ).length;
 
     return {
 
-      success: passed === results.length,
+      success:
+        passed === results.length,
 
       passed: passed,
-
       total: results.length,
-
       results: results
 
     };
@@ -2879,7 +3129,7 @@
   }
 
   /* =====================================================
-     15. PUBLIC MODULE
+     21. PUBLIC MODULE
   ===================================================== */
 
   global.PGDResolution = Object.freeze({
@@ -2890,11 +3140,18 @@
 
     resolveConflict: resolveConflict,
 
+    retryRelease: retryRelease,
+
+    getResolutionStatus:
+      getResolutionStatus,
+
     listBackups: listBackups,
 
     getBackup: getBackup,
 
-    selfTest: selfTest
+    selfTest: selfTest,
+
+    selfTestC32: selfTestC32
 
   });
 
@@ -2902,5 +3159,5 @@
 
 /************************************************************
  * END OF CONFLICT-RESOLUTION.JS
- * VERSION: 7.8.4.3-C2.3-C2
+ * VERSION: 7.8.4.3-C3.2
  ************************************************************/
