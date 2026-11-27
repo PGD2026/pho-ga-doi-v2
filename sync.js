@@ -2,7 +2,7 @@
 /************************************************************
  * PHỞ GÀ ĐỒI - SYSTEM V2.0
  * FILE: sync.js
- * VERSION: 7.8.4.2-B
+ * VERSION: 7.8.4.3-C3.1
  ************************************************************/
 
 (function(global) {
@@ -10,14 +10,55 @@
   "use strict";
 
   const CONFIG = Object.freeze({
-    VERSION: "7.8.4.2-B",
+    VERSION: "7.8.4.3-C3.1",
     CATALOG_REVISION: "751",
     AUTOSAVE_MS: 5000,
     STATUS_REFRESH_MS: 15000
   });
 
   const running = new Map();
-  const blocked = new Map();
+
+  const BLOCK_PREFIX = "PGD_SYNC_BLOCK_C31_";
+
+  const blocked = {
+
+    get(key) {
+      const raw = global.localStorage.getItem(
+        BLOCK_PREFIX + key
+      );
+
+      if (raw === null) return undefined;
+
+      const value = JSON.parse(raw);
+
+      assert(
+        value && typeof value.code === "string",
+        "BLOCK_STATE_INVALID",
+        "Invalid block state."
+      );
+
+      return value;
+    },
+
+    has(key) {
+      return this.get(key) !== undefined;
+    },
+
+    set(key, value) {
+      global.localStorage.setItem(
+        BLOCK_PREFIX + key,
+        JSON.stringify(value)
+      );
+    },
+
+    delete(key) {
+      global.localStorage.removeItem(
+        BLOCK_PREFIX + key
+      );
+    }
+
+  };
+
   const controllers = new Map();
 
   function fail(code, message) {
@@ -214,8 +255,10 @@
       tx.onabort = () =>
         reject(
           failure || tx.error ||
-          fail("LOCAL_WRITE_FAILED",
-               "Không cập nhật được bản nháp.")
+          fail(
+            "LOCAL_WRITE_FAILED",
+            "Không cập nhật được bản nháp."
+          )
         );
 
     });
@@ -428,7 +471,9 @@
       "LOCAL_VERSION_CHANGED",
       "LOCAL_MISSING",
       "INVALID_CONFIRMED_VERSION",
-      "CATALOG_MISMATCH"
+      "CATALOG_MISMATCH",
+      "PHOTO_SET_MISMATCH",
+      "SERVER_DRAFT_MISSING"
     ].includes(error.code);
 
   }
@@ -561,7 +606,17 @@
 
     return withLock(
       context,
-      () => recoverInternal(context)
+      () => {
+
+        assert(
+          !blocked.has(keyOf(context)),
+          "SYNC_BLOCKED",
+          "Đồng bộ đang bị chặn."
+        );
+
+        return recoverInternal(context);
+
+      }
     );
 
   }
@@ -916,24 +971,31 @@
       return running.get(key);
     }
 
-    const task = withLock(
-      context,
-      () => performSync(context)
-    ).catch(error => {
+    const task = withLock(context, async () => {
 
-      if (isBlockingError(error)) {
+      assert(
+        !blocked.has(key),
+        "SYNC_BLOCKED",
+        "Cần xác minh xử lý xung đột trước khi đồng bộ."
+      );
 
-        blocked.set(key, {
-          code: error.code
-        });
+      try {
+
+        return await performSync(context);
+
+      } catch (error) {
+
+        if (isBlockingError(error)) {
+          blocked.set(key, {
+            code: error.code
+          });
+        }
+
+        throw error;
 
       }
 
-      throw error;
-
-    }).finally(() => {
-      running.delete(key);
-    });
+    }).finally(() => running.delete(key));
 
     running.set(key, task);
 
@@ -951,160 +1013,184 @@
 
       assertSession(context);
 
-      // Không ghi đè bản nháp nếu còn yêu cầu cũ.
-
-      await recoverInternal(context);
-
-      const local = await PGDDraft.restoreLocal(
-        context
-      );
-
-      const server = await PGDAPI.restoreDraft(
-        context
-      );
-
-      if (local && local.dirty) {
-
-        assert(
-          local.serverVersion === server.version,
-          "VERSION_CONFLICT",
-          "Bản nháp thiết bị khác máy chủ."
-        );
-
-        return {
-          source: "LOCAL",
-          record: local
-        };
-
-      }
-
-      if (!server.exists) {
-
-        assert(
-          !local || local.serverVersion === 0,
-          "SERVER_DRAFT_MISSING",
-          "Không tìm thấy bản nháp máy chủ."
-        );
-
-        return {
-          source: "LOCAL",
-          record: local
-        };
-
-      }
-
       assert(
-        server.catalogRevision === "751",
-        "CATALOG_MISMATCH",
-        "Danh mục không tương thích."
+        !blocked.has(keyOf(context)),
+        "SYNC_BLOCKED",
+        "Đồng bộ đang bị chặn."
       );
 
-      const photos = {};
+      try {
 
-      for (const id of Object.keys(server.photos || {})) {
+        // Không ghi đè bản nháp nếu còn yêu cầu cũ.
 
-        const image = await PGDAPI.readPhoto(
-          context, id
+        await recoverInternal(context);
+
+        const local = await PGDDraft.restoreLocal(
+          context
         );
 
-        assert(
-          typeof image.data === "string" &&
-          image.data.startsWith(
-            "data:image/jpeg;base64,"
-          ) &&
-          image.data.length <=
-            PGDDraft.config.MAX_PHOTO_LENGTH,
-          "INVALID_PHOTO",
-          "Không khôi phục được ảnh."
+        const server = await PGDAPI.restoreDraft(
+          context
         );
 
-        photos[id] = {
-          data: image.data,
-          fileId: server.photos[id].fileId,
-          dirty: false,
-          updatedAt: server.photos[id].receivedAt
-        };
-
-      }
-
-      const latest = await PGDAPI.restoreDraft(
-        context
-      );
-
-      assert(
-        latest.version === server.version &&
-        latest.status === server.status &&
-        equal(latest.data, server.data) &&
-        equal(latest.photos, server.photos),
-        "VERSION_CONFLICT",
-        "Máy chủ thay đổi khi khôi phục."
-      );
-
-      const record = await atomicUpdate(
-        context,
-        function(current, backups) {
+        if (local && local.dirty) {
 
           assert(
-            Boolean(current) === Boolean(local),
-            "LOCAL_CHANGED",
-            "Thiết bị vừa thay đổi dữ liệu."
+            local.serverVersion === server.version,
+            "VERSION_CONFLICT",
+            "Bản nháp thiết bị khác máy chủ."
           );
 
-          if (current) {
+          return {
+            source: "LOCAL",
+            record: local
+          };
+
+        }
+
+        if (!server.exists) {
+
+          assert(
+            !local || local.serverVersion === 0,
+            "SERVER_DRAFT_MISSING",
+            "Không tìm thấy bản nháp máy chủ."
+          );
+
+          return {
+            source: "LOCAL",
+            record: local
+          };
+
+        }
+
+        assert(
+          server.catalogRevision === "751",
+          "CATALOG_MISMATCH",
+          "Danh mục không tương thích."
+        );
+
+        const photos = {};
+
+        for (
+          const id of Object.keys(server.photos || {})
+        ) {
+
+          const image = await PGDAPI.readPhoto(
+            context, id
+          );
+
+          assert(
+            typeof image.data === "string" &&
+            image.data.startsWith(
+              "data:image/jpeg;base64,"
+            ) &&
+            image.data.length <=
+              PGDDraft.config.MAX_PHOTO_LENGTH,
+            "INVALID_PHOTO",
+            "Không khôi phục được ảnh."
+          );
+
+          photos[id] = {
+            data: image.data,
+            fileId: server.photos[id].fileId,
+            dirty: false,
+            updatedAt: server.photos[id].receivedAt
+          };
+
+        }
+
+        const latest = await PGDAPI.restoreDraft(
+          context
+        );
+
+        assert(
+          latest.version === server.version &&
+          latest.status === server.status &&
+          equal(latest.data, server.data) &&
+          equal(latest.photos, server.photos),
+          "VERSION_CONFLICT",
+          "Máy chủ thay đổi khi khôi phục."
+        );
+
+        const record = await atomicUpdate(
+          context,
+          function(current, backups) {
 
             assert(
-              !current.dirty &&
-              current.localRevision ===
-                local.localRevision &&
-              current.serverVersion ===
-                local.serverVersion,
+              Boolean(current) === Boolean(local),
               "LOCAL_CHANGED",
               "Thiết bị vừa thay đổi dữ liệu."
             );
 
+            if (current) {
+
+              assert(
+                !current.dirty &&
+                current.localRevision ===
+                  local.localRevision &&
+                current.serverVersion ===
+                  local.serverVersion,
+                "LOCAL_CHANGED",
+                "Thiết bị vừa thay đổi dữ liệu."
+              );
+
+            }
+
+            backupRecord(
+              backups,
+              current,
+              "SERVER_RESTORE"
+            );
+
+            const time = new Date().toISOString();
+
+            return {
+              key: keyOf(context),
+              context: clone(context),
+              deviceId: PGDDraft.getDeviceId(),
+              catalogRevision: "751",
+              data: Object.assign(
+                emptyFields(),
+                clone(server.data || {})
+              ),
+              photos: photos,
+              removedPhotos: [],
+              serverVersion: server.version,
+              localRevision: current
+                ? current.localRevision + 1
+                : 1,
+              dirty: false,
+              status: server.status,
+              createdAt: current
+                ? current.createdAt
+                : time,
+              updatedAt: time,
+              syncedAt: time
+            };
+
           }
+        );
 
-          backupRecord(
-            backups,
-            current,
-            "SERVER_RESTORE"
-          );
+        blocked.delete(keyOf(context));
 
-          const time = new Date().toISOString();
+        return {
+          source: "SERVER",
+          record: record
+        };
 
-          return {
-            key: keyOf(context),
-            context: clone(context),
-            deviceId: PGDDraft.getDeviceId(),
-            catalogRevision: "751",
-            data: Object.assign(
-              emptyFields(),
-              clone(server.data || {})
-            ),
-            photos: photos,
-            removedPhotos: [],
-            serverVersion: server.version,
-            localRevision: current
-              ? current.localRevision + 1
-              : 1,
-            dirty: false,
-            status: server.status,
-            createdAt: current
-              ? current.createdAt
-              : time,
-            updatedAt: time,
-            syncedAt: time
-          };
+      } catch (error) {
+
+        if (isBlockingError(error)) {
+
+          blocked.set(keyOf(context), {
+            code: error.code
+          });
 
         }
-      );
 
-      blocked.delete(keyOf(context));
+        throw error;
 
-      return {
-        source: "SERVER",
-        record: record
-      };
+      }
 
     });
 
@@ -1203,7 +1289,10 @@
           context
         );
 
-        if (pending && pending.status === "BLOCKED") {
+        if (
+          pending &&
+          pending.status === "BLOCKED"
+        ) {
           return;
         }
 
@@ -1276,12 +1365,19 @@
     global.addEventListener("online", tick);
 
     controllers.set(key, {
+
       stop: function() {
+
         stopped = true;
+
         clearInterval(syncTimer);
+
         clearInterval(statusTimer);
+
         global.removeEventListener("online", tick);
+
       }
+
     });
 
     return true;
@@ -1301,6 +1397,10 @@
 
   }
 
+  /* =====================================================
+     KIỂM TRA XUNG ĐỘT
+  ===================================================== */
+
   async function inspectConflict(context) {
 
     assertSession(context);
@@ -1316,42 +1416,582 @@
     const pending = await PGDOutbox.get(context);
 
     return {
+
       localVersion: local
         ? local.serverVersion
         : 0,
+
       serverVersion: server.version,
+
       localDirty: Boolean(local && local.dirty),
+
       localPhotoCount: local
         ? Object.keys(local.photos || {}).length
         : 0,
+
       serverPhotoCount:
         Object.keys(server.photos || {}).length,
+
       pendingRequest: Boolean(pending),
+
       pendingRequestId: pending
         ? pending.requestId
         : null,
+
       pendingStatus: pending
         ? pending.status
         : null,
+
       blocked:
         blocked.has(keyOf(context)) ||
         Boolean(
           pending &&
           pending.status === "BLOCKED"
         )
+
     };
 
   }
 
+  /* =====================================================
+     C3.1 - KIỂM TRA KẾT QUẢ XỬ LÝ XUNG ĐỘT
+
+     Không tự mở chặn nếu chưa có bản sao lưu
+     và biên nhận xác minh hợp lệ.
+  ===================================================== */
+
+  function checkResolutionRecord(
+    context,
+    backup,
+    local,
+    server
+  ) {
+
+    const r = backup && backup.finalReceipt;
+
+    assert(
+
+      backup &&
+
+      backup.backupStatus ===
+        "LOCAL_COMMIT_COMPLETED" &&
+
+      backup.cloudVerified === true &&
+
+      r &&
+
+      r.contentVerified === true &&
+
+      backup.backupId === r.backupId &&
+
+      backup.cloudBackupId === r.backupId &&
+
+      backup.draftKey === keyOf(context) &&
+
+      r.draftKey === backup.draftKey &&
+
+      r.choice === backup.choice &&
+
+      ["KEEP_LOCAL", "KEEP_SERVER"].includes(
+        r.choice
+      ) &&
+
+      r.localVersion ===
+        backup.local.serverVersion &&
+
+      r.localRevision ===
+        backup.local.localRevision &&
+
+      r.serverVersion === backup.server.version,
+
+      "RESOLUTION_RECEIPT_REQUIRED",
+
+      "Thiếu biên nhận xử lý hoàn chỉnh."
+
+    );
+
+    assert(
+
+      local &&
+
+      editable(local.status) &&
+
+      editable(server.status) &&
+
+      local.catalogRevision === "751" &&
+
+      server.catalogRevision === "751" &&
+
+      local.serverVersion === r.serverVersion &&
+
+      server.version === r.serverVersion &&
+
+      local.localRevision ===
+        backup.local.localRevision + 1 &&
+
+      local.localRevision ===
+        backup.resolvedLocalRevision &&
+
+      equal(server, backup.server),
+
+      "RESOLUTION_STALE",
+
+      "Phiên bản đã thay đổi; cần kiểm tra lại."
+
+    );
+
+    const keepLocal = r.choice === "KEEP_LOCAL";
+
+    const chosen = keepLocal
+      ? backup.local
+      : backup.server;
+
+    const photos = keepLocal
+      ? backup.local.photos
+      : backup.serverPhotos;
+
+    assert(
+
+      local.dirty === keepLocal &&
+
+      equal(local.data, chosen.data) &&
+
+      equal(
+        Object.keys(local.photos || {}).sort(),
+        Object.keys(photos || {}).sort()
+      ) &&
+
+      Object.keys(photos || {}).every(
+        id => local.photos[id].data === photos[id].data
+      ) &&
+
+      equal(
+
+        (local.removedPhotos || []).slice().sort(),
+
+        keepLocal
+
+          ? Object.keys(server.photos || {})
+              .filter(id => !local.photos[id])
+              .sort()
+
+          : []
+
+      ),
+
+      "RESOLUTION_CONTENT_CHANGED",
+
+      "Nội dung đã thay đổi sau xử lý."
+
+    );
+
+    return r;
+
+  }
+
+  /* =====================================================
+     C3.1 - GIẢI PHÓNG TRẠNG THÁI CHẶN
+
+     Sử dụng cùng Web Lock với module đồng bộ.
+
+     Không gọi hàm này từ bên trong phiên khóa
+     đang hoạt động của Conflict Resolution.
+
+     Không ghi dữ liệu nghiệp vụ lên máy chủ.
+  ===================================================== */
+
+  function releaseAfterResolution(
+    context,
+    backupId
+  ) {
+
+    const ctx = clone(context);
+
+    return withLock(ctx, async () => {
+
+      assertSession(ctx);
+
+      assert(
+        navigator.onLine,
+        "OFFLINE",
+        "Cần kết nối mạng."
+      );
+
+      assert(
+
+        global.PGDResolution &&
+
+        global.PGDCloudBackup &&
+
+        typeof PGDAPI.conflictBackupConfirm ===
+          "function",
+
+        "MODULE_MISSING",
+
+        "Thiếu module xác minh."
+
+      );
+
+      const key = keyOf(ctx);
+
+      const block = blocked.get(key);
+
+      assert(
+
+        !block || block.code === "VERSION_CONFLICT",
+
+        "BLOCK_NOT_RELEASABLE",
+
+        "Không tự mở khóa lỗi khác."
+
+      );
+
+      assert(
+
+        !(await PGDOutbox.get(ctx)),
+
+        "OUTBOX_BLOCKED",
+
+        "Còn yêu cầu Outbox."
+
+      );
+
+      const backup = await PGDResolution.getBackup(
+        ctx,
+        backupId
+      );
+
+      const local = await PGDDraft.restoreLocal(ctx);
+
+      const server = await PGDAPI.restoreDraft(ctx);
+
+      const r = checkResolutionRecord(
+        ctx,
+        backup,
+        local,
+        server
+      );
+
+      assert(
+
+        r.backupId === backupId,
+
+        "BACKUP_ID_MISMATCH",
+
+        "Sai mã sao lưu."
+
+      );
+
+      const hashes = {
+
+        localHash:
+          await PGDCloudBackup.hashJson(
+            backup.local.data
+          ),
+
+        serverHash:
+          await PGDCloudBackup.hashJson(
+            backup.server
+          ),
+
+        localPhotoHashes:
+          await PGDCloudBackup.hashPhotos(
+            backup.local.photos
+          ),
+
+        serverPhotoHashes:
+          await PGDCloudBackup.hashPhotos(
+            backup.serverPhotos
+          )
+
+      };
+
+      for (const k of Object.keys(hashes)) {
+
+        assert(
+
+          equal(hashes[k], r[k]),
+
+          "BACKUP_HASH_MISMATCH",
+
+          "Sai hash bản sao."
+
+        );
+
+      }
+
+      const input = {
+
+        backupId,
+
+        choice: r.choice,
+
+        localVersion: r.localVersion,
+
+        localRevision: r.localRevision,
+
+        serverVersion: r.serverVersion,
+
+        ...hashes
+
+      };
+
+      const verified =
+        await PGDAPI.conflictBackupConfirm(
+          ctx,
+          input
+        );
+
+      assert(
+
+        verified &&
+
+        verified.success === true &&
+
+        verified.status === "VERIFIED" &&
+
+        verified.contentVerified === true &&
+
+        verified.verificationVersion ===
+          "7.8.4.3-C2.1" &&
+
+        verified.catalogRevision === "751" &&
+
+        verified.draftId === key &&
+
+        verified.serverWritten === false &&
+
+        verified.businessDataWritten === false &&
+
+        verified.resolutionAuthorized === false &&
+
+        Object.keys(input).every(
+          k => equal(input[k], verified[k])
+        ),
+
+        "CLOUD_CONFIRM_FAILED",
+
+        "Xác minh Google Drive thất bại."
+
+      );
+
+      assert(
+
+        equal(
+          await PGDAPI.restoreDraft(ctx),
+          server
+        ) &&
+
+        equal(
+          await PGDDraft.restoreLocal(ctx),
+          local
+        ) &&
+
+        !(await PGDOutbox.get(ctx)) &&
+
+        equal(
+          await PGDResolution.getBackup(ctx, backupId),
+          backup
+        ),
+
+        "RESOLUTION_STALE",
+
+        "Dữ liệu thay đổi trong khi xác minh."
+
+      );
+
+      assertSession(ctx);
+
+      assert(
+
+        navigator.onLine,
+
+        "OFFLINE",
+
+        "Mất mạng."
+
+      );
+
+      assert(
+
+        equal(blocked.get(key), block),
+
+        "BLOCK_CHANGED",
+
+        "Trạng thái chặn thay đổi."
+
+      );
+
+      blocked.delete(key);
+
+      return {
+
+        success: true,
+
+        status: "RELEASED",
+
+        backupId,
+
+        choice: r.choice,
+
+        serverVersion: server.version,
+
+        dirty: local.dirty,
+
+        serverWritten: false
+
+      };
+
+    });
+
+  }
+
+  /* =====================================================
+     C3.1 - KIỂM THỬ LOGIC
+
+     Không ghi Google Sheets.
+     Không ghi Google Drive.
+     Không thay đổi bản nháp.
+  ===================================================== */
+
+  function selfTestC31() {
+
+    const results = [];
+
+    const test = (name, fn) => {
+
+      try {
+
+        results.push({
+          name,
+          passed: fn() === true
+        });
+
+      } catch (e) {
+
+        results.push({
+          name,
+          passed: false,
+          error: e.message
+        });
+
+      }
+
+    };
+
+    test(
+      "Version",
+      () => CONFIG.VERSION === "7.8.4.3-C3.1"
+    );
+
+    test(
+      "Conflict blocks",
+      () => isBlockingError({
+        code: "VERSION_CONFLICT"
+      })
+    );
+
+    test(
+      "Photo set blocks",
+      () => isBlockingError({
+        code: "PHOTO_SET_MISMATCH"
+      })
+    );
+
+    test(
+      "Offline is not conflict",
+      () => !isBlockingError({
+        code: "OFFLINE"
+      })
+    );
+
+    test(
+      "Canonical comparison",
+      () => equal(
+        {b: 2, a: 1},
+        {a: 1, b: 2}
+      )
+    );
+
+    test(
+      "Locked status",
+      () => !editable("FINALIZED")
+    );
+
+    test(
+      "Missing receipt rejected",
+      () => {
+
+        try {
+
+          checkResolutionRecord(
+            {},
+            null,
+            null,
+            null
+          );
+
+          return false;
+
+        } catch (e) {
+
+          return e.code ===
+            "RESOLUTION_RECEIPT_REQUIRED";
+
+        }
+
+      }
+    );
+
+    test(
+      "Public release function",
+      () => typeof releaseAfterResolution === "function"
+    );
+
+    const passed = results.filter(
+      x => x.passed
+    ).length;
+
+    return {
+
+      success: passed === results.length,
+
+      passed,
+
+      total: results.length,
+
+      results
+
+    };
+
+  }
+
+  /* =====================================================
+     PUBLIC MODULE
+  ===================================================== */
+
   global.PGDSync = Object.freeze({
+
+    releaseAfterResolution,
+
+    selfTestC31,
+
     config: CONFIG,
+
     restore: restore,
+
     syncNow: syncNow,
+
     recoverPending: recoverPending,
+
     getStatus: getStatus,
+
     start: start,
+
     stop: stop,
+
     inspectConflict: inspectConflict
+
   });
 
 })(window);
