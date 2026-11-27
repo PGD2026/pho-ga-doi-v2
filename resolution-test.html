@@ -9,7 +9,7 @@
 <meta name="viewport"
       content="width=device-width, initial-scale=1">
 
-<title>PGD - Conflict Resolution</title>
+<title>PGD V2 - Conflict Resolution C2.3-C3</title>
 
 <style>
 
@@ -26,26 +26,45 @@ body {
 }
 
 main {
-  max-width: 850px;
+  max-width: 960px;
   margin: auto;
-  background: white;
-  padding: 22px;
+}
+
+header {
+  background: #172033;
+  color: white;
+  padding: 24px;
   border-radius: 14px;
+  margin-bottom: 16px;
 }
 
 h1 {
-  font-size: 23px;
+  font-size: 24px;
+  margin: 0 0 10px;
 }
 
 h2 {
-  font-size: 18px;
-  margin-top: 26px;
+  font-size: 19px;
+  margin: 0 0 16px;
+}
+
+h3 {
+  font-size: 16px;
+}
+
+section {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #e2e8f0;
 }
 
 label {
   display: block;
   margin-top: 12px;
   font-size: 14px;
+  font-weight: bold;
 }
 
 input, select, textarea {
@@ -55,11 +74,17 @@ input, select, textarea {
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 15px;
+  background: white;
+}
+
+textarea {
+  min-height: 85px;
+  resize: vertical;
 }
 
 button {
   width: 100%;
-  padding: 14px;
+  padding: 13px;
   margin-top: 10px;
   background: #172033;
   color: white;
@@ -67,6 +92,7 @@ button {
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: bold;
 }
 
 button:disabled {
@@ -82,6 +108,10 @@ button:disabled {
   background: #9a3412;
 }
 
+.secondary {
+  background: #475569;
+}
+
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -95,7 +125,7 @@ button:disabled {
   overflow-wrap: anywhere;
 }
 
-.version {
+.score {
   font-size: 30px;
   font-weight: bold;
   margin: 10px 0;
@@ -107,6 +137,15 @@ button:disabled {
   background: #fff7ed;
   color: #9a3412;
   line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.info {
+  padding: 14px;
+  background: #eff6ff;
+  color: #1e40af;
+  border-radius: 8px;
+  line-height: 1.6;
 }
 
 pre {
@@ -116,6 +155,7 @@ pre {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   line-height: 1.6;
+  font-size: 13px;
 }
 
 .confirm {
@@ -123,15 +163,11 @@ pre {
   align-items: flex-start;
   gap: 10px;
   line-height: 1.5;
+  font-weight: normal;
 }
 
 .confirm input {
   width: auto;
-}
-
-#score {
-  font-size: 30px;
-  font-weight: bold;
 }
 
 .success {
@@ -142,10 +178,104 @@ pre {
   color: #dc2626;
 }
 
+.muted {
+  color: #64748b;
+}
+
+.small {
+  font-size: 13px;
+}
+
 img {
   width: 100%;
   max-width: 320px;
   border-radius: 8px;
+}
+
+.progress-track {
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0;
+  background: #15803d;
+  transition: width .2s;
+}
+
+.stage {
+  padding: 10px 0;
+  border-bottom: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.stage.active {
+  color: #1d4ed8;
+  font-weight: bold;
+}
+
+.stage.done {
+  color: #15803d;
+}
+
+.stage.failed {
+  color: #dc2626;
+  font-weight: bold;
+}
+
+.network {
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: inline-block;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.network.online {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.network.offline {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+#backupPhotos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.photo-card {
+  border: 1px solid #e2e8f0;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+
+  body {
+    padding: 8px;
+  }
+
+  section {
+    padding: 15px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  #backupPhotos {
+    grid-template-columns: 1fr;
+  }
+
 }
 
 </style>
@@ -156,230 +286,670 @@ img {
 
 <main>
 
-<h1>PHỞ GÀ ĐỒI V2.0</h1>
+<header>
 
-<p>7.8.4.3-B – Xử lý xung đột</p>
+  <h1>PHỞ GÀ ĐỒI V2.0</h1>
 
-<div class="warning">
-  Chỉ sử dụng tài khoản kiểm thử.
-  Cả hai phiên bản phải được sao lưu
-  trước khi xử lý.
-</div>
+  <div>7.8.4.3-C2.3-C3</div>
 
-<h2>1. Kiểm thử tự động</h2>
+  <p>Kiểm thử sao lưu và xử lý xung đột</p>
 
-<div id="score">0/28</div>
+  <span id="network" class="network">
+    Đang kiểm tra mạng
+  </span>
 
-<button onclick="run(test)">
-  Chạy 28 bài kiểm thử
-</button>
+</header>
 
-<h2>2. Đăng nhập</h2>
+<section>
 
-<label>Tài khoản</label>
+  <div class="warning">
 
-<input id="employee" value="TEST_API01">
+    <strong>CHẾ ĐỘ KIỂM THỬ</strong>
 
-<label>PIN</label>
+    <p>
+      Chỉ sử dụng tài khoản TEST_.
+      Không sử dụng dữ liệu vận hành thực tế.
+    </p>
 
-<input id="pin" type="password">
+    <p>
+      KEEP_LOCAL và KEEP_SERVER chỉ được thực hiện
+      thông qua module Resolution có tích hợp
+      sao lưu IndexedDB và Google Drive.
+    </p>
 
-<label>Cơ sở</label>
-
-<select id="branch">
-  <option value="CS1">CS1</option>
-  <option value="CS2">CS2</option>
-</select>
-
-<button onclick="run(login)">
-  Đăng nhập
-</button>
-
-<h2>3. Phiên làm việc</h2>
-
-<label>Ngày làm việc</label>
-
-<input id="date"
-       type="date"
-       value="2026-12-07">
-
-<label>Ca</label>
-
-<select id="shift">
-  <option value="SANG">Ca sáng</option>
-  <option value="TOI">Ca tối</option>
-  <option value="DEM">Ca đêm</option>
-</select>
-
-<label>Bộ phận</label>
-
-<select id="department">
-  <option value="BEP_PHO">Bếp phở</option>
-  <option value="BEP_VAT_TU">Bếp vật tư</option>
-  <option value="CHAY_BAN">Chạy bàn</option>
-  <option value="VE_SINH">Vệ sinh</option>
-</select>
-
-<label>Ghi chú kiểm thử</label>
-
-<textarea id="note">RESOLUTION_TEST</textarea>
-
-<button onclick="run(restore)">
-  Khôi phục bản nháp
-</button>
-
-<button onclick="run(saveLocal)">
-  Lưu ghi chú thiết bị
-</button>
-
-<button onclick="run(sync)">
-  Đồng bộ bản nháp
-</button>
-
-<h2>4. So sánh trước khi xử lý</h2>
-
-<button onclick="run(preview)">
-  So sánh hai phiên bản
-</button>
-
-<div class="grid">
-
-  <div class="panel">
-
-    Thiết bị
-
-    <div id="localVersion"
-         class="version">--</div>
-
-    <div id="localNote">Chưa kiểm tra</div>
+    Không tự động đồng bộ lên máy chủ sau khi xử lý.
 
   </div>
 
-  <div class="panel">
+</section>
 
-    Máy chủ
+<!-- =====================================================
+     01. KIỂM TRA HỆ THỐNG
+===================================================== -->
 
-    <div id="serverVersion"
-         class="version">--</div>
+<section>
 
-    <div id="serverNote">Chưa kiểm tra</div>
+  <h2>1. Kiểm tra hệ thống</h2>
+
+  <div id="moduleStatus" class="muted">
+    Chưa kiểm tra module.
+  </div>
+
+  <button onclick="run(checkModules)">
+    Kiểm tra phiên bản module
+  </button>
+
+  <button onclick="run(checkAPI)">
+    Kiểm tra kết nối API
+  </button>
+
+  <pre id="healthResult">Chưa kiểm tra.</pre>
+
+</section>
+
+<!-- =====================================================
+     02. KIỂM THỬ TỰ ĐỘNG
+===================================================== -->
+
+<section>
+
+  <h2>2. Kiểm thử tự động</h2>
+
+  <div class="grid">
+
+    <div class="panel">
+
+      Cloud Backup
+
+      <div id="cloudScore" class="score">
+        0/42
+      </div>
+
+    </div>
+
+    <div class="panel">
+
+      Conflict Resolution
+
+      <div id="resolutionScore" class="score">
+        0/44
+      </div>
+
+    </div>
 
   </div>
 
-</div>
+  <div class="panel" style="margin-top:12px">
 
-<pre id="differences">
-Chưa có kết quả.
-</pre>
+    Tổng kiểm thử
 
-<h2>5. Lựa chọn xử lý</h2>
+    <div id="totalScore" class="score">
+      0/86
+    </div>
 
-<div class="warning">
+  </div>
 
-  Giữ bản thiết bị:
-  sao lưu cả hai bản, sau đó chuẩn bị
-  bản thiết bị để đồng bộ.
+  <button onclick="run(runTests)">
+    CHẠY TOÀN BỘ 86 BÀI KIỂM THỬ
+  </button>
 
-  <hr>
+  <pre id="testResult">Chưa chạy.</pre>
 
-  Giữ bản máy chủ:
-  sao lưu cả hai bản, sau đó thay
-  bản nháp thiết bị bằng bản máy chủ.
+</section>
 
-</div>
+<!-- =====================================================
+     03. ĐĂNG NHẬP
+===================================================== -->
 
-<label class="confirm">
+<section>
 
-  <input id="confirmed"
-         type="checkbox"
-         onchange="updateButtons()">
+  <h2>3. Đăng nhập kiểm thử</h2>
 
-  Tôi đã kiểm tra hai phiên bản và
-  xác nhận lựa chọn dữ liệu.
+  <label>Tài khoản</label>
 
-</label>
+  <input id="employee"
+         value="TEST_API01"
+         autocomplete="off">
 
-<button id="keepLocal"
-        class="warning-button"
-        disabled
-        onclick="run(() => resolve('KEEP_LOCAL'))">
+  <label>PIN</label>
 
-  Sao lưu và giữ bản thiết bị
+  <input id="pin"
+         type="password"
+         autocomplete="off">
 
-</button>
+  <label>Cơ sở</label>
 
-<button id="keepServer"
-        class="primary"
-        disabled
-        onclick="run(() => resolve('KEEP_SERVER'))">
+  <select id="branch">
 
-  Sao lưu và giữ bản máy chủ
+    <option value="CS1">CS1</option>
 
-</button>
+    <option value="CS2">CS2</option>
 
-<h2>6. Kiểm tra bản sao lưu</h2>
+  </select>
 
-<button onclick="run(listBackups)">
-  Danh sách bản sao lưu
-</button>
+  <button onclick="run(login)">
+    ĐĂNG NHẬP
+  </button>
 
-<label>Mã bản sao lưu</label>
+  <button class="secondary"
+          onclick="run(logout)">
+    Đăng xuất
+  </button>
 
-<input id="backupId">
+  <pre id="loginResult">Chưa đăng nhập.</pre>
 
-<button onclick="run(readBackup)">
-  Đọc và kiểm tra bản sao
-</button>
+</section>
 
-<div id="backupPhotos"></div>
+<!-- =====================================================
+     04. PHIÊN LÀM VIỆC
+===================================================== -->
 
-<h2>7. Nhật ký</h2>
+<section>
 
-<pre id="result">Sẵn sàng.</pre>
+  <h2>4. Phiên làm việc</h2>
+
+  <label>Ngày làm việc</label>
+
+  <input id="date"
+         type="date"
+         value="2026-12-18">
+
+  <div class="grid">
+
+    <div>
+
+      <label>Ca làm việc</label>
+
+      <select id="shift">
+
+        <option value="SANG">Ca sáng</option>
+
+        <option value="TOI">Ca tối</option>
+
+        <option value="DEM">Ca đêm</option>
+
+      </select>
+
+    </div>
+
+    <div>
+
+      <label>Bộ phận</label>
+
+      <select id="department">
+
+        <option value="BEP_PHO">
+          Bếp phở
+        </option>
+
+        <option value="BEP_VAT_TU">
+          Bếp vật tư
+        </option>
+
+        <option value="CHAY_BAN">
+          Chạy bàn
+        </option>
+
+        <option value="VE_SINH">
+          Vệ sinh
+        </option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+  <label>Ghi chú kiểm thử</label>
+
+  <textarea id="note">RESOLUTION_C3_TEST</textarea>
+
+  <button onclick="run(restore)">
+    Khôi phục bản nháp
+  </button>
+
+  <button onclick="run(saveLocal)">
+    Lưu ghi chú trên thiết bị
+  </button>
+
+  <button onclick="run(sync)">
+    Đồng bộ bản nháp
+  </button>
+
+  <button class="secondary"
+          onclick="run(inspect)">
+    Kiểm tra trạng thái dữ liệu
+  </button>
+
+  <pre id="draftResult">Chưa có dữ liệu.</pre>
+
+</section>
+
+<!-- =====================================================
+     05. SO SÁNH
+===================================================== -->
+
+<section>
+
+  <h2>5. So sánh hai phiên bản</h2>
+
+  <button onclick="run(preview)">
+    SO SÁNH XUNG ĐỘT
+  </button>
+
+  <div class="grid" style="margin-top:12px">
+
+    <div class="panel">
+
+      <strong>Thiết bị</strong>
+
+      <div id="localVersion" class="score">
+        --
+      </div>
+
+      <div id="localNote">
+        Chưa kiểm tra.
+      </div>
+
+    </div>
+
+    <div class="panel">
+
+      <strong>Máy chủ</strong>
+
+      <div id="serverVersion" class="score">
+        --
+      </div>
+
+      <div id="serverNote">
+        Chưa kiểm tra.
+      </div>
+
+    </div>
+
+  </div>
+
+  <pre id="differences">
+Chưa có kết quả so sánh.
+  </pre>
+
+</section>
+
+<!-- =====================================================
+     06. XỬ LÝ XUNG ĐỘT
+===================================================== -->
+
+<section>
+
+  <h2>6. Lựa chọn xử lý</h2>
+
+  <div class="warning">
+
+    <strong>KEEP_LOCAL</strong>
+
+    <p>
+      Sao lưu cả hai phiên bản, giữ bản thiết bị
+      và chuẩn bị cho lần đồng bộ tiếp theo.
+    </p>
+
+    <hr>
+
+    <strong>KEEP_SERVER</strong>
+
+    <p>
+      Sao lưu cả hai phiên bản, sau đó thay
+      bản nháp thiết bị bằng bản máy chủ.
+    </p>
+
+  </div>
+
+  <label class="confirm">
+
+    <input id="confirmed"
+           type="checkbox"
+           onchange="updateButtons()">
+
+    Tôi đã kiểm tra hai phiên bản và xác nhận
+    lựa chọn xử lý. Tôi hiểu rằng cả hai bản
+    phải được sao lưu và xác minh trước khi
+    thay đổi bản nháp.
+
+  </label>
+
+  <button id="keepLocal"
+          class="warning-button"
+          disabled
+          onclick="run(() => resolveConflict('KEEP_LOCAL'))">
+
+    SAO LƯU VÀ GIỮ BẢN THIẾT BỊ
+
+  </button>
+
+  <button id="keepServer"
+          class="primary"
+          disabled
+          onclick="run(() => resolveConflict('KEEP_SERVER'))">
+
+    SAO LƯU VÀ GIỮ BẢN MÁY CHỦ
+
+  </button>
+
+</section>
+
+<!-- =====================================================
+     07. TIẾN ĐỘ XỬ LÝ
+===================================================== -->
+
+<section>
+
+  <h2>7. Tiến độ sao lưu và xác minh</h2>
+
+  <div id="progressLabel">
+    Chưa thực hiện.
+  </div>
+
+  <div class="progress-track">
+
+    <div id="progressBar"
+         class="progress-bar">
+    </div>
+
+  </div>
+
+  <div id="stageList"></div>
+
+  <pre id="resolutionResult">
+Chưa có kết quả xử lý.
+  </pre>
+
+</section>
+
+<!-- =====================================================
+     08. BẢN SAO LƯU
+===================================================== -->
+
+<section>
+
+  <h2>8. Kiểm tra bản sao lưu</h2>
+
+  <button onclick="run(listBackups)">
+    Danh sách bản sao lưu IndexedDB
+  </button>
+
+  <label>Mã bản sao lưu</label>
+
+  <input id="backupId"
+         autocomplete="off">
+
+  <button onclick="run(readBackup)">
+    Đọc và kiểm tra bản sao lưu
+  </button>
+
+  <pre id="backupResult">
+Chưa đọc bản sao lưu.
+  </pre>
+
+  <h3>Biên nhận Google Drive</h3>
+
+  <pre id="receiptResult">
+Chưa có biên nhận.
+  </pre>
+
+  <h3>Ảnh trong bản sao lưu</h3>
+
+  <div id="backupPhotos"></div>
+
+</section>
+
+<!-- =====================================================
+     09. KIỂM THỬ MẤT MẠNG
+===================================================== -->
+
+<section>
+
+  <h2>9. Kiểm thử mất mạng</h2>
+
+  <div class="info">
+
+    <p>
+      Tạo xung đột mới và so sánh hai phiên bản.
+      Ngắt mạng trước khi xử lý hoặc trong lúc
+      sao lưu Google Drive.
+    </p>
+
+    <p>
+      Hệ thống không được thay đổi bản nháp nếu
+      quá trình sao lưu hoặc xác minh thất bại
+      trước khi giao dịch ghi local hoàn tất.
+    </p>
+
+    Kết nối lại mạng rồi sử dụng nút kiểm tra
+    trạng thái để đối chiếu dữ liệu.
+
+  </div>
+
+  <button class="secondary"
+          onclick="run(inspect)">
+    Kiểm tra lại dữ liệu
+  </button>
+
+</section>
+
+<!-- =====================================================
+     10. NHẬT KÝ
+===================================================== -->
+
+<section>
+
+  <h2>10. Nhật ký kiểm thử</h2>
+
+  <button class="secondary"
+          onclick="clearLog()">
+    Xóa nhật ký hiển thị
+  </button>
+
+  <pre id="result">Sẵn sàng.</pre>
+
+</section>
 
 </main>
 
+<!-- =====================================================
+     MODULES
+
+     Thứ tự tải rất quan trọng.
+     Cloud Backup phải tải trước Resolution.
+===================================================== -->
+
 <script src="draft.js?v=752"></script>
+
 <script src="outbox.js?v=7842"></script>
-<script src="api.js?v=7842b"></script>
+
+<script src="api.js?v=78423a"></script>
+
 <script src="sync.js?v=7842b"></script>
+
 <script src="conflict.js?v=7843a"></script>
-<script src="conflict-resolution.js?v=7843b"></script>
+
+<script src="conflict-backup.js?v=78423c1"></script>
+
+<script src="conflict-resolution.js?v=78423c2"></script>
 
 <script>
 
 "use strict";
 
+/* =====================================================
+   01. CONFIG
+===================================================== */
+
+const PAGE_CONFIG = Object.freeze({
+
+  VERSION: "7.8.4.3-C2.3-C3",
+
+  CATALOG_REVISION: "751",
+
+  API_VERSION: "7.8.4.3-C2.3-A",
+
+  CLOUD_VERSION: "7.8.4.3-C2.3-C1",
+
+  RESOLUTION_VERSION: "7.8.4.3-C2.3-C2",
+
+  CLOUD_TESTS: 42,
+
+  RESOLUTION_TESTS: 44,
+
+  TOTAL_TESTS: 86
+
+});
+
 const $ = id => document.getElementById(id);
 
 let busy = false;
 
+let modulesReady = false;
+
+let apiReady = false;
+
+let testsPassed = false;
+
 let activePreview = null;
 
-function log(value) {
+let currentStage = null;
 
-  $("result").textContent +=
+const STAGES = [
 
-    (
-      typeof value === "string"
-        ? value
-        : JSON.stringify(value, null, 2)
-    ) + "\n";
+  {
+    id: "PREVIEW_CHECK",
+    label: "Kiểm tra lại hai phiên bản"
+  },
+
+  {
+    id: "LOCAL_BACKUP",
+    label: "Sao lưu IndexedDB"
+  },
+
+  {
+    id: "CLOUD_BACKUP",
+    label: "Sao lưu Google Drive"
+  },
+
+  {
+    id: "SAVE_CLOUD_RECEIPT",
+    label: "Lưu biên nhận Google Drive"
+  },
+
+  {
+    id: "FINAL_VERIFICATION",
+    label: "Xác minh độc lập lần cuối"
+  },
+
+  {
+    id: "PRE_COMMIT_CHECK",
+    label: "Kiểm tra dữ liệu trước khi ghi"
+  },
+
+  {
+    id: "LOCAL_COMMIT",
+    label: "Ghi bản nháp thiết bị"
+  },
+
+  {
+    id: "COMPLETED",
+    label: "Hoàn thành xử lý"
+  }
+
+];
+
+/* =====================================================
+   02. TIỆN ÍCH
+===================================================== */
+
+function assert(condition, message) {
+
+  if (!condition) {
+
+    throw new Error(message);
+
+  }
 
 }
 
+function json(value) {
+
+  return JSON.stringify(value, null, 2);
+
+}
+
+function show(id, value) {
+
+  $(id).textContent =
+
+    typeof value === "string"
+
+      ? value
+
+      : json(value);
+
+}
+
+function log(value) {
+
+  const now = new Date().toLocaleTimeString(
+    "vi-VN"
+  );
+
+  $("result").textContent +=
+
+    "\n[" + now + "]\n" +
+
+    (
+
+      typeof value === "string"
+
+        ? value
+
+        : json(value)
+
+    ) +
+
+    "\n";
+
+}
+
+function clearLog() {
+
+  $("result").textContent = "Sẵn sàng.";
+
+}
+
+function setScore(id, passed, total, success) {
+
+  $(id).textContent = passed + "/" + total;
+
+  $(id).className =
+
+    "score " +
+
+    (success ? "success" : "error");
+
+}
+
+/* =====================================================
+   03. CONTEXT
+===================================================== */
+
 function context() {
 
-  const employee = $("employee").value
-    .trim().toUpperCase();
+  const employee = $("employee")
+    .value.trim().toUpperCase();
 
-  if (!employee.startsWith("TEST_")) {
-    throw new Error(
-      "Chỉ sử dụng tài khoản TEST_."
-    );
-  }
+  assert(
+    /^TEST_/.test(employee),
+    "Chỉ sử dụng tài khoản TEST_."
+  );
 
-  return {
+  const ctx = {
 
     employee: employee,
 
@@ -393,13 +963,115 @@ function context() {
 
   };
 
+  PGDDraft.makeKey(ctx);
+
+  return ctx;
+
 }
+
+function assertLogin(ctx) {
+
+  const profile = PGDAPI.getProfile();
+
+  assert(
+
+    profile &&
+
+    profile.code === ctx.employee &&
+
+    profile.branch === ctx.branch,
+
+    "Cần đăng nhập đúng tài khoản và cơ sở."
+
+  );
+
+}
+
+function assertOnline() {
+
+  assert(
+
+    navigator.onLine !== false,
+
+    "Thiết bị đang mất kết nối mạng."
+
+  );
+
+}
+
+/* =====================================================
+   04. TRẠNG THÁI MẠNG
+===================================================== */
+
+function updateNetwork() {
+
+  const online = navigator.onLine !== false;
+
+  $("network").textContent =
+
+    online
+
+      ? "ONLINE"
+
+      : "OFFLINE";
+
+  $("network").className =
+
+    "network " +
+
+    (online ? "online" : "offline");
+
+  if (!online) {
+
+    apiReady = false;
+
+    invalidatePreview();
+
+    log("NETWORK_OFFLINE");
+
+  }
+
+  updateButtons();
+
+}
+
+window.addEventListener("online", function() {
+
+  updateNetwork();
+
+  log(
+    "NETWORK_ONLINE - Cần kiểm tra lại API."
+  );
+
+});
+
+window.addEventListener("offline", updateNetwork);
+
+/* =====================================================
+   05. QUẢN LÝ GIAO DIỆN
+===================================================== */
 
 function invalidatePreview() {
 
   activePreview = null;
 
   $("confirmed").checked = false;
+
+  $("localVersion").textContent = "--";
+
+  $("serverVersion").textContent = "--";
+
+  $("localNote").textContent = "Chưa kiểm tra.";
+
+  $("serverNote").textContent = "Chưa kiểm tra.";
+
+  show(
+
+    "differences",
+
+    "Cần so sánh lại hai phiên bản."
+
+  );
 
   updateButtons();
 
@@ -411,9 +1083,17 @@ function updateButtons() {
 
     !busy &&
 
+    modulesReady &&
+
+    apiReady &&
+
+    testsPassed &&
+
     activePreview &&
 
-    $("confirmed").checked
+    $("confirmed").checked &&
+
+    navigator.onLine !== false
 
   );
 
@@ -424,17 +1104,32 @@ function updateButtons() {
 }
 
 [
+
   "employee",
+
   "branch",
+
   "date",
+
   "shift",
+
   "department"
+
 ].forEach(id => {
 
-  $(id).addEventListener(
-    "change",
-    invalidatePreview
-  );
+  $(id).addEventListener("change", function() {
+
+    invalidatePreview();
+
+    if (id === "employee" || id === "branch") {
+
+      $("loginResult").textContent =
+
+        "Thông tin đăng nhập đã thay đổi.";
+
+    }
+
+  });
 
 });
 
@@ -444,39 +1139,73 @@ async function run(callback) {
 
   busy = true;
 
-  const buttons =
-    document.querySelectorAll("button");
+  const controls = document.querySelectorAll(
 
-  buttons.forEach(
-    button => button.disabled = true
+    "button, input, select, textarea"
+
   );
 
-  $("result").textContent = "";
+  const previous = Array.from(controls).map(
+
+    control => ({
+
+      control: control,
+
+      disabled: control.disabled
+
+    })
+
+  );
+
+  controls.forEach(control => {
+
+    control.disabled = true;
+
+  });
 
   try {
 
     await callback();
 
-    log("THAO TÁC THÀNH CÔNG");
+    log("THAO TÁC KẾT THÚC");
 
   } catch (error) {
 
     invalidatePreview();
 
-    log(
-      "LỖI: " +
-      (error.code || "") +
-      " " +
-      error.message
-    );
+    log({
+
+      success: false,
+
+      code: error.code || "",
+
+      message: error.message,
+
+      backupId: error.backupId || null,
+
+      resolutionStage:
+
+        error.resolutionStage || null,
+
+      localCommitted:
+
+        typeof error.localCommitted === "boolean"
+
+          ? error.localCommitted
+
+          : null
+
+    });
 
   } finally {
 
     busy = false;
 
-    buttons.forEach(
-      button => button.disabled = false
-    );
+    previous.forEach(item => {
+
+      item.control.disabled = item.disabled;
+
+    });
 
     updateButtons();
 
@@ -484,75 +1213,565 @@ async function run(callback) {
 
 }
 
-async function test() {
+/* =====================================================
+   06. KIỂM TRA MODULE
+===================================================== */
 
-  const result = PGDResolution.selfTest();
+function checkModules() {
 
-  $("score").textContent =
-    result.passed + "/" + result.total;
+  modulesReady = false;
 
-  $("score").className =
-    result.success ? "success" : "error";
+  const checks = [
 
-  result.results.forEach(item => {
+    {
 
-    log(
-      (item.passed ? "ĐẠT - " : "LỖI - ") +
+      name: "PGDDraft",
+
+      passed: Boolean(
+
+        window.PGDDraft &&
+
+        PGDDraft.config.CATALOG_REVISION ===
+
+          PAGE_CONFIG.CATALOG_REVISION
+
+      )
+
+    },
+
+    {
+
+      name: "PGDOutbox",
+
+      passed: Boolean(
+
+        window.PGDOutbox &&
+
+        typeof PGDOutbox.get === "function"
+
+      )
+
+    },
+
+    {
+
+      name: "PGDAPI",
+
+      passed: Boolean(
+
+        window.PGDAPI &&
+
+        PGDAPI.config.VERSION ===
+
+          PAGE_CONFIG.API_VERSION &&
+
+        typeof PGDAPI.conflictHealth ===
+
+          "function"
+
+      )
+
+    },
+
+    {
+
+      name: "PGDSync",
+
+      passed: Boolean(
+
+        window.PGDSync &&
+
+        typeof PGDSync.syncNow === "function" &&
+
+        typeof PGDSync.restore === "function"
+
+      )
+
+    },
+
+    {
+
+      name: "PGDConflict",
+
+      passed: Boolean(
+
+        window.PGDConflict &&
+
+        typeof PGDConflict.compareFields ===
+
+          "function" &&
+
+        typeof PGDConflict.comparePhotos ===
+
+          "function"
+
+      )
+
+    },
+
+    {
+
+      name: "PGDCloudBackup",
+
+      passed: Boolean(
+
+        window.PGDCloudBackup &&
+
+        PGDCloudBackup.config.VERSION ===
+
+          PAGE_CONFIG.CLOUD_VERSION &&
+
+        [
+
+          "withSession",
+
+          "captureInSession",
+
+          "backupInSession",
+
+          "verifyInSession",
+
+          "selfTest"
+
+        ].every(name =>
+
+          typeof PGDCloudBackup[name] ===
+
+            "function"
+
+        )
+
+      )
+
+    },
+
+    {
+
+      name: "PGDResolution",
+
+      passed: Boolean(
+
+        window.PGDResolution &&
+
+        PGDResolution.config.VERSION ===
+
+          PAGE_CONFIG.RESOLUTION_VERSION &&
+
+        [
+
+          "preview",
+
+          "resolveConflict",
+
+          "listBackups",
+
+          "getBackup",
+
+          "selfTest"
+
+        ].every(name =>
+
+          typeof PGDResolution[name] ===
+
+            "function"
+
+        )
+
+      )
+
+    },
+
+    {
+
+      name: "Web Locks",
+
+      passed: Boolean(
+
+        navigator.locks &&
+
+        typeof navigator.locks.request ===
+
+          "function"
+
+      )
+
+    },
+
+    {
+
+      name: "SHA-256",
+
+      passed: Boolean(
+
+        window.crypto &&
+
+        window.crypto.subtle
+
+      )
+
+    },
+
+    {
+
+      name: "IndexedDB",
+
+      passed: Boolean(window.indexedDB)
+
+    }
+
+  ];
+
+  const passed = checks.filter(
+
+    item => item.passed
+
+  ).length;
+
+  modulesReady = passed === checks.length;
+
+  $("moduleStatus").textContent =
+
+    "Module: " +
+
+    passed +
+
+    "/" +
+
+    checks.length +
+
+    (modulesReady ? " PASS" : " FAIL");
+
+  $("moduleStatus").className =
+
+    modulesReady ? "success" : "error";
+
+  log(checks);
+
+  assert(
+
+    modulesReady,
+
+    "Module chưa đầy đủ hoặc sai phiên bản."
+
+  );
+
+  return checks;
+
+}
+
+/* =====================================================
+   07. KIỂM TRA API
+===================================================== */
+
+async function checkAPI() {
+
+  apiReady = false;
+
+  invalidatePreview();
+
+  checkModules();
+
+  assertOnline();
+
+  const health = await PGDAPI.health();
+
+  assert(
+
+    health &&
+
+    health.success === true &&
+
+    health.mode === "TEST" &&
+
+    health.apiEnabled === true &&
+
+    health.catalogRevision === "751" &&
+
+    health.telegramEnabled === false &&
+
+    health.finalizationEnabled === false &&
+
+    health.revenueEnabled === false,
+
+    "API không đáp ứng chế độ kiểm thử."
+
+  );
+
+  const conflictHealth =
+
+    await PGDAPI.conflictHealth();
+
+  assert(
+
+    conflictHealth &&
+
+    conflictHealth.success === true,
+
+    "Conflict API chưa sẵn sàng."
+
+  );
+
+  apiReady = true;
+
+  show("healthResult", {
+
+    success: true,
+
+    mode: health.mode,
+
+    apiVersion: health.apiVersion,
+
+    backendRevision: health.backendRevision,
+
+    catalogRevision: health.catalogRevision,
+
+    conflictHealth: conflictHealth
+
+  });
+
+  log("API_HEALTH_PASSED");
+
+}
+
+/* =====================================================
+   08. KIỂM THỬ TỰ ĐỘNG
+===================================================== */
+
+async function runTests() {
+
+  testsPassed = false;
+
+  invalidatePreview();
+
+  checkModules();
+
+  const cloud =
+
+    await PGDCloudBackup.selfTest();
+
+  const resolution =
+
+    await PGDResolution.selfTest();
+
+  const cloudPassed =
+
+    cloud.success === true &&
+
+    cloud.passed === PAGE_CONFIG.CLOUD_TESTS &&
+
+    cloud.total === PAGE_CONFIG.CLOUD_TESTS;
+
+  const resolutionPassed =
+
+    resolution.success === true &&
+
+    resolution.passed ===
+
+      PAGE_CONFIG.RESOLUTION_TESTS &&
+
+    resolution.total ===
+
+      PAGE_CONFIG.RESOLUTION_TESTS;
+
+  setScore(
+
+    "cloudScore",
+
+    cloud.passed,
+
+    cloud.total,
+
+    cloudPassed
+
+  );
+
+  setScore(
+
+    "resolutionScore",
+
+    resolution.passed,
+
+    resolution.total,
+
+    resolutionPassed
+
+  );
+
+  testsPassed =
+
+    cloudPassed && resolutionPassed;
+
+  setScore(
+
+    "totalScore",
+
+    cloud.passed + resolution.passed,
+
+    cloud.total + resolution.total,
+
+    testsPassed
+
+  );
+
+  const lines = [];
+
+  lines.push("=== CLOUD BACKUP ===");
+
+  cloud.results.forEach(item => {
+
+    lines.push(
+
+      (item.passed ? "PASS - " : "FAIL - ") +
+
       item.name +
-      (item.message
-        ? ": " + item.message
-        : "")
+
+      (item.error ? ": " + item.error : "")
+
     );
 
   });
 
-  log(
-    result.success
-      ? "RESOLUTION_TEST_PASSED"
-      : "RESOLUTION_TEST_FAILED"
+  lines.push("");
+
+  lines.push("=== CONFLICT RESOLUTION ===");
+
+  resolution.results.forEach(item => {
+
+    lines.push(
+
+      (item.passed ? "PASS - " : "FAIL - ") +
+
+      item.name +
+
+      (item.message ? ": " + item.message : "")
+
+    );
+
+  });
+
+  show("testResult", lines.join("\n"));
+
+  assert(
+
+    testsPassed,
+
+    "Chưa đạt đủ 86/86 bài kiểm thử."
+
   );
 
+  log("ALL_86_TESTS_PASSED");
+
 }
+
+/* =====================================================
+   09. ĐĂNG NHẬP
+===================================================== */
 
 async function login() {
 
   invalidatePreview();
 
+  checkModules();
+
+  assertOnline();
+
   const ctx = context();
 
-  const result = await PGDAPI.login(
+  try {
 
-    ctx.employee,
+    await PGDAPI.login(
 
-    ctx.branch,
+      ctx.employee,
 
-    $("pin").value
+      ctx.branch,
 
-  );
+      $("pin").value
 
-  $("pin").value = "";
+    );
 
-  log(result);
+  } finally {
+
+    $("pin").value = "";
+
+  }
+
+  assertLogin(ctx);
+
+  const profile = PGDAPI.getProfile();
+
+  /*
+   * Không hiển thị token hoặc PIN.
+   */
+
+  show("loginResult", {
+
+    success: true,
+
+    code: profile.code,
+
+    name: profile.name || "",
+
+    role: profile.role || "",
+
+    branch: profile.branch
+
+  });
+
+  log("LOGIN_SUCCESS");
 
 }
+
+async function logout() {
+
+  invalidatePreview();
+
+  await PGDAPI.logout();
+
+  show("loginResult", "Đã đăng xuất.");
+
+  log("LOGOUT_SUCCESS");
+
+}
+
+/* =====================================================
+   10. BẢN NHÁP
+===================================================== */
 
 async function restore() {
 
   invalidatePreview();
 
-  const result = await PGDSync.restore(
-    context()
-  );
+  const ctx = context();
 
-  log({
+  assertLogin(ctx);
+
+  const result = await PGDSync.restore(ctx);
+
+  show("draftResult", {
 
     source: result.source,
 
     version: result.record
+
       ? result.record.serverVersion
-      : 0
+
+      : 0,
+
+    dirty: result.record
+
+      ? result.record.dirty
+
+      : null,
+
+    generalNote: result.record
+
+      ? result.record.data.generalNote
+
+      : ""
 
   });
+
+  log("RESTORE_FINISHED");
 
 }
 
@@ -560,15 +1779,39 @@ async function saveLocal() {
 
   invalidatePreview();
 
+  const ctx = context();
+
+  assertLogin(ctx);
+
   await PGDDraft.saveFieldsLocal(
 
-    context(),
+    ctx,
 
     {
+
       generalNote: $("note").value
+
     }
 
   );
+
+  const local =
+
+    await PGDDraft.restoreLocal(ctx);
+
+  show("draftResult", {
+
+    success: true,
+
+    serverVersion: local.serverVersion,
+
+    localRevision: local.localRevision,
+
+    dirty: local.dirty,
+
+    generalNote: local.data.generalNote
+
+  });
 
   log("LOCAL_NOTE_SAVED");
 
@@ -578,217 +1821,907 @@ async function sync() {
 
   invalidatePreview();
 
-  const result = await PGDSync.syncNow(
-    context()
-  );
+  const ctx = context();
 
-  log(result);
+  assertLogin(ctx);
 
-}
-
-async function preview() {
-
-  invalidatePreview();
-
-  const result = await PGDResolution.preview(
-    context()
-  );
-
-  activePreview = result;
-
-  $("localVersion").textContent =
-    result.localVersion;
-
-  $("serverVersion").textContent =
-    result.serverVersion;
-
-  $("localNote").textContent =
-    result.localNote;
-
-  $("serverNote").textContent =
-    result.serverNote;
-
-  $("differences").textContent =
-    JSON.stringify(
-      {
-        fields: result.fieldDifferences,
-        photos: result.photoDifferences
-      },
-      null,
-      2
-    );
-
-  log(result);
-
-}
-
-async function resolve(choice) {
-
-  if (!activePreview) {
-
-    throw new Error(
-      "Cần so sánh trước khi xử lý."
-    );
-
-  }
-
-  if (!$("confirmed").checked) {
-
-    throw new Error(
-      "Cần xác nhận lựa chọn."
-    );
-
-  }
-
-  const message =
-    choice === "KEEP_LOCAL"
-      ? "Sao lưu cả hai bản và giữ bản thiết bị?"
-      : "Sao lưu cả hai bản và giữ bản máy chủ?";
-
-  if (!window.confirm(message)) {
-
-    log("ĐÃ HỦY THAO TÁC");
-
-    return;
-
-  }
+  assertOnline();
 
   const result =
-    await PGDResolution.resolveConflict(
 
-      context(),
+    await PGDSync.syncNow(ctx);
 
-      activePreview.previewId,
+  show("draftResult", result);
 
-      choice,
-
-      true
-
-    );
-
-  $("backupId").value = result.backupId;
-
-  invalidatePreview();
-
-  log(result);
-
-  log(
-    await PGDSync.inspectConflict(
-      context()
-    )
-  );
-
-}
-
-async function listBackups() {
-
-  const result =
-    await PGDResolution.listBackups(
-      context()
-    );
+  log("SYNC_RESULT");
 
   log(result);
 
 }
 
-function showPhotos(title, photos) {
+async function inspect() {
 
-  const heading =
-    document.createElement("h3");
+  const ctx = context();
 
-  heading.textContent = title;
+  assertLogin(ctx);
 
-  $("backupPhotos").appendChild(heading);
+  const local =
 
-  for (const id of Object.keys(photos || {})) {
+    await PGDDraft.restoreLocal(ctx);
 
-    const label =
-      document.createElement("p");
+  const pending =
 
-    label.textContent = id;
+    await PGDOutbox.get(ctx);
 
-    $("backupPhotos").appendChild(label);
+  let server = null;
 
-    const data = photos[id].data;
+  let serverError = null;
 
-    if (
-      typeof data === "string" &&
-      data.startsWith(
-        "data:image/jpeg;base64,"
-      )
-    ) {
+  if (navigator.onLine !== false) {
 
-      const image =
-        document.createElement("img");
+    try {
 
-      image.src = data;
+      server =
 
-      image.alt = id;
+        await PGDAPI.restoreDraft(ctx);
 
-      $("backupPhotos").appendChild(image);
+    } catch (error) {
+
+      serverError = error.message;
 
     }
 
   }
 
+  const result = {
+
+    context: ctx,
+
+    local: local
+
+      ? {
+
+          serverVersion: local.serverVersion,
+
+          localRevision: local.localRevision,
+
+          status: local.status,
+
+          dirty: local.dirty,
+
+          data: local.data,
+
+          photoIds: Object.keys(
+
+            local.photos || {}
+
+          ),
+
+          removedPhotos:
+
+            local.removedPhotos || []
+
+        }
+
+      : null,
+
+    server: server,
+
+    serverError: serverError,
+
+    pendingRequest: pending
+
+      ? {
+
+          requestId: pending.requestId,
+
+          action: pending.action,
+
+          status: pending.status
+
+        }
+
+      : null
+
+  };
+
+  show("draftResult", result);
+
+  log("INSPECTION_FINISHED");
+
 }
 
-async function readBackup() {
+/* =====================================================
+   11. SO SÁNH XUNG ĐỘT
+===================================================== */
 
-  const backup =
-    await PGDResolution.getBackup(
+async function preview() {
 
-      context(),
+  invalidatePreview();
 
-      $("backupId").value.trim()
+  assert(modulesReady, "Module chưa sẵn sàng.");
+
+  assert(apiReady, "Cần kiểm tra API.");
+
+  assert(testsPassed, "Cần đạt 86/86.");
+
+  assertOnline();
+
+  const ctx = context();
+
+  assertLogin(ctx);
+
+  const result =
+
+    await PGDResolution.preview(ctx);
+
+  assert(
+
+    result &&
+
+    result.success === true &&
+
+    result.previewId &&
+
+    result.cloudBackupRequired === true &&
+
+    result.localBackupRequired === true,
+
+    "Preview không đáp ứng yêu cầu sao lưu."
+
+  );
+
+  activePreview = {
+
+    previewId: result.previewId,
+
+    context: JSON.stringify(ctx),
+
+    localVersion: result.localVersion,
+
+    localRevision: result.localRevision,
+
+    serverVersion: result.serverVersion
+
+  };
+
+  show("localVersion", String(
+
+    result.localVersion
+
+  ));
+
+  show("serverVersion", String(
+
+    result.serverVersion
+
+  ));
+
+  show("localNote", result.localNote || "");
+
+  show("serverNote", result.serverNote || "");
+
+  show("differences", {
+
+    fields: result.fieldDifferences,
+
+    photos: result.photoDifferences,
+
+    localBackupRequired: true,
+
+    cloudBackupRequired: true
+
+  });
+
+  log("CONFLICT_PREVIEW_READY");
+
+}
+
+/* =====================================================
+   12. TIẾN ĐỘ
+===================================================== */
+
+function resetProgress() {
+
+  currentStage = null;
+
+  $("stageList").textContent = "";
+
+  STAGES.forEach((stage, index) => {
+
+    const div = document.createElement("div");
+
+    div.id = "stage_" + stage.id;
+
+    div.className = "stage";
+
+    div.textContent =
+
+      (index + 1) + ". " + stage.label;
+
+    $("stageList").appendChild(div);
+
+  });
+
+  $("progressBar").style.width = "0%";
+
+  $("progressLabel").textContent =
+
+    "Chưa thực hiện.";
+
+}
+
+function updateProgress(event) {
+
+  if (!event || !event.stage) return;
+
+  const stage = event.stage;
+
+  if (stage === "CLOUD_PROGRESS") {
+
+    const detail = event.details || {};
+
+    const completed = Number(
+
+      detail.completed || 0
 
     );
 
+    const total = Number(
+
+      detail.total || 0
+
+    );
+
+    $("progressLabel").textContent =
+
+      "Google Drive: " +
+
+      completed +
+
+      "/" +
+
+      total +
+
+      " - " +
+
+      (detail.stage || "");
+
+    return;
+
+  }
+
+  const index = STAGES.findIndex(
+
+    item => item.id === stage
+
+  );
+
+  if (index < 0) return;
+
+  currentStage = stage;
+
+  STAGES.forEach((item, i) => {
+
+    const node = $("stage_" + item.id);
+
+    node.className = "stage";
+
+    if (i < index || stage === "COMPLETED") {
+
+      node.classList.add("done");
+
+    } else if (i === index) {
+
+      node.classList.add("active");
+
+    }
+
+  });
+
+  const percent =
+
+    stage === "COMPLETED"
+
+      ? 100
+
+      : Math.round(
+
+          index / (STAGES.length - 1) * 100
+
+        );
+
+  $("progressBar").style.width =
+
+    percent + "%";
+
+  $("progressLabel").textContent =
+
+    STAGES[index].label;
+
+}
+
+function markProgressFailed(error) {
+
+  if (currentStage) {
+
+    const node = $("stage_" + currentStage);
+
+    if (node) {
+
+      node.className = "stage failed";
+
+    }
+
+  }
+
+  $("progressLabel").textContent =
+
+    "Dừng: " + error.message;
+
+}
+
+/* =====================================================
+   13. KIỂM TRA KẾT QUẢ XỬ LÝ
+===================================================== */
+
+function assertResolutionResult(result, choice) {
+
+  assert(
+
+    result &&
+
+    result.success === true &&
+
+    result.choice === choice &&
+
+    result.localBackupVerified === true &&
+
+    result.cloudBackupVerified === true &&
+
+    result.contentVerified === true &&
+
+    result.finalVerificationPassed === true &&
+
+    result.localCommitted === true &&
+
+    result.serverWritten === false &&
+
+    result.backupId &&
+
+    result.backupId === result.cloudBackupId,
+
+    "Kết quả xử lý cần được kiểm tra lại."
+
+  );
+
+  if (choice === "KEEP_LOCAL") {
+
+    assert(
+
+      result.dirty === true &&
+
+      result.nextAction === "SYNC_REQUIRED",
+
+      "KEEP_LOCAL không đúng trạng thái."
+
+    );
+
+  }
+
+  if (choice === "KEEP_SERVER") {
+
+    assert(
+
+      result.dirty === false &&
+
+      result.nextAction === "SERVER_RESTORED",
+
+      "KEEP_SERVER không đúng trạng thái."
+
+    );
+
+  }
+
+}
+
+/* =====================================================
+   14. XỬ LÝ XUNG ĐỘT THỰC TẾ
+===================================================== */
+
+async function resolveConflict(choice) {
+
+  assert(modulesReady, "Module chưa sẵn sàng.");
+
+  assert(apiReady, "Cần kiểm tra lại API.");
+
+  assert(testsPassed, "Chưa đạt 86/86.");
+
+  assertOnline();
+
+  assert(activePreview, "Cần so sánh trước.");
+
+  assert(
+
+    $("confirmed").checked,
+
+    "Cần xác nhận lựa chọn."
+
+  );
+
+  const ctx = context();
+
+  assertLogin(ctx);
+
+  assert(
+
+    activePreview.context === JSON.stringify(ctx),
+
+    "Phiên làm việc đã thay đổi."
+
+  );
+
+  assert(
+
+    !(await PGDOutbox.get(ctx)),
+
+    "Còn yêu cầu Outbox chưa xử lý."
+
+  );
+
+  const message =
+
+    choice === "KEEP_LOCAL"
+
+      ? "Sao lưu cả hai bản và giữ bản thiết bị?"
+
+      : "Sao lưu cả hai bản và giữ bản máy chủ?";
+
+  if (!window.confirm(message)) {
+
+    log("USER_CANCELLED");
+
+    return;
+
+  }
+
+  const previewId = activePreview.previewId;
+
+  resetProgress();
+
+  show(
+
+    "resolutionResult",
+
+    "Đang xử lý. Không đóng trang."
+
+  );
+
+  show("receiptResult", "Đang xác minh.");
+
   $("backupPhotos").textContent = "";
 
-  log({
+  let result = null;
+
+  try {
+
+    result = await PGDResolution.resolveConflict(
+
+      ctx,
+
+      previewId,
+
+      choice,
+
+      true,
+
+      {
+
+        onProgress: updateProgress
+
+      }
+
+    );
+
+  } catch (error) {
+
+    markProgressFailed(error);
+
+    if (error.backupId) {
+
+      $("backupId").value = error.backupId;
+
+    }
+
+    show("resolutionResult", {
+
+      success: false,
+
+      message: error.message,
+
+      code: error.code || "",
+
+      backupId: error.backupId || null,
+
+      stage: error.resolutionStage || null,
+
+      localCommitted:
+
+        typeof error.localCommitted === "boolean"
+
+          ? error.localCommitted
+
+          : null,
+
+      nextAction:
+
+        "Kiểm tra lại dữ liệu trước khi thử lại."
+
+    });
+
+    invalidatePreview();
+
+    throw error;
+
+  }
+
+  /*
+   * Module đã trả kết quả.
+   * Không gọi lại resolveConflict nếu việc
+   * hiển thị hoặc kiểm tra sau xử lý bị lỗi.
+   */
+
+  if (result && result.backupId) {
+
+    $("backupId").value = result.backupId;
+
+  }
+
+  show("resolutionResult", result);
+
+  invalidatePreview();
+
+  try {
+
+    assertResolutionResult(result, choice);
+
+    updateProgress({
+
+      stage: "COMPLETED"
+
+    });
+
+    const backup =
+
+      await PGDResolution.getBackup(
+
+        ctx,
+
+        result.backupId
+
+      );
+
+    displayBackup(backup);
+
+    log({
+
+      event: "RESOLUTION_COMPLETED",
+
+      choice: choice,
+
+      backupId: result.backupId,
+
+      localCommitted: true,
+
+      cloudBackupVerified: true,
+
+      serverWritten: false,
+
+      metadataUpdated:
+
+        result.backupMetadataUpdated === true,
+
+      warning: result.warning || null
+
+    });
+
+  } catch (error) {
+
+    log({
+
+      event: "POST_RESOLUTION_CHECK_WARNING",
+
+      message: error.message,
+
+      localCommitted:
+
+        result &&
+
+        result.localCommitted === true,
+
+      backupId:
+
+        result && result.backupId,
+
+      nextAction:
+
+        "Không xử lý lại. Kiểm tra bản nháp và bản sao."
+
+    });
+
+  }
+
+  try {
+
+    await inspect();
+
+  } catch (error) {
+
+    log(
+
+      "Không đọc được trạng thái sau xử lý: " +
+
+      error.message
+
+    );
+
+  }
+
+}
+
+/* =====================================================
+   15. DANH SÁCH BẢN SAO LƯU
+===================================================== */
+
+async function listBackups() {
+
+  const ctx = context();
+
+  assertLogin(ctx);
+
+  const result =
+
+    await PGDResolution.listBackups(ctx);
+
+  show("backupResult", result);
+
+  log("BACKUP_LIST_READ");
+
+}
+
+/* =====================================================
+   16. HIỂN THỊ ẢNH
+===================================================== */
+
+function showPhotos(title, photos) {
+
+  const container = $("backupPhotos");
+
+  const heading = document.createElement("h3");
+
+  heading.textContent = title;
+
+  heading.style.gridColumn = "1 / -1";
+
+  container.appendChild(heading);
+
+  const ids = Object.keys(photos || {});
+
+  if (ids.length === 0) {
+
+    const empty = document.createElement("p");
+
+    empty.textContent = "Không có ảnh.";
+
+    container.appendChild(empty);
+
+    return;
+
+  }
+
+  for (const id of ids) {
+
+    const card = document.createElement("div");
+
+    card.className = "photo-card";
+
+    const label = document.createElement("p");
+
+    label.textContent = id;
+
+    card.appendChild(label);
+
+    const photo = photos[id];
+
+    const data = photo && photo.data;
+
+    if (
+
+      typeof data === "string" &&
+
+      data.startsWith("data:image/jpeg;base64,")
+
+    ) {
+
+      const image = document.createElement("img");
+
+      image.src = data;
+
+      image.alt = id;
+
+      card.appendChild(image);
+
+    } else {
+
+      const invalid = document.createElement("p");
+
+      invalid.textContent =
+
+        "Không có nội dung ảnh JPEG.";
+
+      card.appendChild(invalid);
+
+    }
+
+    container.appendChild(card);
+
+  }
+
+}
+
+/* =====================================================
+   17. HIỂN THỊ BẢN SAO LƯU
+===================================================== */
+
+function displayBackup(backup) {
+
+  assert(
+
+    backup && backup.local && backup.server,
+
+    "Bản sao lưu không hợp lệ."
+
+  );
+
+  show("backupResult", {
 
     backupId: backup.backupId,
+
+    cloudBackupId: backup.cloudBackupId || null,
 
     createdAt: backup.createdAt,
 
     choice: backup.choice,
 
-    localVersion:
-      backup.local.serverVersion,
+    backupStatus:
 
-    serverVersion:
-      backup.server.version,
+      backup.backupStatus || "LEGACY_LOCAL_ONLY",
+
+    cloudVerified: backup.cloudVerified === true,
+
+    localVersion: backup.local.serverVersion,
+
+    localRevision: backup.local.localRevision,
+
+    serverVersion: backup.server.version,
 
     localData: backup.local.data,
 
     serverData: backup.server.data,
 
-    localPhotoCount:
-      Object.keys(
-        backup.local.photos || {}
-      ).length,
+    localPhotoCount: Object.keys(
 
-    serverPhotoCount:
-      Object.keys(
-        backup.serverPhotos || {}
-      ).length
+      backup.local.photos || {}
+
+    ).length,
+
+    serverPhotoCount: Object.keys(
+
+      backup.serverPhotos || {}
+
+    ).length
 
   });
 
+  show("receiptResult", {
+
+    cloudReceipt: backup.cloudReceipt || null,
+
+    finalReceipt: backup.finalReceipt || null,
+
+    note:
+
+      "Đây là biên nhận đã lưu trong IndexedDB. " +
+
+      "Không phải lần xác minh trực tiếp Google Drive mới."
+
+  });
+
+  $("backupPhotos").textContent = "";
+
   showPhotos(
+
     "Ảnh sao lưu thiết bị",
+
     backup.local.photos
+
   );
 
   showPhotos(
+
     "Ảnh sao lưu máy chủ",
+
     backup.serverPhotos
+
   );
+
+}
+
+async function readBackup() {
+
+  const ctx = context();
+
+  assertLogin(ctx);
+
+  const backupId = $("backupId").value.trim();
+
+  assert(
+
+    backupId.length > 0,
+
+    "Cần nhập mã bản sao lưu."
+
+  );
+
+  const backup =
+
+    await PGDResolution.getBackup(
+
+      ctx,
+
+      backupId
+
+    );
+
+  displayBackup(backup);
 
   log("BACKUP_READ_SUCCESS");
 
 }
+
+/* =====================================================
+   18. KHỞI TẠO
+===================================================== */
+
+resetProgress();
+
+updateNetwork();
+
+try {
+
+  checkModules();
+
+} catch (error) {
+
+  log(error.message);
+
+}
+
+updateButtons();
+
+log({
+
+  pageVersion: PAGE_CONFIG.VERSION,
+
+  cloudVersion: PAGE_CONFIG.CLOUD_VERSION,
+
+  resolutionVersion:
+
+    PAGE_CONFIG.RESOLUTION_VERSION,
+
+  expectedTests: PAGE_CONFIG.TOTAL_TESTS
+
+});
 
 </script>
 
