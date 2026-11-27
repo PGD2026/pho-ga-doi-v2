@@ -1,1 +1,576 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>PGD - Cloud Backup Test</title>
+
+  <style>
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      background: #f3f5f7;
+      font-family: Arial, sans-serif;
+      color: #17212b;
+    }
+
+    main {
+      max-width: 800px;
+      margin: auto;
+    }
+
+    section {
+      background: white;
+      padding: 20px;
+      margin-bottom: 16px;
+      border-radius: 12px;
+    }
+
+    h1 { font-size: 24px; }
+
+    h2 { font-size: 19px; }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 13px;
+      font-size: 16px;
+      border-radius: 8px;
+    }
+
+    input, select {
+      border: 1px solid #ccd3d8;
+    }
+
+    button {
+      border: 0;
+      background: #176b45;
+      color: white;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+
+    button:disabled {
+      opacity: .5;
+    }
+
+    .pass { color: #16803c; }
+    .fail { color: #c62828; }
+
+    .item {
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: #f5f6f7;
+      padding: 14px;
+      border-radius: 8px;
+    }
+
+    progress {
+      width: 100%;
+      height: 18px;
+      margin-top: 14px;
+    }
+
+    .warning {
+      background: #fff5df;
+      padding: 14px;
+      border-radius: 8px;
+      line-height: 1.6;
+    }
+
+    #summary {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<main>
+
+  <section>
+
+    <h1>PHỞ GÀ ĐỒI - SYSTEM V2.0</h1>
+
+    <p>Cloud Backup Test - C2.3-B</p>
+
+    <div class="warning">
+
+      Chỉ sử dụng tài khoản TEST.
+
+      Trang này sao lưu dữ liệu nhưng không
+      xử lý xung đột, không ghi đè bản nháp
+      và không gửi Telegram.
+
+    </div>
+
+  </section>
+
+  <section>
+
+    <h2>1. Kiểm thử tự động</h2>
+
+    <button id="autoTest">
+      CHẠY KIỂM THỬ 30 YÊU CẦU
+    </button>
+
+    <div id="summary">0/30</div>
+
+    <div id="results"></div>
+
+  </section>
+
+  <section>
+
+    <h2>2. Đăng nhập</h2>
+
+    <label>Mã nhân viên</label>
+
+    <input id="employee"
+           value="TEST_API01">
+
+    <label>Cơ sở</label>
+
+    <select id="branch">
+
+      <option value="CS1">
+        CS1 - 28 Võ Chí Công
+      </option>
+
+      <option value="CS2">
+        CS2 - An Khánh
+      </option>
+
+    </select>
+
+    <label>PIN (nếu có)</label>
+
+    <input id="pin"
+           type="password"
+           autocomplete="off">
+
+    <button id="login">
+      ĐĂNG NHẬP
+    </button>
+
+    <pre id="loginResult">Chưa đăng nhập</pre>
+
+  </section>
+
+  <section>
+
+    <h2>3. Chọn bản nháp xung đột</h2>
+
+    <label>Ngày làm việc</label>
+
+    <input id="date" type="date">
+
+    <label>Ca làm việc</label>
+
+    <select id="shift">
+
+      <option value="SANG">Ca sáng</option>
+
+      <option value="TOI">Ca tối</option>
+
+      <option value="DEM">Ca đêm</option>
+
+    </select>
+
+    <label>Bộ phận</label>
+
+    <select id="department">
+
+      <option value="BEP_PHO">Bếp phở</option>
+
+      <option value="BEP_VAT_TU">
+        Bếp vật tư
+      </option>
+
+      <option value="CHAY_BAN">
+        Chạy bàn
+      </option>
+
+      <option value="VE_SINH">
+        Vệ sinh
+      </option>
+
+    </select>
+
+    <label>Phương án dự kiến</label>
+
+    <select id="choice">
+
+      <option value="KEEP_LOCAL">
+        Giữ dữ liệu thiết bị
+      </option>
+
+      <option value="KEEP_SERVER">
+        Giữ dữ liệu máy chủ
+      </option>
+
+    </select>
+
+    <button id="inspect">
+      KIỂM TRA XUNG ĐỘT
+    </button>
+
+    <pre id="inspection">Chưa kiểm tra</pre>
+
+  </section>
+
+  <section>
+
+    <h2>4. Sao lưu Google Drive</h2>
+
+    <p>
+      Thao tác này không thực hiện lựa chọn
+      giữ thiết bị hoặc giữ máy chủ.
+      Chỉ tạo bản sao lưu cho lựa chọn dự kiến.
+    </p>
+
+    <label>Mã sao lưu để thử lại (nếu có)</label>
+
+    <input id="backupId"
+           placeholder="Để trống khi sao lưu mới">
+
+    <button id="backup">
+      SAO LƯU CẢ HAI PHIÊN BẢN
+    </button>
+
+    <progress id="progress"
+              value="0"
+              max="1"></progress>
+
+    <pre id="progressText">Chưa sao lưu</pre>
+
+    <pre id="backupResult">Chưa có kết quả</pre>
+
+  </section>
+
+</main>
+
+<script src="draft.js?v=78423b"></script>
+
+<script src="api.js?v=78423b"></script>
+
+<script src="outbox.js?v=78423b"></script>
+
+<script src="conflict-backup.js?v=78423b"></script>
+
+<script>
+
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+function show(id, value) {
+
+  $(id).textContent =
+    typeof value === "string"
+      ? value
+      : JSON.stringify(value, null, 2);
+
+}
+
+function context() {
+
+  return {
+
+    date: $("date").value,
+
+    branch: $("branch").value,
+
+    shift: $("shift").value,
+
+    department: $("department").value,
+
+    employee: $("employee")
+      .value.trim().toUpperCase()
+
+  };
+
+}
+
+let busy = false;
+
+async function runTask(callback) {
+
+  if (busy) return;
+
+  busy = true;
+
+  const controls = document.querySelectorAll(
+    "button, input, select"
+  );
+
+  controls.forEach(
+    item => item.disabled = true
+  );
+
+  try {
+
+    await callback();
+
+  } finally {
+
+    busy = false;
+
+    controls.forEach(
+      item => item.disabled = false
+    );
+
+  }
+
+}
+
+$("autoTest").addEventListener(
+  "click",
+  () => runTask(async function() {
+
+    $("results").textContent = "";
+
+    try {
+
+      const result = await PGDCloudBackup.selfTest();
+
+      $("summary").textContent =
+        result.passed + "/" + result.total;
+
+      $("summary").className =
+        result.success ? "pass" : "fail";
+
+      for (const item of result.results) {
+
+        const row = document.createElement("div");
+
+        row.className =
+          "item " +
+          (item.passed ? "pass" : "fail");
+
+        row.textContent =
+          (item.passed ? "PASS - " : "FAIL - ") +
+          item.name +
+          (item.error ? ": " + item.error : "");
+
+        $("results").appendChild(row);
+
+      }
+
+    } catch (error) {
+
+      show("results", error.message);
+
+    }
+
+  })
+);
+
+$("login").addEventListener(
+  "click",
+  () => runTask(async function() {
+
+    try {
+
+      await PGDAPI.conflictHealth();
+
+      const profile = await PGDAPI.login(
+        $("employee").value.trim().toUpperCase(),
+        $("branch").value,
+        $("pin").value
+      );
+
+      $("pin").value = "";
+
+      show("loginResult", {
+        success: true,
+        code: profile.code,
+        branch: profile.branch
+      });
+
+    } catch (error) {
+
+      $("pin").value = "";
+
+      show("loginResult", {
+        success: false,
+        code: error.code || "ERROR",
+        message: error.message
+      });
+
+    }
+
+  })
+);
+
+$("inspect").addEventListener(
+  "click",
+  () => runTask(async function() {
+
+    try {
+
+      const ctx = context();
+
+      const local =
+        await PGDDraft.restoreLocal(ctx);
+
+      const server =
+        await PGDAPI.restoreDraft(ctx);
+
+      const pending =
+        await PGDOutbox.get(ctx);
+
+      show("inspection", {
+
+        localExists: Boolean(local),
+
+        localDirty:
+          local ? local.dirty : null,
+
+        localVersion:
+          local ? local.serverVersion : null,
+
+        localRevision:
+          local ? local.localRevision : null,
+
+        localStatus:
+          local ? local.status : null,
+
+        localPhotoCount:
+          local
+            ? Object.keys(local.photos || {}).length
+            : 0,
+
+        serverExists:
+          server.exists,
+
+        serverVersion:
+          server.version,
+
+        serverStatus:
+          server.status,
+
+        serverPhotoCount:
+          Object.keys(server.photos || {}).length,
+
+        pendingRequest:
+          Boolean(pending),
+
+        conflictDetected:
+          Boolean(
+            local &&
+            local.dirty === true &&
+            server.exists === true &&
+            server.version > local.serverVersion
+          )
+
+      });
+
+    } catch (error) {
+
+      show("inspection", {
+        success: false,
+        code: error.code || "ERROR",
+        message: error.message
+      });
+
+    }
+
+  })
+);
+
+$("backup").addEventListener(
+  "click",
+  () => runTask(async function() {
+
+    const ctx = context();
+
+    const choice = $("choice").value;
+
+    let backupId = $("backupId").value.trim();
+
+    $("progress").value = 0;
+
+    show("backupResult", "Đang sao lưu...");
+
+    try {
+
+      if (!backupId) {
+
+        backupId = PGDDraft.createId();
+
+      }
+
+      $("backupId").value = backupId;
+
+      const result = await PGDCloudBackup.backup(
+        ctx,
+        choice,
+        {
+
+          backupId: backupId,
+
+          onProgress: function(progress) {
+
+            $("progress").max =
+              progress.total;
+
+            $("progress").value =
+              progress.completed;
+
+            show("progressText", progress);
+
+          }
+
+        }
+      );
+
+      show("backupResult", result);
+
+    } catch (error) {
+
+      show("backupResult", {
+
+        success: false,
+
+        code: error.code || "ERROR",
+
+        message: error.message,
+
+        backupId: error.backupId || backupId,
+
+        resolutionAuthorized: false
+
+      });
+
+    }
+
+  })
+);
+
+</script>
+
+</body>
+</html>
