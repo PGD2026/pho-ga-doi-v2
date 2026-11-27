@@ -2,11 +2,13 @@
 /************************************************************
  * PHỞ GÀ ĐỒI - SYSTEM V2.0
  * FILE: conflict-backup.js
- * VERSION: 7.8.4.3-C2.3-B
+ * VERSION: 7.8.4.3-C2.3-C1
  *
- * Sao lưu xung đột lên Google Drive.
- * Không ghi đè dữ liệu nghiệp vụ.
- * Không tự xử lý xung đột.
+ * - Sao lưu xung đột Google Drive.
+ * - Xác minh SHA-256.
+ * - Phiên Web Lock dùng chung.
+ * - Không tự ghi đè bản nháp.
+ * - Không tự xử lý xung đột.
  ************************************************************/
 
 (function(global) {
@@ -14,26 +16,45 @@
   "use strict";
 
   const CONFIG = Object.freeze({
-    VERSION: "7.8.4.3-C2.3-B",
-    CATALOG_REVISION: "751",
+
+    VERSION: "7.8.4.3-C2.3-C1",
+
     API_REVISION: "7.8.4.3-C2.3-A",
+
+    CATALOG_REVISION: "751",
+
     VERIFY_VERSION: "7.8.4.3-C2.1",
+
     MAX_PHOTOS: 10,
+
     MAX_PHOTO_LENGTH: 750000,
+
+    LOCK_PREFIX: "PGD_SYNC_",
+
     CHOICES: Object.freeze([
       "KEEP_LOCAL",
       "KEEP_SERVER"
     ]),
+
     EDITABLE: Object.freeze([
       "DRAFT",
       "REJECTED"
     ])
+
   });
+
+  const sessions = new WeakMap();
+
+  /* =====================================================
+     01. TIỆN ÍCH
+  ===================================================== */
 
   function fail(code, message) {
 
     const error = new Error(message || code);
+
     error.code = code;
+
     return error;
 
   }
@@ -41,7 +62,9 @@
   function assert(condition, code, message) {
 
     if (!condition) {
+
       throw fail(code, message);
+
     }
 
   }
@@ -59,10 +82,6 @@
       !Array.isArray(value);
 
   }
-
-  /* =====================================================
-     01. CHUẨN HÓA JSON
-  ===================================================== */
 
   function canonical(value) {
 
@@ -83,13 +102,11 @@
         return "{" +
           Object.keys(item)
             .sort()
-            .map(function(key) {
-
-              return JSON.stringify(key) +
-                ":" +
-                serialize(item[key]);
-
-            })
+            .map(key =>
+              JSON.stringify(key) +
+              ":" +
+              serialize(item[key])
+            )
             .join(",") +
           "}";
 
@@ -116,6 +133,22 @@
 
   }
 
+  function validBackupId(id) {
+
+    return typeof id === "string" &&
+      /^[A-Za-z0-9_-]{16,80}$/.test(id);
+
+  }
+
+  function validateChoice(choice) {
+
+    assert(
+      CONFIG.CHOICES.includes(choice),
+      "INVALID_CHOICE"
+    );
+
+  }
+
   /* =====================================================
      02. SHA-256
   ===================================================== */
@@ -125,8 +158,7 @@
     assert(
       global.crypto &&
       global.crypto.subtle,
-      "CRYPTO_UNAVAILABLE",
-      "Trình duyệt không hỗ trợ SHA-256."
+      "CRYPTO_UNAVAILABLE"
     );
 
     const digest = await global.crypto.subtle.digest(
@@ -136,11 +168,9 @@
 
     return Array.from(
       new Uint8Array(digest)
-    ).map(function(byte) {
-
-      return byte.toString(16).padStart(2, "0");
-
-    }).join("");
+    ).map(
+      byte => byte.toString(16).padStart(2, "0")
+    ).join("");
 
   }
 
@@ -164,7 +194,7 @@
   }
 
   /* =====================================================
-     03. KIỂM TRA HÌNH ẢNH
+     03. HÌNH ẢNH
   ===================================================== */
 
   function photoBytes(data) {
@@ -274,7 +304,7 @@
   }
 
   /* =====================================================
-     04. KIỂM TRA MODULE VÀ PHIÊN ĐĂNG NHẬP
+     04. KIỂM TRA MODULE
   ===================================================== */
 
   function requireModules() {
@@ -344,31 +374,147 @@
 
   }
 
-  function validateChoice(choice) {
+  /* =====================================================
+     05. PHIÊN KHÓA CHUNG
+  ===================================================== */
+
+  function createSession(context, key) {
+
+    const token = Object.freeze({});
+
+    sessions.set(token, {
+
+      context: clone(context),
+
+      key: key,
+
+      active: true,
+
+      busy: false,
+
+      verified: null
+
+    });
+
+    return token;
+
+  }
+
+  function getSession(token) {
+
+    const state = sessions.get(token);
 
     assert(
-      CONFIG.CHOICES.includes(choice),
-      "INVALID_CHOICE"
+      state && state.active === true,
+      "LOCK_SESSION_INVALID"
+    );
+
+    return state;
+
+  }
+
+  function closeSession(token) {
+
+    const state = sessions.get(token);
+
+    if (state) {
+
+      state.active = false;
+
+      state.verified = null;
+
+      sessions.delete(token);
+
+    }
+
+  }
+
+  function assertSessionContext(state, context) {
+
+    assert(
+      equal(state.context, context),
+      "LOCK_CONTEXT_MISMATCH"
     );
 
   }
 
-  function withLock(context, callback) {
+  function enterSession(state) {
+
+    assert(
+      state.active === true,
+      "LOCK_SESSION_INVALID"
+    );
+
+    assert(
+      state.busy === false,
+      "LOCK_SESSION_BUSY"
+    );
+
+    state.busy = true;
+
+  }
+
+  function leaveSession(state) {
+
+    state.busy = false;
+
+  }
+
+  async function withSession(context, callback) {
 
     requireModules();
 
-    const key = PGDDraft.makeKey(context);
+    assert(
+      typeof callback === "function",
+      "INVALID_SESSION_CALLBACK"
+    );
+
+    const safeContext = clone(context);
+
+    assertSession(safeContext);
+
+    const key = PGDDraft.makeKey(safeContext);
 
     return navigator.locks.request(
-      "PGD_SYNC_" + key,
+
+      CONFIG.LOCK_PREFIX + key,
+
       {mode: "exclusive"},
-      callback
+
+      async function(lock) {
+
+        assert(
+          lock &&
+          lock.mode === "exclusive" &&
+          lock.name === CONFIG.LOCK_PREFIX + key,
+          "LOCK_NOT_ACQUIRED"
+        );
+
+        assertSession(safeContext);
+
+        const token = createSession(
+          safeContext,
+          key
+        );
+
+        try {
+
+          return await callback(token);
+
+        } finally {
+
+          closeSession(token);
+
+        }
+
+      }
+
     );
 
   }
 
   /* =====================================================
-     05. KIỂM TRA ĐIỀU KIỆN XUNG ĐỘT
+     06. ĐIỀU KIỆN XUNG ĐỘT
   ===================================================== */
 
   function canBackup(local, server, pending) {
@@ -412,7 +558,7 @@
   }
 
   /* =====================================================
-     06. ĐỌC DỮ LIỆU MÁY CHỦ
+     07. ĐỌC MÁY CHỦ
   ===================================================== */
 
   async function readServer(context) {
@@ -451,7 +597,9 @@
       photoBytes(result.data);
 
       photos[id] = {
+
         data: result.data
+
       };
 
     }
@@ -466,23 +614,24 @@
     );
 
     return {
+
       server: clone(server),
+
       serverPhotos: photos
+
     };
 
   }
 
   /* =====================================================
-     07. CHỤP SNAPSHOT HAI PHIÊN BẢN
+     08. SNAPSHOT
   ===================================================== */
 
   async function capture(context) {
 
     assertSession(context);
 
-    const pending = await PGDOutbox.get(
-      context
-    );
+    const pending = await PGDOutbox.get(context);
 
     assert(
       !pending,
@@ -502,11 +651,7 @@
     const remote = await readServer(context);
 
     assert(
-      canBackup(
-        local,
-        remote.server,
-        pending
-      ),
+      canBackup(local, remote.server, pending),
       "BACKUP_NOT_ALLOWED"
     );
 
@@ -517,6 +662,7 @@
       await PGDOutbox.get(context);
 
     assert(
+      latestLocal &&
       equal(local, latestLocal) &&
       !latestPending,
       "LOCAL_CHANGED"
@@ -540,10 +686,6 @@
 
   }
 
-  /* =====================================================
-     08. KIỂM TRA SNAPSHOT CHƯA THAY ĐỔI
-  ===================================================== */
-
   async function assertUnchanged(snapshot) {
 
     const context = snapshot.context;
@@ -554,9 +696,7 @@
       context
     );
 
-    const pending = await PGDOutbox.get(
-      context
-    );
+    const pending = await PGDOutbox.get(context);
 
     assert(
       local &&
@@ -592,8 +732,32 @@
 
   }
 
+  async function captureInSession(token) {
+
+    const state = getSession(token);
+
+    enterSession(state);
+
+    try {
+
+      const snapshot = await capture(
+        state.context
+      );
+
+      getSession(token);
+
+      return snapshot;
+
+    } finally {
+
+      leaveSession(state);
+
+    }
+
+  }
+
   /* =====================================================
-     09. TẠO MANIFEST SAO LƯU
+     09. MANIFEST
   ===================================================== */
 
   async function buildManifest(
@@ -605,17 +769,12 @@
     validateChoice(choice);
 
     assert(
-      canBackup(
-        snapshot.local,
-        snapshot.server,
-        null
-      ),
+      canBackup(snapshot.local, snapshot.server, null),
       "INVALID_SNAPSHOT"
     );
 
     assert(
-      typeof backupId === "string" &&
-      /^[A-Za-z0-9_-]{16,80}$/.test(backupId),
+      validBackupId(backupId),
       "INVALID_BACKUP_ID"
     );
 
@@ -641,23 +800,17 @@
 
       choice: choice,
 
-      localVersion:
-        snapshot.local.serverVersion,
+      localVersion: snapshot.local.serverVersion,
 
-      localRevision:
-        snapshot.local.localRevision,
+      localRevision: snapshot.local.localRevision,
 
-      serverVersion:
-        snapshot.server.version,
+      serverVersion: snapshot.server.version,
 
-      localData:
-        clone(snapshot.local.data),
+      localData: clone(snapshot.local.data),
 
-      localHash:
-        await hashJson(snapshot.local.data),
+      localHash: await hashJson(snapshot.local.data),
 
-      serverHash:
-        await hashJson(snapshot.server),
+      serverHash: await hashJson(snapshot.server),
 
       localPhotoIds:
         Object.keys(localPhotoHashes).sort(),
@@ -690,6 +843,8 @@
       receipt.serverVersion === manifest.serverVersion &&
       receipt.localHash === manifest.localHash &&
       receipt.serverHash === manifest.serverHash &&
+      isObject(receipt.localPhotoHashes) &&
+      isObject(receipt.serverPhotoHashes) &&
       equal(
         receipt.localPhotoHashes,
         manifest.localPhotoHashes
@@ -709,17 +864,50 @@
 
   }
 
+  function verifyConfirmation(
+    confirmation,
+    manifest,
+    draftKey
+  ) {
+
+    verifyReceipt(confirmation, manifest);
+
+    assert(
+      confirmation.contentVerified === true &&
+      confirmation.verificationVersion ===
+        CONFIG.VERIFY_VERSION &&
+      confirmation.catalogRevision ===
+        CONFIG.CATALOG_REVISION &&
+      confirmation.draftId === draftKey &&
+      confirmation.serverWritten === false &&
+      confirmation.businessDataWritten === false &&
+      confirmation.resolutionAuthorized === false &&
+      confirmation.resolutionIntegrated === false,
+      "CONFIRMATION_FAILED"
+    );
+
+    return true;
+
+  }
+
   /* =====================================================
-     11. KIỂM TRA TRẠNG THÁI SAO LƯU
+     11. KIỂM TRA TRẠNG THÁI
   ===================================================== */
 
   function verifyStatus(status, manifest) {
 
     assert(
+      status &&
       status.success === true &&
       status.backupId === manifest.backupId &&
       status.localHash === manifest.localHash &&
       status.serverHash === manifest.serverHash &&
+      Array.isArray(status.localRequired) &&
+      Array.isArray(status.serverRequired) &&
+      Array.isArray(status.localUploaded) &&
+      Array.isArray(status.serverUploaded) &&
+      isObject(status.localPhotoHashes) &&
+      isObject(status.serverPhotoHashes) &&
       equal(
         status.localRequired.slice().sort(),
         manifest.localPhotoIds
@@ -794,36 +982,86 @@
   }
 
   /* =====================================================
-     12. THÔNG BÁO TIẾN ĐỘ
+     12. TIẾN ĐỘ
   ===================================================== */
 
   function notify(callback, stage, completed, total) {
 
-    if (typeof callback !== "function") {
-      return;
-    }
+    if (typeof callback !== "function") return;
 
     try {
 
       callback({
+
         stage: stage,
+
         completed: completed,
+
         total: total
+
       });
 
     } catch (_) {
 
-      // Lỗi hiển thị không thay đổi kết quả sao lưu.
+      // Lỗi giao diện không thay đổi dữ liệu sao lưu.
 
     }
 
   }
 
   /* =====================================================
-     13. THỰC HIỆN SAO LƯU
+     13. XÁC MINH ĐỘC LẬP
+  ===================================================== */
 
-     Hàm nội bộ chạy khi đã giữ Web Lock.
-     Không tự ghi hoặc thay thế bản nháp.
+  async function confirmBackup(
+    context,
+    manifest,
+    draftKey
+  ) {
+
+    const confirmation =
+      await PGDAPI.conflictBackupConfirm(
+
+        context,
+
+        {
+
+          backupId: manifest.backupId,
+
+          choice: manifest.choice,
+
+          localVersion: manifest.localVersion,
+
+          localRevision: manifest.localRevision,
+
+          serverVersion: manifest.serverVersion,
+
+          localHash: manifest.localHash,
+
+          serverHash: manifest.serverHash,
+
+          localPhotoHashes:
+            manifest.localPhotoHashes,
+
+          serverPhotoHashes:
+            manifest.serverPhotoHashes
+
+        }
+
+      );
+
+    verifyConfirmation(
+      confirmation,
+      manifest,
+      draftKey
+    );
+
+    return confirmation;
+
+  }
+
+  /* =====================================================
+     14. THỰC HIỆN SAO LƯU
   ===================================================== */
 
   async function executeBackup(
@@ -836,6 +1074,7 @@
     const context = snapshot.context;
 
     assertSession(context);
+
     validateChoice(choice);
 
     await PGDAPI.conflictHealth();
@@ -854,31 +1093,44 @@
 
     let completed = 0;
 
-    notify(
-      onProgress,
-      "BEGIN",
-      completed,
-      total
-    );
+    notify(onProgress, "BEGIN", completed, total);
 
     const begin = await PGDAPI.conflictBackupBegin(
+
       context,
+
       {
+
         backupId: manifest.backupId,
+
         choice: manifest.choice,
+
         localVersion: manifest.localVersion,
+
         localRevision: manifest.localRevision,
+
         serverVersion: manifest.serverVersion,
+
         localData: manifest.localData,
+
         localHash: manifest.localHash,
+
         localPhotoIds: manifest.localPhotoIds,
+
         localPhotoHashes: manifest.localPhotoHashes
+
       }
+
     );
 
     assert(
+      begin &&
+      begin.success === true &&
+      begin.backupId === backupId &&
       begin.localHash === manifest.localHash &&
       begin.serverHash === manifest.serverHash &&
+      Array.isArray(begin.localPhotoIds) &&
+      Array.isArray(begin.serverPhotoIds) &&
       equal(
         begin.localPhotoIds.slice().sort(),
         manifest.localPhotoIds
@@ -909,15 +1161,21 @@
 
         const result =
           await PGDAPI.conflictBackupLocalPhoto(
+
             context,
+
             backupId,
+
             id,
+
             snapshot.local.photos[id].data
+
           );
 
         assert(
-          result.hash ===
-            manifest.localPhotoHashes[id],
+          result &&
+          result.success === true &&
+          result.hash === manifest.localPhotoHashes[id],
           "LOCAL_PHOTO_HASH_MISMATCH"
         );
 
@@ -950,8 +1208,9 @@
           );
 
         assert(
-          result.hash ===
-            manifest.serverPhotoHashes[id],
+          result &&
+          result.success === true &&
+          result.hash === manifest.serverPhotoHashes[id],
           "SERVER_PHOTO_HASH_MISMATCH"
         );
 
@@ -967,8 +1226,6 @@
       );
 
     }
-
-    /* Kiểm tra toàn bộ dữ liệu */
 
     status = await PGDAPI.conflictBackupStatus(
       context,
@@ -993,8 +1250,6 @@
 
     await assertUnchanged(snapshot);
 
-    /* Tạo biên nhận */
-
     const receipt = await PGDAPI.conflictBackupVerify(
       context,
       backupId
@@ -1011,38 +1266,10 @@
       total
     );
 
-    /* Xác minh độc lập */
-
-    const confirmation =
-      await PGDAPI.conflictBackupConfirm(
-        context,
-        {
-          backupId: manifest.backupId,
-          choice: manifest.choice,
-          localVersion: manifest.localVersion,
-          localRevision: manifest.localRevision,
-          serverVersion: manifest.serverVersion,
-          localHash: manifest.localHash,
-          serverHash: manifest.serverHash,
-          localPhotoHashes: manifest.localPhotoHashes,
-          serverPhotoHashes: manifest.serverPhotoHashes
-        }
-      );
-
-    verifyReceipt(confirmation, manifest);
-
-    assert(
-      confirmation.contentVerified === true &&
-      confirmation.verificationVersion ===
-        CONFIG.VERIFY_VERSION &&
-      confirmation.catalogRevision ===
-        CONFIG.CATALOG_REVISION &&
-      confirmation.draftId === snapshot.draftKey &&
-      confirmation.serverWritten === false &&
-      confirmation.businessDataWritten === false &&
-      confirmation.resolutionAuthorized === false &&
-      confirmation.resolutionIntegrated === false,
-      "CONFIRMATION_FAILED"
+    const confirmation = await confirmBackup(
+      context,
+      manifest,
+      snapshot.draftKey
     );
 
     await assertUnchanged(snapshot);
@@ -1103,10 +1330,300 @@
   }
 
   /* =====================================================
-     14. PUBLIC BACKUP
+     15. SAO LƯU TRONG PHIÊN KHÓA CHUNG
 
-     Tự giữ Web Lock.
-     Chưa tích hợp với conflict-resolution.js.
+     Không yêu cầu Web Lock lần thứ hai.
+  ===================================================== */
+
+  async function backupInSession(
+    token,
+    snapshot,
+    choice,
+    options
+  ) {
+
+    const state = getSession(token);
+
+    validateChoice(choice);
+
+    options = options || {};
+
+    const backupId =
+      options.backupId || PGDDraft.createId();
+
+    assert(
+      validBackupId(backupId),
+      "INVALID_BACKUP_ID"
+    );
+
+    const safeSnapshot = clone(snapshot);
+
+    assertSessionContext(
+      state,
+      safeSnapshot.context
+    );
+
+    assert(
+      safeSnapshot.draftKey === state.key,
+      "DRAFT_KEY_MISMATCH"
+    );
+
+    enterSession(state);
+
+    state.verified = null;
+
+    try {
+
+      assertSession(state.context);
+
+      /*
+       * Đọc lại toàn bộ dữ liệu thực tế.
+       * Không tin snapshot truyền vào nếu đã thay đổi.
+       */
+
+      const current = await capture(
+        state.context
+      );
+
+      assert(
+        equal(current, safeSnapshot),
+        "SNAPSHOT_CHANGED"
+      );
+
+      const result = await executeBackup(
+
+        current,
+
+        choice,
+
+        backupId,
+
+        options.onProgress
+
+      );
+
+      getSession(token);
+
+      assert(
+        result.success === true &&
+        result.contentVerified === true,
+        "CLOUD_BACKUP_NOT_VERIFIED"
+      );
+
+      state.verified = {
+
+        snapshot: clone(current),
+
+        choice: choice,
+
+        backupId: backupId,
+
+        result: clone(result),
+
+        consumed: false
+
+      };
+
+      return clone(result);
+
+    } catch (error) {
+
+      state.verified = null;
+
+      error.backupId = backupId;
+
+      throw error;
+
+    } finally {
+
+      leaveSession(state);
+
+    }
+
+  }
+
+  /* =====================================================
+     16. KIỂM TRA RÀNG BUỘC BIÊN NHẬN
+  ===================================================== */
+
+  function assertBinding(
+    verified,
+    snapshot,
+    choice,
+    backupId
+  ) {
+
+    assert(
+      verified &&
+      verified.consumed === false &&
+      verified.result &&
+      verified.result.success === true &&
+      verified.result.contentVerified === true,
+      "VERIFIED_BACKUP_REQUIRED"
+    );
+
+    assert(
+      verified.choice === choice,
+      "BACKUP_CHOICE_MISMATCH"
+    );
+
+    assert(
+      verified.backupId === backupId,
+      "BACKUP_ID_MISMATCH"
+    );
+
+    assert(
+      equal(
+        verified.snapshot,
+        snapshot
+      ),
+      "BACKUP_SNAPSHOT_MISMATCH"
+    );
+
+    return true;
+
+  }
+
+  /* =====================================================
+     17. XÁC MINH LẦN CUỐI TRONG PHIÊN KHÓA
+
+     Dùng trước khi module xử lý xung đột
+     thực hiện giao dịch IndexedDB.
+  ===================================================== */
+
+  async function verifyInSession(
+    token,
+    snapshot,
+    choice,
+    backupId
+  ) {
+
+    const state = getSession(token);
+
+    const safeSnapshot = clone(snapshot);
+
+    assertSessionContext(
+      state,
+      safeSnapshot.context
+    );
+
+    assert(
+      safeSnapshot.draftKey === state.key,
+      "DRAFT_KEY_MISMATCH"
+    );
+
+    validateChoice(choice);
+
+    enterSession(state);
+
+    try {
+
+      assertBinding(
+        state.verified,
+        safeSnapshot,
+        choice,
+        backupId
+      );
+
+      await PGDAPI.conflictHealth();
+
+      const current = await capture(
+        state.context
+      );
+
+      assert(
+        equal(current, safeSnapshot),
+        "SNAPSHOT_CHANGED"
+      );
+
+      const manifest = await buildManifest(
+        current,
+        choice,
+        backupId
+      );
+
+      const confirmation = await confirmBackup(
+        state.context,
+        manifest,
+        state.key
+      );
+
+      await assertUnchanged(current);
+
+      getSession(token);
+
+      assertBinding(
+        state.verified,
+        safeSnapshot,
+        choice,
+        backupId
+      );
+
+      /*
+       * Biên nhận trong bộ nhớ chỉ dùng một lần.
+       * Không tái sử dụng cho thao tác khác.
+       */
+
+      state.verified.consumed = true;
+
+      return {
+
+        success: true,
+
+        status: "VERIFIED",
+
+        backupId: backupId,
+
+        draftKey: state.key,
+
+        choice: choice,
+
+        localVersion: manifest.localVersion,
+
+        localRevision: manifest.localRevision,
+
+        serverVersion: manifest.serverVersion,
+
+        localHash: manifest.localHash,
+
+        serverHash: manifest.serverHash,
+
+        localPhotoHashes:
+          clone(manifest.localPhotoHashes),
+
+        serverPhotoHashes:
+          clone(manifest.serverPhotoHashes),
+
+        contentVerified: true,
+
+        resolutionAuthorized: false,
+
+        businessDataWritten: false,
+
+        confirmation: clone(confirmation)
+
+      };
+
+    } catch (error) {
+
+      state.verified = null;
+
+      error.backupId = backupId;
+
+      throw error;
+
+    } finally {
+
+      leaveSession(state);
+
+    }
+
+  }
+
+  /* =====================================================
+     18. SAO LƯU ĐỘC LẬP
+
+     Tương thích cloud-backup-test.html cũ.
   ===================================================== */
 
   function backup(context, choice, options) {
@@ -1120,38 +1637,53 @@
     const backupId =
       options.backupId || PGDDraft.createId();
 
-    const onProgress = options.onProgress;
+    return withSession(
 
-    return withLock(safeContext, async function() {
+      safeContext,
 
-      try {
+      async function(token) {
 
-        const snapshot = await capture(
-          safeContext
-        );
+        try {
 
-        return await executeBackup(
-          snapshot,
-          choice,
-          backupId,
-          onProgress
-        );
+          const snapshot =
+            await captureInSession(token);
 
-      } catch (error) {
+          return await backupInSession(
 
-        error.backupId = backupId;
+            token,
 
-        throw error;
+            snapshot,
+
+            choice,
+
+            {
+
+              backupId: backupId,
+
+              onProgress: options.onProgress
+
+            }
+
+          );
+
+        } catch (error) {
+
+          error.backupId = backupId;
+
+          throw error;
+
+        }
 
       }
 
-    });
+    );
 
   }
 
   /* =====================================================
-     15. KIỂM THỬ NỘI BỘ
+     19. KIỂM THỬ NỘI BỘ
 
+     30 bài cũ + 12 bài mới.
      Không ghi Google Drive.
      Không sửa bản nháp.
   ===================================================== */
@@ -1167,23 +1699,30 @@
         const passed = await callback();
 
         results.push({
+
           name: name,
+
           passed: passed === true
+
         });
 
       } catch (error) {
 
         results.push({
+
           name: name,
+
           passed: false,
+
           error: error.message
+
         });
 
       }
 
     }
 
-    async function rejects(callback) {
+    async function rejects(callback, expectedCode) {
 
       try {
 
@@ -1191,36 +1730,55 @@
 
         return false;
 
-      } catch (_) {
+      } catch (error) {
 
-        return true;
+        return !expectedCode ||
+          error.code === expectedCode;
 
       }
 
     }
 
     const local = {
+
       dirty: true,
+
       status: "DRAFT",
+
       catalogRevision: "751",
+
       serverVersion: 1,
+
       localRevision: 2,
+
       data: {},
+
       photos: {}
+
     };
 
     const server = {
+
       success: true,
+
       exists: true,
+
       status: "DRAFT",
+
       catalogRevision: "751",
+
       version: 2,
+
       data: {},
+
       photos: {}
+
     };
 
+    /* 30 bài kiểm thử cũ */
+
     await test("01. Module version", () =>
-      CONFIG.VERSION === "7.8.4.3-C2.3-B"
+      CONFIG.VERSION === "7.8.4.3-C2.3-C1"
     );
 
     await test("02. Catalog revision", () =>
@@ -1363,57 +1921,405 @@
       rejects(() => validateChoice("UNKNOWN"))
     );
 
-    await test("30. Manifest preserves raw data",
+    await test(
+      "30. Manifest preserves raw data",
       async () => {
 
         const snapshot = {
+
           local: {
+
             ...local,
+
             data: {
+
               inventory: {},
+
               generalNote: "Kiểm thử tiếng Việt"
+
             }
+
           },
+
           server: server,
+
           serverPhotos: {}
+
         };
 
         const before = canonical(snapshot);
 
         const manifest = await buildManifest(
+
           snapshot,
+
           "KEEP_LOCAL",
+
           "TEST_BACKUP_123456789"
+
         );
 
         return (
+
           equal(
             manifest.localData,
             snapshot.local.data
           ) &&
+
           manifest.localHash ===
             await hashJson(snapshot.local.data) &&
+
           canonical(snapshot) === before
+
         );
 
       }
     );
+
+    /* 12 bài kiểm thử bổ sung */
+
+    const testContext = {
+
+      date: "2026-12-16",
+
+      branch: "CS1",
+
+      shift: "SANG",
+
+      department: "BEP_PHO",
+
+      employee: "TEST_API01"
+
+    };
+
+    const testKey =
+      "20261216-CS1-SANG-BEP_PHO-TEST_API01";
+
+    const testSnapshot = {
+
+      context: clone(testContext),
+
+      draftKey: testKey,
+
+      local: clone(local),
+
+      server: clone(server),
+
+      serverPhotos: {}
+
+    };
+
+    const testBackupId =
+      "TEST_BACKUP_123456789";
+
+    function testVerified() {
+
+      return {
+
+        snapshot: clone(testSnapshot),
+
+        choice: "KEEP_LOCAL",
+
+        backupId: testBackupId,
+
+        consumed: false,
+
+        result: {
+
+          success: true,
+
+          contentVerified: true
+
+        }
+
+      };
+
+    }
+
+    await test("31. Reject forged session", () =>
+      rejects(
+        () => getSession({}),
+        "LOCK_SESSION_INVALID"
+      )
+    );
+
+    await test("32. Valid session lifecycle", () => {
+
+      const token = createSession(
+        testContext,
+        testKey
+      );
+
+      try {
+
+        return getSession(token).key === testKey;
+
+      } finally {
+
+        closeSession(token);
+
+      }
+
+    });
+
+    await test("33. Reject closed session", async () => {
+
+      const token = createSession(
+        testContext,
+        testKey
+      );
+
+      closeSession(token);
+
+      return rejects(
+        () => getSession(token),
+        "LOCK_SESSION_INVALID"
+      );
+
+    });
+
+    await test("34. Reject wrong context", async () => {
+
+      const token = createSession(
+        testContext,
+        testKey
+      );
+
+      try {
+
+        return await rejects(
+
+          () => assertSessionContext(
+
+            getSession(token),
+
+            {...testContext, branch: "CS2"}
+
+          ),
+
+          "LOCK_CONTEXT_MISMATCH"
+
+        );
+
+      } finally {
+
+        closeSession(token);
+
+      }
+
+    });
+
+    await test(
+      "35. Reject parallel session operation",
+      async () => {
+
+        const token = createSession(
+          testContext,
+          testKey
+        );
+
+        try {
+
+          const state = getSession(token);
+
+          enterSession(state);
+
+          return await rejects(
+
+            () => enterSession(state),
+
+            "LOCK_SESSION_BUSY"
+
+          );
+
+        } finally {
+
+          closeSession(token);
+
+        }
+
+      }
+    );
+
+    await test(
+      "36. Accept correct backup binding",
+      () => assertBinding(
+
+        testVerified(),
+
+        testSnapshot,
+
+        "KEEP_LOCAL",
+
+        testBackupId
+
+      )
+    );
+
+    await test("37. Reject wrong choice", () =>
+      rejects(
+
+        () => assertBinding(
+
+          testVerified(),
+
+          testSnapshot,
+
+          "KEEP_SERVER",
+
+          testBackupId
+
+        ),
+
+        "BACKUP_CHOICE_MISMATCH"
+
+      )
+    );
+
+    await test("38. Reject wrong backup ID", () =>
+      rejects(
+
+        () => assertBinding(
+
+          testVerified(),
+
+          testSnapshot,
+
+          "KEEP_LOCAL",
+
+          "TEST_BACKUP_DIFFERENT"
+
+        ),
+
+        "BACKUP_ID_MISMATCH"
+
+      )
+    );
+
+    await test("39. Reject changed local revision", () => {
+
+      const changed = clone(testSnapshot);
+
+      changed.local.localRevision++;
+
+      return rejects(
+
+        () => assertBinding(
+
+          testVerified(),
+
+          changed,
+
+          "KEEP_LOCAL",
+
+          testBackupId
+
+        ),
+
+        "BACKUP_SNAPSHOT_MISMATCH"
+
+      );
+
+    });
+
+    await test("40. Reject changed server version", () => {
+
+      const changed = clone(testSnapshot);
+
+      changed.server.version++;
+
+      return rejects(
+
+        () => assertBinding(
+
+          testVerified(),
+
+          changed,
+
+          "KEEP_LOCAL",
+
+          testBackupId
+
+        ),
+
+        "BACKUP_SNAPSHOT_MISMATCH"
+
+      );
+
+    });
+
+    await test("41. Reject consumed receipt", () => {
+
+      const verified = testVerified();
+
+      verified.consumed = true;
+
+      return rejects(
+
+        () => assertBinding(
+
+          verified,
+
+          testSnapshot,
+
+          "KEEP_LOCAL",
+
+          testBackupId
+
+        ),
+
+        "VERIFIED_BACKUP_REQUIRED"
+
+      );
+
+    });
+
+    await test("42. Reject unverified backup", () => {
+
+      const verified = testVerified();
+
+      verified.result.contentVerified = false;
+
+      return rejects(
+
+        () => assertBinding(
+
+          verified,
+
+          testSnapshot,
+
+          "KEEP_LOCAL",
+
+          testBackupId
+
+        ),
+
+        "VERIFIED_BACKUP_REQUIRED"
+
+      );
+
+    });
 
     const passed = results.filter(
       item => item.passed
     ).length;
 
     return {
+
       success: passed === results.length,
+
       passed: passed,
+
       total: results.length,
+
       results: results
+
     };
 
   }
 
   /* =====================================================
-     16. PUBLIC MODULE
+     20. PUBLIC MODULE
   ===================================================== */
 
   global.PGDCloudBackup = Object.freeze({
@@ -1432,6 +2338,14 @@
 
     backup: backup,
 
+    withSession: withSession,
+
+    captureInSession: captureInSession,
+
+    backupInSession: backupInSession,
+
+    verifyInSession: verifyInSession,
+
     selfTest: selfTest
 
   });
@@ -1439,5 +2353,6 @@
 })(window);
 
 /************************************************************
- * KẾT THÚC CONFLICT-BACKUP.JS
+ * END OF CONFLICT-BACKUP.JS
+ * VERSION: 7.8.4.3-C2.3-C1
  ************************************************************/
