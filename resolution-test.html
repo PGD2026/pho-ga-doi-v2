@@ -4,1682 +4,1903 @@
 
 <head>
 
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
 
-<title>PGD V2 - Conflict Resolution C2.3-C3</title>
+  <title>PHỞ GÀ ĐỒI - Resolution Test C3.3</title>
 
-<style>
+  <style>
 
-* {
-  box-sizing: border-box;
-}
+    * {
+      box-sizing: border-box;
+    }
 
-body {
-  margin: 0;
-  padding: 16px;
-  background: #f1f5f9;
-  color: #172033;
-  font-family: Arial, sans-serif;
-}
+    body {
+      margin: 0;
+      background: #f1f5f9;
+      color: #172033;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+    }
 
-main {
-  max-width: 960px;
-  margin: auto;
-}
+    header {
+      background: #172033;
+      color: white;
+      padding: 24px;
+    }
 
-header {
-  background: #172033;
-  color: white;
-  padding: 24px;
-  border-radius: 14px;
-  margin-bottom: 16px;
-}
+    header h1 {
+      font-size: 24px;
+      margin: 0 0 10px;
+    }
 
-h1 {
-  font-size: 24px;
-  margin: 0 0 10px;
-}
+    header p {
+      margin: 6px 0;
+      color: #cbd5e1;
+    }
 
-h2 {
-  font-size: 19px;
-  margin: 0 0 16px;
-}
+    main {
+      max-width: 1200px;
+      margin: auto;
+      padding: 16px;
+    }
 
-h3 {
-  font-size: 16px;
-}
+    section {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      padding: 20px;
+    }
 
-section {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 16px;
-  border: 1px solid #e2e8f0;
-}
+    h2 {
+      font-size: 18px;
+      margin: 0 0 16px;
+    }
 
-label {
-  display: block;
-  margin-top: 12px;
-  font-size: 14px;
-  font-weight: bold;
-}
+    h3 {
+      font-size: 15px;
+    }
 
-input, select, textarea {
-  width: 100%;
-  padding: 12px;
-  margin-top: 6px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 15px;
-  background: white;
-}
+    .grid {
+      display: grid;
+      grid-template-columns:
+        repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
 
-textarea {
-  min-height: 85px;
-  resize: vertical;
-}
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
 
-button {
-  width: 100%;
-  padding: 13px;
-  margin-top: 10px;
-  background: #172033;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-}
+    label {
+      font-weight: 600;
+    }
 
-button:disabled {
-  opacity: .4;
-  cursor: not-allowed;
-}
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      background: white;
+      font: inherit;
+    }
 
-.primary {
-  background: #166534;
-}
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
 
-.warning-button {
-  background: #9a3412;
-}
+    button {
+      background: #2563eb;
+      color: white;
+      border: 0;
+      border-radius: 7px;
+      padding: 11px 15px;
+      cursor: pointer;
+      font-weight: 600;
+      margin: 4px 2px;
+    }
 
-.secondary {
-  background: #475569;
-}
+    button:hover {
+      opacity: 0.88;
+    }
 
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
 
-.panel {
-  border: 1px solid #cbd5e1;
-  padding: 15px;
-  border-radius: 9px;
-  overflow-wrap: anywhere;
-}
+    button.green {
+      background: #15803d;
+    }
 
-.score {
-  font-size: 30px;
-  font-weight: bold;
-  margin: 10px 0;
-}
+    button.orange {
+      background: #b45309;
+    }
 
-.warning {
-  padding: 14px;
-  border-radius: 8px;
-  background: #fff7ed;
-  color: #9a3412;
-  line-height: 1.6;
-  margin-bottom: 12px;
-}
+    button.red {
+      background: #b91c1c;
+    }
 
-.info {
-  padding: 14px;
-  background: #eff6ff;
-  color: #1e40af;
-  border-radius: 8px;
-  line-height: 1.6;
-}
+    button.gray {
+      background: #475569;
+    }
 
-pre {
-  padding: 15px;
-  background: #f8fafc;
-  border-radius: 8px;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  line-height: 1.6;
-  font-size: 13px;
-}
+    .warning {
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 15px;
+      line-height: 1.6;
+    }
 
-.confirm {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  line-height: 1.5;
-  font-weight: normal;
-}
+    .metric {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 16px;
+      border-radius: 8px;
+    }
 
-.confirm input {
-  width: auto;
-}
+    .metric small {
+      display: block;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
 
-.success {
-  color: #15803d;
-}
+    .metric strong {
+      font-size: 22px;
+      overflow-wrap: anywhere;
+    }
 
-.error {
-  color: #dc2626;
-}
+    .pass {
+      color: #15803d;
+      font-weight: bold;
+    }
 
-.muted {
-  color: #64748b;
-}
+    .fail {
+      color: #b91c1c;
+      font-weight: bold;
+    }
 
-.small {
-  font-size: 13px;
-}
+    .pending {
+      color: #b45309;
+      font-weight: bold;
+    }
 
-img {
-  width: 100%;
-  max-width: 320px;
-  border-radius: 8px;
-}
+    .muted {
+      color: #64748b;
+    }
 
-.progress-track {
-  height: 12px;
-  background: #e2e8f0;
-  border-radius: 20px;
-  overflow: hidden;
-  margin: 12px 0;
-}
+    pre {
+      background: #0f172a;
+      color: #dbeafe;
+      border-radius: 8px;
+      padding: 14px;
+      overflow: auto;
+      max-height: 440px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 12px;
+      line-height: 1.6;
+    }
 
-.progress-bar {
-  height: 100%;
-  width: 0;
-  background: #15803d;
-  transition: width .2s;
-}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
 
-.stage {
-  padding: 10px 0;
-  border-bottom: 1px solid #e2e8f0;
-  color: #64748b;
-  font-size: 14px;
-}
+    td, th {
+      padding: 11px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+      vertical-align: top;
+    }
 
-.stage.active {
-  color: #1d4ed8;
-  font-weight: bold;
-}
+    .table-wrap {
+      overflow-x: auto;
+    }
 
-.stage.done {
-  color: #15803d;
-}
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin: 10px 0;
+    }
 
-.stage.failed {
-  color: #dc2626;
-  font-weight: bold;
-}
+    .check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 11px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
 
-.network {
-  padding: 8px 12px;
-  border-radius: 6px;
-  display: inline-block;
-  font-size: 13px;
-  font-weight: bold;
-}
+    .check-row input {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
 
-.network.online {
-  background: #dcfce7;
-  color: #166534;
-}
+    .check-row label {
+      font-weight: normal;
+      line-height: 1.5;
+    }
 
-.network.offline {
-  background: #fee2e2;
-  color: #991b1b;
-}
+    #photoPreview {
+      display: none;
+      max-width: 280px;
+      max-height: 200px;
+      border-radius: 8px;
+      margin: 12px 0;
+    }
 
-#backupPhotos {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
+    #busyStatus {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #1e40af;
+      color: white;
+      padding: 12px;
+      text-align: center;
+      display: none;
+    }
 
-.photo-card {
-  border: 1px solid #e2e8f0;
-  padding: 10px;
-  border-radius: 8px;
-}
+    @media (max-width: 600px) {
 
-@media (max-width: 600px) {
+      main {
+        padding: 10px;
+      }
 
-  body {
-    padding: 8px;
-  }
+      section {
+        padding: 14px;
+      }
 
-  section {
-    padding: 15px;
-  }
+      header {
+        padding: 18px;
+      }
 
-  .grid {
-    grid-template-columns: 1fr;
-  }
+      button {
+        flex-grow: 1;
+      }
 
-  #backupPhotos {
-    grid-template-columns: 1fr;
-  }
+    }
 
-}
-
-</style>
+  </style>
 
 </head>
 
 <body>
 
-<main>
-
 <header>
 
-  <h1>PHỞ GÀ ĐỒI V2.0</h1>
+  <h1>PHỞ GÀ ĐỒI - SYSTEM V2.0</h1>
 
-  <div>7.8.4.3-C2.3-C3</div>
+  <p>Resolution Test 7.8.4.3-C3.3</p>
 
-  <p>Kiểm thử sao lưu và xử lý xung đột</p>
+  <p>Đa tab - Cloud Backup - Conditional Release</p>
 
-  <span id="network" class="network">
-    Đang kiểm tra mạng
-  </span>
+  <p>TEST MODE ONLY</p>
 
 </header>
 
-<section>
+<div id="busyStatus">
+  Đang thực hiện yêu cầu...
+</div>
 
-  <div class="warning">
+<main>
 
-    <strong>CHẾ ĐỘ KIỂM THỬ</strong>
+  <section>
 
-    <p>
-      Chỉ sử dụng tài khoản TEST_.
-      Không sử dụng dữ liệu vận hành thực tế.
-    </p>
+    <div class="warning">
 
-    <p>
-      KEEP_LOCAL và KEEP_SERVER chỉ được thực hiện
-      thông qua module Resolution có tích hợp
-      sao lưu IndexedDB và Google Drive.
-    </p>
+      <strong>CẢNH BÁO KIỂM THỬ</strong>
 
-    Không tự động đồng bộ lên máy chủ sau khi xử lý.
+      <p>
+        Chỉ sử dụng tài khoản TEST_ và ngày kiểm thử
+        chưa có dữ liệu vận hành thực tế.
+      </p>
 
-  </div>
+      Không xóa IndexedDB, LocalStorage, Outbox
+      hoặc bản sao lưu Google Drive trong quá trình
+      kiểm thử.
 
-</section>
+    </div>
 
-<!-- =====================================================
-     01. KIỂM TRA HỆ THỐNG
-===================================================== -->
+    <div class="grid">
 
-<section>
+      <div class="metric">
+        <small>Kết nối mạng</small>
+        <strong id="networkStatus">--</strong>
+      </div>
 
-  <h2>1. Kiểm tra hệ thống</h2>
+      <div class="metric">
+        <small>Module hệ thống</small>
+        <strong id="moduleScore">0/10</strong>
+      </div>
 
-  <div id="moduleStatus" class="muted">
-    Chưa kiểm tra module.
-  </div>
+      <div class="metric">
+        <small>Kiểm thử logic</small>
+        <strong id="testScore">0/104</strong>
+      </div>
 
-  <button onclick="run(checkModules)">
-    Kiểm tra phiên bản module
-  </button>
+      <div class="metric">
+        <small>Trạng thái đồng bộ</small>
+        <strong id="syncStatus">--</strong>
+      </div>
 
-  <button onclick="run(checkAPI)">
-    Kiểm tra kết nối API
-  </button>
+      <div class="metric">
+        <small>Tab hiện tại</small>
+        <strong id="tabName">--</strong>
+      </div>
 
-  <pre id="healthResult">Chưa kiểm tra.</pre>
-
-</section>
-
-<!-- =====================================================
-     02. KIỂM THỬ TỰ ĐỘNG
-===================================================== -->
-
-<section>
-
-  <h2>2. Kiểm thử tự động</h2>
-
-  <div class="grid">
-
-    <div class="panel">
-
-      Cloud Backup
-
-      <div id="cloudScore" class="score">
-        0/42
+      <div class="metric">
+        <small>Trạng thái mở chặn</small>
+        <strong id="releaseStatus">--</strong>
       </div>
 
     </div>
 
-    <div class="panel">
+  </section>
 
-      Conflict Resolution
+  <section>
 
-      <div id="resolutionScore" class="score">
-        0/44
+    <h2>01. Kiểm tra module và backend</h2>
+
+    <div class="actions">
+
+      <button id="btnModules">
+        Kiểm tra 10 module
+      </button>
+
+      <button id="btnHealth">
+        API Health
+      </button>
+
+      <button id="btnTests" class="green">
+        Chạy 104 bài kiểm thử
+      </button>
+
+    </div>
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Module</th>
+            <th>Kết quả</th>
+            <th>Chi tiết</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="moduleTable"></tbody>
+
+      </table>
+
+    </div>
+
+    <pre id="testOutput">Chưa kiểm thử.</pre>
+
+  </section>
+
+  <section>
+
+    <h2>02. Đăng nhập tài khoản TEST</h2>
+
+    <div class="grid">
+
+      <div class="field">
+
+        <label>Mã nhân viên</label>
+
+        <input id="employee"
+               value="TEST_API01">
+
+      </div>
+
+      <div class="field">
+
+        <label>Cơ sở</label>
+
+        <select id="branch">
+
+          <option value="CS1">
+            CS1 - 28 Võ Chí Công
+          </option>
+
+          <option value="CS2">
+            CS2 - An Khánh
+          </option>
+
+        </select>
+
+      </div>
+
+      <div class="field">
+
+        <label>PIN nếu có</label>
+
+        <input id="pin"
+               type="password"
+               autocomplete="off">
+
       </div>
 
     </div>
 
-  </div>
+    <div class="actions">
 
-  <div class="panel" style="margin-top:12px">
+      <button id="btnLogin" class="green">
+        Đăng nhập
+      </button>
 
-    Tổng kiểm thử
+      <button id="btnProfile">
+        Kiểm tra phiên hiện tại
+      </button>
 
-    <div id="totalScore" class="score">
-      0/86
-    </div>
-
-  </div>
-
-  <button onclick="run(runTests)">
-    CHẠY TOÀN BỘ 86 BÀI KIỂM THỬ
-  </button>
-
-  <pre id="testResult">Chưa chạy.</pre>
-
-</section>
-
-<!-- =====================================================
-     03. ĐĂNG NHẬP
-===================================================== -->
-
-<section>
-
-  <h2>3. Đăng nhập kiểm thử</h2>
-
-  <label>Tài khoản</label>
-
-  <input id="employee"
-         value="TEST_API01"
-         autocomplete="off">
-
-  <label>PIN</label>
-
-  <input id="pin"
-         type="password"
-         autocomplete="off">
-
-  <label>Cơ sở</label>
-
-  <select id="branch">
-
-    <option value="CS1">CS1</option>
-
-    <option value="CS2">CS2</option>
-
-  </select>
-
-  <button onclick="run(login)">
-    ĐĂNG NHẬP
-  </button>
-
-  <button class="secondary"
-          onclick="run(logout)">
-    Đăng xuất
-  </button>
-
-  <pre id="loginResult">Chưa đăng nhập.</pre>
-
-</section>
-
-<!-- =====================================================
-     04. PHIÊN LÀM VIỆC
-===================================================== -->
-
-<section>
-
-  <h2>4. Phiên làm việc</h2>
-
-  <label>Ngày làm việc</label>
-
-  <input id="date"
-         type="date"
-         value="2026-12-18">
-
-  <div class="grid">
-
-    <div>
-
-      <label>Ca làm việc</label>
-
-      <select id="shift">
-
-        <option value="SANG">Ca sáng</option>
-
-        <option value="TOI">Ca tối</option>
-
-        <option value="DEM">Ca đêm</option>
-
-      </select>
+      <button id="btnLogout" class="gray">
+        Đăng xuất
+      </button>
 
     </div>
 
-    <div>
+    <pre id="loginOutput">Chưa đăng nhập.</pre>
 
-      <label>Bộ phận</label>
+  </section>
 
-      <select id="department">
+  <section>
 
-        <option value="BEP_PHO">
-          Bếp phở
-        </option>
+    <h2>03. Phiên làm việc kiểm thử</h2>
 
-        <option value="BEP_VAT_TU">
-          Bếp vật tư
-        </option>
+    <div class="grid">
 
-        <option value="CHAY_BAN">
-          Chạy bàn
-        </option>
+      <div class="field">
 
-        <option value="VE_SINH">
-          Vệ sinh
-        </option>
+        <label>Ngày làm việc</label>
 
-      </select>
+        <input id="workDate"
+               type="date"
+               value="2026-12-21">
 
-    </div>
-
-  </div>
-
-  <label>Ghi chú kiểm thử</label>
-
-  <textarea id="note">RESOLUTION_C3_TEST</textarea>
-
-  <button onclick="run(restore)">
-    Khôi phục bản nháp
-  </button>
-
-  <button onclick="run(saveLocal)">
-    Lưu ghi chú trên thiết bị
-  </button>
-
-  <button onclick="run(sync)">
-    Đồng bộ bản nháp
-  </button>
-
-  <button class="secondary"
-          onclick="run(inspect)">
-    Kiểm tra trạng thái dữ liệu
-  </button>
-
-  <pre id="draftResult">Chưa có dữ liệu.</pre>
-
-</section>
-
-<!-- =====================================================
-     05. SO SÁNH
-===================================================== -->
-
-<section>
-
-  <h2>5. So sánh hai phiên bản</h2>
-
-  <button onclick="run(preview)">
-    SO SÁNH XUNG ĐỘT
-  </button>
-
-  <div class="grid" style="margin-top:12px">
-
-    <div class="panel">
-
-      <strong>Thiết bị</strong>
-
-      <div id="localVersion" class="score">
-        --
       </div>
 
-      <div id="localNote">
-        Chưa kiểm tra.
+      <div class="field">
+
+        <label>Ca làm việc</label>
+
+        <select id="shift">
+
+          <option value="SANG">Ca sáng</option>
+          <option value="TOI">Ca tối</option>
+          <option value="DEM">Ca đêm</option>
+
+        </select>
+
+      </div>
+
+      <div class="field">
+
+        <label>Bộ phận</label>
+
+        <select id="department">
+
+          <option value="BEP_PHO">
+            Bếp phở
+          </option>
+
+          <option value="BEP_VAT_TU">
+            Bếp vật tư
+          </option>
+
+          <option value="CHAY_BAN">
+            Chạy bàn
+          </option>
+
+          <option value="VE_SINH">
+            Vệ sinh
+          </option>
+
+        </select>
+
       </div>
 
     </div>
 
-    <div class="panel">
+    <div class="actions">
 
-      <strong>Máy chủ</strong>
+      <button id="btnContext">
+        Kiểm tra phiên
+      </button>
 
-      <div id="serverVersion" class="score">
-        --
+      <button id="btnNewTab">
+        Mở Tab B cùng phiên
+      </button>
+
+      <button id="btnRefresh">
+        Đọc trạng thái mới nhất
+      </button>
+
+    </div>
+
+    <pre id="contextOutput">Chưa chọn phiên.</pre>
+
+  </section>
+
+  <section>
+
+    <h2>04. Tạo và lưu bản nháp</h2>
+
+    <div class="field">
+
+      <label>Ghi chú kiểm thử</label>
+
+      <textarea id="generalNote"
+                placeholder="Nhập nội dung kiểm thử">
+      </textarea>
+
+    </div>
+
+    <div class="actions">
+
+      <button id="btnSaveLocal">
+        Lưu ghi chú IndexedDB
+      </button>
+
+      <button id="btnRestoreLocal">
+        Đọc bản nháp thiết bị
+      </button>
+
+      <button id="btnRestoreServer">
+        Đọc bản nháp máy chủ
+      </button>
+
+      <button id="btnSyncRestore">
+        Khôi phục qua PGDSync
+      </button>
+
+      <button id="btnSync" class="green">
+        Đồng bộ ngay
+      </button>
+
+    </div>
+
+    <div class="grid">
+
+      <div>
+
+        <h3>Bản thiết bị</h3>
+
+        <pre id="localOutput">Chưa có dữ liệu.</pre>
+
       </div>
 
-      <div id="serverNote">
-        Chưa kiểm tra.
+      <div>
+
+        <h3>Bản máy chủ</h3>
+
+        <pre id="serverOutput">Chưa có dữ liệu.</pre>
+
       </div>
 
     </div>
 
-  </div>
+  </section>
 
-  <pre id="differences">
-Chưa có kết quả so sánh.
-  </pre>
+  <section>
 
-</section>
+    <h2>05. Kiểm thử hình ảnh</h2>
 
-<!-- =====================================================
-     06. XỬ LÝ XUNG ĐỘT
-===================================================== -->
+    <div class="grid">
 
-<section>
+      <div class="field">
 
-  <h2>6. Lựa chọn xử lý</h2>
+        <label>Mã ảnh</label>
 
-  <div class="warning">
+        <select id="photoId">
 
-    <strong>KEEP_LOCAL</strong>
+          <option value="HA001">HA001</option>
+          <option value="HA002">HA002</option>
+
+        </select>
+
+      </div>
+
+      <div class="field">
+
+        <label>Chọn ảnh kiểm thử</label>
+
+        <input id="photoFile"
+               type="file"
+               accept="image/*">
+
+      </div>
+
+    </div>
+
+    <img id="photoPreview"
+         alt="Ảnh kiểm thử">
+
+    <div class="actions">
+
+      <button id="btnSavePhoto">
+        Lưu ảnh IndexedDB
+      </button>
+
+      <button id="btnRemovePhoto"
+              class="orange">
+        Xóa liên kết ảnh local
+      </button>
+
+      <button id="btnReadPhoto">
+        Đọc ảnh máy chủ
+      </button>
+
+    </div>
+
+    <pre id="photoOutput">Chưa có ảnh.</pre>
+
+  </section>
+
+  <section>
+
+    <h2>06. Kiểm tra xung đột</h2>
+
+    <div class="actions">
+
+      <button id="btnInspect">
+        Kiểm tra xung đột
+      </button>
+
+      <button id="btnPreview">
+        Xem trước KEEP_LOCAL / KEEP_SERVER
+      </button>
+
+      <button id="btnOutbox">
+        Kiểm tra Outbox
+      </button>
+
+    </div>
+
+    <div class="grid">
+
+      <div class="metric">
+        <small>Local Version</small>
+        <strong id="localVersion">--</strong>
+      </div>
+
+      <div class="metric">
+        <small>Server Version</small>
+        <strong id="serverVersion">--</strong>
+      </div>
+
+      <div class="metric">
+        <small>Local Revision</small>
+        <strong id="localRevision">--</strong>
+      </div>
+
+      <div class="metric">
+        <small>Outbox</small>
+        <strong id="outboxStatus">--</strong>
+      </div>
+
+    </div>
+
+    <pre id="conflictOutput">Chưa kiểm tra.</pre>
+
+  </section>
+
+  <section>
+
+    <h2>07. Xử lý xung đột và tự động mở chặn</h2>
+
+    <div class="warning">
+
+      Hai lựa chọn đều yêu cầu sao lưu đầy đủ
+      IndexedDB và Google Drive.
+
+      KEEP_LOCAL giữ bản thiết bị.
+      KEEP_SERVER giữ bản máy chủ.
+
+      Không thực hiện lại xử lý xung đột
+      nếu bản nháp đã được commit thành công.
+
+    </div>
+
+    <div class="check-row">
+
+      <input id="confirmResolution"
+             type="checkbox">
+
+      <label for="confirmResolution">
+
+        Tôi đã kiểm tra hai phiên bản
+        và xác nhận lựa chọn xử lý.
+
+      </label>
+
+    </div>
+
+    <div class="actions">
+
+      <button id="btnKeepLocal"
+              class="orange">
+
+        KEEP_LOCAL
+
+      </button>
+
+      <button id="btnKeepServer"
+              class="green">
+
+        KEEP_SERVER
+
+      </button>
+
+    </div>
+
+    <div class="field">
+
+      <label>Backup ID</label>
+
+      <input id="backupId"
+             placeholder="Mã sao lưu sau xử lý">
+
+    </div>
+
+    <div class="actions">
+
+      <button id="btnRetryRelease">
+        Thử lại mở chặn
+      </button>
+
+      <button id="btnResolutionStatus">
+        Trạng thái Resolution
+      </button>
+
+      <button id="btnVerifyRelease">
+        Kiểm tra kết quả mở chặn
+      </button>
+
+    </div>
+
+    <pre id="resolutionOutput">Chưa xử lý.</pre>
+
+    <h3>Tiến trình xử lý</h3>
+
+    <pre id="progressOutput">Chưa có tiến trình.</pre>
+
+  </section>
+
+  <section>
+
+    <h2>08. Kiểm tra sao lưu</h2>
+
+    <div class="actions">
+
+      <button id="btnListBackups">
+        Danh sách bản sao lưu
+      </button>
+
+      <button id="btnReadBackup">
+        Đọc bản sao theo Backup ID
+      </button>
+
+      <button id="btnVerifyBackup"
+              class="green">
+        Kiểm tra nội dung bản sao
+      </button>
+
+    </div>
+
+    <pre id="backupOutput">Chưa kiểm tra.</pre>
+
+  </section>
+
+  <section>
+
+    <h2>09. Kiểm thử đa tab</h2>
 
     <p>
-      Sao lưu cả hai phiên bản, giữ bản thiết bị
-      và chuẩn bị cho lần đồng bộ tiếp theo.
+
+      Tab A và Tab B phải sử dụng cùng trình duyệt,
+      cùng hồ sơ trình duyệt, cùng tài khoản
+      và cùng phiên làm việc.
+
     </p>
 
-    <hr>
+    <div class="actions">
 
-    <strong>KEEP_SERVER</strong>
+      <button id="btnBroadcast">
+        Gửi tín hiệu sang tab khác
+      </button>
 
-    <p>
-      Sao lưu cả hai phiên bản, sau đó thay
-      bản nháp thiết bị bằng bản máy chủ.
-    </p>
+      <button id="btnSharedStatus">
+        Đọc trạng thái dùng chung
+      </button>
 
-  </div>
+      <button id="btnLockTest">
+        Kiểm tra Web Lock
+      </button>
 
-  <label class="confirm">
+      <button id="btnHoldLock"
+              class="orange">
+        Giữ Web Lock 8 giây
+      </button>
 
-    <input id="confirmed"
-           type="checkbox"
-           onchange="updateButtons()">
-
-    Tôi đã kiểm tra hai phiên bản và xác nhận
-    lựa chọn xử lý. Tôi hiểu rằng cả hai bản
-    phải được sao lưu và xác minh trước khi
-    thay đổi bản nháp.
-
-  </label>
-
-  <button id="keepLocal"
-          class="warning-button"
-          disabled
-          onclick="run(() => resolveConflict('KEEP_LOCAL'))">
-
-    SAO LƯU VÀ GIỮ BẢN THIẾT BỊ
-
-  </button>
-
-  <button id="keepServer"
-          class="primary"
-          disabled
-          onclick="run(() => resolveConflict('KEEP_SERVER'))">
-
-    SAO LƯU VÀ GIỮ BẢN MÁY CHỦ
-
-  </button>
-
-</section>
-
-<!-- =====================================================
-     07. TIẾN ĐỘ XỬ LÝ
-===================================================== -->
-
-<section>
-
-  <h2>7. Tiến độ sao lưu và xác minh</h2>
-
-  <div id="progressLabel">
-    Chưa thực hiện.
-  </div>
-
-  <div class="progress-track">
-
-    <div id="progressBar"
-         class="progress-bar">
     </div>
 
-  </div>
+    <div class="grid">
 
-  <div id="stageList"></div>
+      <div class="metric">
+        <small>Tín hiệu nhận được</small>
+        <strong id="messageCount">0</strong>
+      </div>
 
-  <pre id="resolutionResult">
-Chưa có kết quả xử lý.
-  </pre>
+      <div class="metric">
+        <small>Web Lock</small>
+        <strong id="lockStatus">--</strong>
+      </div>
 
-</section>
+    </div>
 
-<!-- =====================================================
-     08. BẢN SAO LƯU
-===================================================== -->
+    <pre id="tabOutput">Chưa có tín hiệu.</pre>
 
-<section>
+  </section>
 
-  <h2>8. Kiểm tra bản sao lưu</h2>
+  <section>
 
-  <button onclick="run(listBackups)">
-    Danh sách bản sao lưu IndexedDB
-  </button>
+    <h2>10. Kiểm thử mất mạng</h2>
 
-  <label>Mã bản sao lưu</label>
+    <div class="warning">
 
-  <input id="backupId"
-         autocomplete="off">
+      Sử dụng DevTools → Network → Offline
+      hoặc ngắt kết nối mạng thực tế.
 
-  <button onclick="run(readBackup)">
-    Đọc và kiểm tra bản sao lưu
-  </button>
+      Không đóng hoặc tải lại trang khi đang
+      kiểm thử mất mạng.
 
-  <pre id="backupResult">
-Chưa đọc bản sao lưu.
-  </pre>
+    </div>
 
-  <h3>Biên nhận Google Drive</h3>
+    <div class="actions">
 
-  <pre id="receiptResult">
-Chưa có biên nhận.
-  </pre>
+      <button id="btnOfflineCheck">
+        Kiểm tra trạng thái mạng
+      </button>
 
-  <h3>Ảnh trong bản sao lưu</h3>
+      <button id="btnOfflineSnapshot">
+        Lưu dấu kiểm tra local
+      </button>
 
-  <div id="backupPhotos"></div>
+      <button id="btnOfflineCompare">
+        Đối chiếu local không thay đổi
+      </button>
 
-</section>
+      <button id="btnOfflineSync">
+        Thử đồng bộ khi offline
+      </button>
 
-<!-- =====================================================
-     09. KIỂM THỬ MẤT MẠNG
-===================================================== -->
+      <button id="btnOfflineRelease">
+        Thử mở chặn khi offline
+      </button>
 
-<section>
+    </div>
 
-  <h2>9. Kiểm thử mất mạng</h2>
+    <pre id="offlineOutput">Chưa kiểm tra.</pre>
 
-  <div class="info">
+  </section>
 
-    <p>
-      Tạo xung đột mới và so sánh hai phiên bản.
-      Ngắt mạng trước khi xử lý hoặc trong lúc
-      sao lưu Google Drive.
-    </p>
+  <section>
 
-    <p>
-      Hệ thống không được thay đổi bản nháp nếu
-      quá trình sao lưu hoặc xác minh thất bại
-      trước khi giao dịch ghi local hoàn tất.
-    </p>
+    <h2>11. Checklist nghiệm thu thực tế</h2>
 
-    Kết nối lại mạng rồi sử dụng nút kiểm tra
-    trạng thái để đối chiếu dữ liệu.
+    <div id="manualChecklist"></div>
 
-  </div>
+    <div class="metric">
 
-  <button class="secondary"
-          onclick="run(inspect)">
-    Kiểm tra lại dữ liệu
-  </button>
+      <small>Tiến độ nghiệm thu thủ công</small>
 
-</section>
+      <strong id="manualScore">0/24</strong>
 
-<!-- =====================================================
-     10. NHẬT KÝ
-===================================================== -->
+    </div>
 
-<section>
+    <div class="actions">
 
-  <h2>10. Nhật ký kiểm thử</h2>
+      <button id="btnSummary" class="green">
+        Tổng hợp kết quả
+      </button>
 
-  <button class="secondary"
-          onclick="clearLog()">
-    Xóa nhật ký hiển thị
-  </button>
+      <button id="btnResetChecklist"
+              class="gray">
+        Bỏ chọn checklist
+      </button>
 
-  <pre id="result">Sẵn sàng.</pre>
+    </div>
 
-</section>
+    <pre id="summaryOutput">Chưa tổng hợp.</pre>
+
+  </section>
+
+  <section>
+
+    <h2>12. Nhật ký kiểm thử</h2>
+
+    <button id="btnClearLog" class="gray">
+      Xóa nhật ký hiển thị
+    </button>
+
+    <pre id="logOutput">C3.3 khởi tạo...</pre>
+
+  </section>
 
 </main>
 
-<!-- =====================================================
+<!-- ====================================================
      MODULES
-
-     Thứ tự tải rất quan trọng.
-     Cloud Backup phải tải trước Resolution.
+     Cập nhật cache key cho C3.3.
 ===================================================== -->
 
-<script src="draft.js?v=752"></script>
-
-<script src="outbox.js?v=7842"></script>
-
-<script src="api.js?v=78423a"></script>
-
-<script src="sync.js?v=7842b"></script>
-
-<script src="conflict.js?v=7843a"></script>
-
-<script src="conflict-backup.js?v=78423c1"></script>
-
-<script src="conflict-resolution.js?v=78423c2"></script>
+<script src="draft.js?v=78433"></script>
+<script src="outbox.js?v=78433"></script>
+<script src="api.js?v=78433"></script>
+<script src="sync.js?v=78433"></script>
+<script src="conflict.js?v=78433"></script>
+<script src="conflict-backup.js?v=78433"></script>
+<script src="conflict-resolution.js?v=78433"></script>
 
 <script>
 
-"use strict";
+(function() {
 
-/* =====================================================
-   01. CONFIG
-===================================================== */
+  "use strict";
 
-const PAGE_CONFIG = Object.freeze({
+  const CONFIG = Object.freeze({
 
-  VERSION: "7.8.4.3-C2.3-C3",
+    VERSION: "7.8.4.3-C3.3",
 
-  CATALOG_REVISION: "751",
+    CATALOG_REVISION: "751",
 
-  API_VERSION: "7.8.4.3-C2.3-A",
+    SYNC_VERSION: "7.8.4.3-C3.1",
 
-  CLOUD_VERSION: "7.8.4.3-C2.3-C1",
+    RESOLUTION_VERSION: "7.8.4.3-C3.2",
 
-  RESOLUTION_VERSION: "7.8.4.3-C2.3-C2",
+    CLOUD_VERSION: "7.8.4.3-C2.3-C1",
 
-  CLOUD_TESTS: 42,
+    EXPECTED_TESTS: 104,
 
-  RESOLUTION_TESTS: 44,
+    CHANNEL_NAME: "PGD_RESOLUTION_C33",
 
-  TOTAL_TESTS: 86
+    REFRESH_MS: 3000,
 
-});
+    BLOCK_PREFIX: "PGD_SYNC_BLOCK_C31_"
 
-const $ = id => document.getElementById(id);
+  });
 
-let busy = false;
-
-let modulesReady = false;
-
-let apiReady = false;
-
-let testsPassed = false;
-
-let activePreview = null;
-
-let currentStage = null;
-
-const STAGES = [
-
-  {
-    id: "PREVIEW_CHECK",
-    label: "Kiểm tra lại hai phiên bản"
-  },
-
-  {
-    id: "LOCAL_BACKUP",
-    label: "Sao lưu IndexedDB"
-  },
-
-  {
-    id: "CLOUD_BACKUP",
-    label: "Sao lưu Google Drive"
-  },
-
-  {
-    id: "SAVE_CLOUD_RECEIPT",
-    label: "Lưu biên nhận Google Drive"
-  },
-
-  {
-    id: "FINAL_VERIFICATION",
-    label: "Xác minh độc lập lần cuối"
-  },
-
-  {
-    id: "PRE_COMMIT_CHECK",
-    label: "Kiểm tra dữ liệu trước khi ghi"
-  },
-
-  {
-    id: "LOCAL_COMMIT",
-    label: "Ghi bản nháp thiết bị"
-  },
-
-  {
-    id: "COMPLETED",
-    label: "Hoàn thành xử lý"
-  }
-
-];
-
-/* =====================================================
-   02. TIỆN ÍCH
-===================================================== */
-
-function assert(condition, message) {
-
-  if (!condition) {
-
-    throw new Error(message);
-
-  }
-
-}
-
-function json(value) {
-
-  return JSON.stringify(value, null, 2);
-
-}
-
-function show(id, value) {
-
-  $(id).textContent =
-
-    typeof value === "string"
-
-      ? value
-
-      : json(value);
-
-}
-
-function log(value) {
-
-  const now = new Date().toLocaleTimeString(
-    "vi-VN"
+  const params = new URLSearchParams(
+    location.search
   );
 
-  $("result").textContent +=
+  const tabId =
 
-    "\n[" + now + "]\n" +
+    typeof crypto.randomUUID === "function"
 
-    (
+      ? crypto.randomUUID()
+
+      : String(Date.now()) +
+        Math.random().toString(36).slice(2);
+
+  const tabLabel =
+    params.get("tab") === "B"
+      ? "TAB B"
+      : "TAB A";
+
+  const state = {
+
+    busy: false,
+
+    modulePassed: 0,
+
+    testPassed: 0,
+
+    testTotal: 0,
+
+    previewId: null,
+
+    previewContext: null,
+
+    lastResolution: null,
+
+    lastResolutionContext: null,
+
+    photoData: null,
+
+    offlineSnapshot: null,
+
+    offlineContext: null,
+
+    receivedMessages: 0,
+
+    logs: [],
+
+    progress: [],
+
+    events: [],
+
+    channel: null,
+
+    refreshing: false
+
+  };
+
+  const $ = id =>
+    document.getElementById(id);
+
+  function fail(code, message) {
+
+    const error = new Error(
+      message || code
+    );
+
+    error.code = code;
+
+    return error;
+
+  }
+
+  function assert(condition, code, message) {
+
+    if (!condition) {
+
+      throw fail(code, message);
+
+    }
+
+  }
+
+  function clone(value) {
+
+    if (value === undefined) {
+
+      return undefined;
+
+    }
+
+    return JSON.parse(
+      JSON.stringify(value)
+    );
+
+  }
+
+  function canonical(value) {
+
+    if (value === undefined) {
+
+      return "undefined";
+
+    }
+
+    if (Array.isArray(value)) {
+
+      return "[" +
+        value.map(canonical).join(",") +
+        "]";
+
+    }
+
+    if (value && typeof value === "object") {
+
+      return "{" +
+
+        Object.keys(value)
+          .sort()
+          .map(key =>
+
+            JSON.stringify(key) +
+            ":" +
+            canonical(value[key])
+
+          )
+          .join(",") +
+
+        "}";
+
+    }
+
+    return JSON.stringify(value);
+
+  }
+
+  function equal(a, b) {
+
+    return canonical(a) === canonical(b);
+
+  }
+
+  function safeDisplay(value) {
+
+    return JSON.stringify(
+
+      value,
+
+      function(key, item) {
+
+        if (
+
+          /^(token|pin|password)$/i.test(key)
+
+        ) {
+
+          return "[HIDDEN]";
+
+        }
+
+        if (
+
+          typeof item === "string" &&
+
+          item.startsWith("data:image/")
+
+        ) {
+
+          return "[IMAGE " +
+            item.length +
+            " characters]";
+
+        }
+
+        return item;
+
+      },
+
+      2
+
+    );
+
+  }
+
+  function output(id, value) {
+
+    $(id).textContent =
 
       typeof value === "string"
 
         ? value
 
-        : json(value)
-
-    ) +
-
-    "\n";
-
-}
-
-function clearLog() {
-
-  $("result").textContent = "Sẵn sàng.";
-
-}
-
-function setScore(id, passed, total, success) {
-
-  $(id).textContent = passed + "/" + total;
-
-  $(id).className =
-
-    "score " +
-
-    (success ? "success" : "error");
-
-}
-
-/* =====================================================
-   03. CONTEXT
-===================================================== */
-
-function context() {
-
-  const employee = $("employee")
-    .value.trim().toUpperCase();
-
-  assert(
-    /^TEST_/.test(employee),
-    "Chỉ sử dụng tài khoản TEST_."
-  );
-
-  const ctx = {
-
-    employee: employee,
-
-    branch: $("branch").value,
-
-    date: $("date").value,
-
-    shift: $("shift").value,
-
-    department: $("department").value
-
-  };
-
-  PGDDraft.makeKey(ctx);
-
-  return ctx;
-
-}
-
-function assertLogin(ctx) {
-
-  const profile = PGDAPI.getProfile();
-
-  assert(
-
-    profile &&
-
-    profile.code === ctx.employee &&
-
-    profile.branch === ctx.branch,
-
-    "Cần đăng nhập đúng tài khoản và cơ sở."
-
-  );
-
-}
-
-function assertOnline() {
-
-  assert(
-
-    navigator.onLine !== false,
-
-    "Thiết bị đang mất kết nối mạng."
-
-  );
-
-}
-
-/* =====================================================
-   04. TRẠNG THÁI MẠNG
-===================================================== */
-
-function updateNetwork() {
-
-  const online = navigator.onLine !== false;
-
-  $("network").textContent =
-
-    online
-
-      ? "ONLINE"
-
-      : "OFFLINE";
-
-  $("network").className =
-
-    "network " +
-
-    (online ? "online" : "offline");
-
-  if (!online) {
-
-    apiReady = false;
-
-    invalidatePreview();
-
-    log("NETWORK_OFFLINE");
+        : safeDisplay(value);
 
   }
 
-  updateButtons();
+  function log(message, details) {
 
-}
+    const line =
 
-window.addEventListener("online", function() {
+      "[" +
 
-  updateNetwork();
+      new Date().toLocaleTimeString("vi-VN") +
 
-  log(
-    "NETWORK_ONLINE - Cần kiểm tra lại API."
-  );
+      "] [" + tabLabel + "] " +
 
-});
+      message;
 
-window.addEventListener("offline", updateNetwork);
+    state.logs.push(
 
-/* =====================================================
-   05. QUẢN LÝ GIAO DIỆN
-===================================================== */
+      details === undefined
 
-function invalidatePreview() {
+        ? line
 
-  activePreview = null;
+        : line + "\n" +
+          safeDisplay(details)
 
-  $("confirmed").checked = false;
+    );
 
-  $("localVersion").textContent = "--";
+    state.logs = state.logs.slice(-150);
 
-  $("serverVersion").textContent = "--";
-
-  $("localNote").textContent = "Chưa kiểm tra.";
-
-  $("serverNote").textContent = "Chưa kiểm tra.";
-
-  show(
-
-    "differences",
-
-    "Cần so sánh lại hai phiên bản."
-
-  );
-
-  updateButtons();
-
-}
-
-function updateButtons() {
-
-  const enabled = Boolean(
-
-    !busy &&
-
-    modulesReady &&
-
-    apiReady &&
-
-    testsPassed &&
-
-    activePreview &&
-
-    $("confirmed").checked &&
-
-    navigator.onLine !== false
-
-  );
-
-  $("keepLocal").disabled = !enabled;
-
-  $("keepServer").disabled = !enabled;
-
-}
-
-[
-
-  "employee",
-
-  "branch",
-
-  "date",
-
-  "shift",
-
-  "department"
-
-].forEach(id => {
-
-  $(id).addEventListener("change", function() {
-
-    invalidatePreview();
-
-    if (id === "employee" || id === "branch") {
-
-      $("loginResult").textContent =
-
-        "Thông tin đăng nhập đã thay đổi.";
-
-    }
-
-  });
-
-});
-
-async function run(callback) {
-
-  if (busy) return;
-
-  busy = true;
-
-  const controls = document.querySelectorAll(
-
-    "button, input, select, textarea"
-
-  );
-
-  const previous = Array.from(controls).map(
-
-    control => ({
-
-      control: control,
-
-      disabled: control.disabled
-
-    })
-
-  );
-
-  controls.forEach(control => {
-
-    control.disabled = true;
-
-  });
-
-  try {
-
-    await callback();
-
-    log("THAO TÁC KẾT THÚC");
-
-  } catch (error) {
-
-    invalidatePreview();
-
-    log({
-
-      success: false,
-
-      code: error.code || "",
-
-      message: error.message,
-
-      backupId: error.backupId || null,
-
-      resolutionStage:
-
-        error.resolutionStage || null,
-
-      localCommitted:
-
-        typeof error.localCommitted === "boolean"
-
-          ? error.localCommitted
-
-          : null
-
-    });
-
-  } finally {
-
-    busy = false;
-
-    previous.forEach(item => {
-
-      item.control.disabled = item.disabled;
-
-    });
-
-    updateButtons();
+    output(
+      "logOutput",
+      state.logs.join("\n\n")
+    );
 
   }
 
-}
+  function progress(event) {
 
-/* =====================================================
-   06. KIỂM TRA MODULE
-===================================================== */
+    state.progress.push({
 
-function checkModules() {
+      time: new Date().toISOString(),
 
-  modulesReady = false;
+      ...clone(event)
 
-  const checks = [
+    });
 
-    {
+    output(
+      "progressOutput",
+      state.progress
+    );
 
-      name: "PGDDraft",
+    log("PROGRESS: " + event.stage);
 
-      passed: Boolean(
+  }
 
-        window.PGDDraft &&
+  function metric(id, value, className) {
 
-        PGDDraft.config.CATALOG_REVISION ===
+    const element = $(id);
 
-          PAGE_CONFIG.CATALOG_REVISION
+    element.textContent = String(value);
 
-      )
+    element.className = className || "";
 
-    },
+  }
 
-    {
+  function setBusy(value) {
 
-      name: "PGDOutbox",
+    state.busy = value;
 
-      passed: Boolean(
+    $("busyStatus").style.display =
 
-        window.PGDOutbox &&
+      value ? "block" : "none";
 
-        typeof PGDOutbox.get === "function"
+    document.querySelectorAll(
+      "button"
+    ).forEach(button => {
 
-      )
+      button.disabled = value;
 
-    },
+    });
 
-    {
+  }
 
-      name: "PGDAPI",
+  async function run(name, callback) {
 
-      passed: Boolean(
+    if (state.busy) {
 
-        window.PGDAPI &&
+      log("Đang có yêu cầu khác.");
 
-        PGDAPI.config.VERSION ===
-
-          PAGE_CONFIG.API_VERSION &&
-
-        typeof PGDAPI.conflictHealth ===
-
-          "function"
-
-      )
-
-    },
-
-    {
-
-      name: "PGDSync",
-
-      passed: Boolean(
-
-        window.PGDSync &&
-
-        typeof PGDSync.syncNow === "function" &&
-
-        typeof PGDSync.restore === "function"
-
-      )
-
-    },
-
-    {
-
-      name: "PGDConflict",
-
-      passed: Boolean(
-
-        window.PGDConflict &&
-
-        typeof PGDConflict.compareFields ===
-
-          "function" &&
-
-        typeof PGDConflict.comparePhotos ===
-
-          "function"
-
-      )
-
-    },
-
-    {
-
-      name: "PGDCloudBackup",
-
-      passed: Boolean(
-
-        window.PGDCloudBackup &&
-
-        PGDCloudBackup.config.VERSION ===
-
-          PAGE_CONFIG.CLOUD_VERSION &&
-
-        [
-
-          "withSession",
-
-          "captureInSession",
-
-          "backupInSession",
-
-          "verifyInSession",
-
-          "selfTest"
-
-        ].every(name =>
-
-          typeof PGDCloudBackup[name] ===
-
-            "function"
-
-        )
-
-      )
-
-    },
-
-    {
-
-      name: "PGDResolution",
-
-      passed: Boolean(
-
-        window.PGDResolution &&
-
-        PGDResolution.config.VERSION ===
-
-          PAGE_CONFIG.RESOLUTION_VERSION &&
-
-        [
-
-          "preview",
-
-          "resolveConflict",
-
-          "listBackups",
-
-          "getBackup",
-
-          "selfTest"
-
-        ].every(name =>
-
-          typeof PGDResolution[name] ===
-
-            "function"
-
-        )
-
-      )
-
-    },
-
-    {
-
-      name: "Web Locks",
-
-      passed: Boolean(
-
-        navigator.locks &&
-
-        typeof navigator.locks.request ===
-
-          "function"
-
-      )
-
-    },
-
-    {
-
-      name: "SHA-256",
-
-      passed: Boolean(
-
-        window.crypto &&
-
-        window.crypto.subtle
-
-      )
-
-    },
-
-    {
-
-      name: "IndexedDB",
-
-      passed: Boolean(window.indexedDB)
+      return;
 
     }
 
-  ];
+    setBusy(true);
 
-  const passed = checks.filter(
+    log("START: " + name);
 
-    item => item.passed
+    try {
 
-  ).length;
+      const result = await callback();
 
-  modulesReady = passed === checks.length;
+      log("END: " + name, result);
 
-  $("moduleStatus").textContent =
+      return result;
 
-    "Module: " +
+    } catch (error) {
 
-    passed +
+      const result = {
 
-    "/" +
+        success: false,
 
-    checks.length +
+        code: error.code || "ERROR",
 
-    (modulesReady ? " PASS" : " FAIL");
+        message: error.message,
 
-  $("moduleStatus").className =
+        backupId: error.backupId || null,
 
-    modulesReady ? "success" : "error";
+        localCommitted:
+          error.localCommitted === true,
 
-  log(checks);
+        resolutionStage:
+          error.resolutionStage || null
 
-  assert(
+      };
 
-    modulesReady,
+      log("ERROR: " + name, result);
 
-    "Module chưa đầy đủ hoặc sai phiên bản."
+      if (result.backupId) {
 
-  );
+        $("backupId").value =
+          result.backupId;
 
-  return checks;
+      }
 
-}
+      return result;
 
-/* =====================================================
-   07. KIỂM TRA API
-===================================================== */
+    } finally {
 
-async function checkAPI() {
+      setBusy(false);
 
-  apiReady = false;
+      updateNetwork();
 
-  invalidatePreview();
+    }
 
-  checkModules();
+  }
 
-  assertOnline();
+  function bind(id, name, callback) {
 
-  const health = await PGDAPI.health();
+    $(id).addEventListener(
 
-  assert(
+      "click",
 
-    health &&
-
-    health.success === true &&
-
-    health.mode === "TEST" &&
-
-    health.apiEnabled === true &&
-
-    health.catalogRevision === "751" &&
-
-    health.telegramEnabled === false &&
-
-    health.finalizationEnabled === false &&
-
-    health.revenueEnabled === false,
-
-    "API không đáp ứng chế độ kiểm thử."
-
-  );
-
-  const conflictHealth =
-
-    await PGDAPI.conflictHealth();
-
-  assert(
-
-    conflictHealth &&
-
-    conflictHealth.success === true,
-
-    "Conflict API chưa sẵn sàng."
-
-  );
-
-  apiReady = true;
-
-  show("healthResult", {
-
-    success: true,
-
-    mode: health.mode,
-
-    apiVersion: health.apiVersion,
-
-    backendRevision: health.backendRevision,
-
-    catalogRevision: health.catalogRevision,
-
-    conflictHealth: conflictHealth
-
-  });
-
-  log("API_HEALTH_PASSED");
-
-}
-
-/* =====================================================
-   08. KIỂM THỬ TỰ ĐỘNG
-===================================================== */
-
-async function runTests() {
-
-  testsPassed = false;
-
-  invalidatePreview();
-
-  checkModules();
-
-  const cloud =
-
-    await PGDCloudBackup.selfTest();
-
-  const resolution =
-
-    await PGDResolution.selfTest();
-
-  const cloudPassed =
-
-    cloud.success === true &&
-
-    cloud.passed === PAGE_CONFIG.CLOUD_TESTS &&
-
-    cloud.total === PAGE_CONFIG.CLOUD_TESTS;
-
-  const resolutionPassed =
-
-    resolution.success === true &&
-
-    resolution.passed ===
-
-      PAGE_CONFIG.RESOLUTION_TESTS &&
-
-    resolution.total ===
-
-      PAGE_CONFIG.RESOLUTION_TESTS;
-
-  setScore(
-
-    "cloudScore",
-
-    cloud.passed,
-
-    cloud.total,
-
-    cloudPassed
-
-  );
-
-  setScore(
-
-    "resolutionScore",
-
-    resolution.passed,
-
-    resolution.total,
-
-    resolutionPassed
-
-  );
-
-  testsPassed =
-
-    cloudPassed && resolutionPassed;
-
-  setScore(
-
-    "totalScore",
-
-    cloud.passed + resolution.passed,
-
-    cloud.total + resolution.total,
-
-    testsPassed
-
-  );
-
-  const lines = [];
-
-  lines.push("=== CLOUD BACKUP ===");
-
-  cloud.results.forEach(item => {
-
-    lines.push(
-
-      (item.passed ? "PASS - " : "FAIL - ") +
-
-      item.name +
-
-      (item.error ? ": " + item.error : "")
+      () => run(name, callback)
 
     );
 
-  });
+  }
 
-  lines.push("");
+  function updateNetwork() {
 
-  lines.push("=== CONFLICT RESOLUTION ===");
+    metric(
 
-  resolution.results.forEach(item => {
+      "networkStatus",
 
-    lines.push(
+      navigator.onLine
 
-      (item.passed ? "PASS - " : "FAIL - ") +
+        ? "ONLINE"
 
-      item.name +
+        : "OFFLINE",
 
-      (item.message ? ": " + item.message : "")
+      navigator.onLine
+
+        ? "pass"
+
+        : "fail"
 
     );
 
-  });
+  }
 
-  show("testResult", lines.join("\n"));
+  function context() {
 
-  assert(
+    const ctx = {
 
-    testsPassed,
+      date: $("workDate").value,
 
-    "Chưa đạt đủ 86/86 bài kiểm thử."
+      branch: $("branch").value,
 
-  );
+      shift: $("shift").value,
 
-  log("ALL_86_TESTS_PASSED");
+      department: $("department").value,
 
-}
+      employee:
 
-/* =====================================================
-   09. ĐĂNG NHẬP
-===================================================== */
+        $("employee").value
+          .trim()
+          .toUpperCase()
 
-async function login() {
+    };
 
-  invalidatePreview();
+    assert(
 
-  checkModules();
+      /^TEST_/.test(ctx.employee),
 
-  assertOnline();
+      "TEST_ONLY",
 
-  const ctx = context();
+      "Chỉ sử dụng tài khoản TEST_."
 
-  try {
+    );
 
-    await PGDAPI.login(
+    assert(
+
+      /^\d{4}-\d{2}-\d{2}$/.test(ctx.date),
+
+      "INVALID_DATE"
+
+    );
+
+    PGDDraft.makeKey(ctx);
+
+    return ctx;
+
+  }
+
+  function requireSession(ctx) {
+
+    const profile = PGDAPI.getProfile();
+
+    assert(
+
+      profile &&
+
+      profile.code === ctx.employee &&
+
+      profile.branch === ctx.branch,
+
+      "LOGIN_REQUIRED",
+
+      "Cần đăng nhập đúng tài khoản và cơ sở."
+
+    );
+
+    return profile;
+
+  }
+
+  function invalidatePreview() {
+
+    state.previewId = null;
+
+    state.previewContext = null;
+
+    $("confirmResolution").checked = false;
+
+  }
+
+  function readBackupId() {
+
+    const id = $("backupId").value.trim();
+
+    assert(
+
+      id.length > 0,
+
+      "BACKUP_ID_REQUIRED",
+
+      "Nhập Backup ID."
+
+    );
+
+    return id;
+
+  }
+
+  /* =====================================================
+     01. MODULE TEST
+  ===================================================== */
+
+  function checkModules() {
+
+    const tests = [
+
+      {
+
+        name: "01. Draft",
+
+        check: () =>
+
+          window.PGDDraft &&
+
+          PGDDraft.config.CATALOG_REVISION ===
+            "751" &&
+
+          typeof PGDDraft.restoreLocal ===
+            "function"
+
+      },
+
+      {
+
+        name: "02. Outbox",
+
+        check: () =>
+
+          window.PGDOutbox &&
+
+          typeof PGDOutbox.get === "function"
+
+      },
+
+      {
+
+        name: "03. API",
+
+        check: () =>
+
+          window.PGDAPI &&
+
+          typeof PGDAPI.requestState ===
+            "function" &&
+
+          typeof PGDAPI.conflictBackupConfirm ===
+            "function"
+
+      },
+
+      {
+
+        name: "04. Sync C3.1",
+
+        check: () =>
+
+          window.PGDSync &&
+
+          PGDSync.config.VERSION ===
+            CONFIG.SYNC_VERSION &&
+
+          typeof PGDSync.releaseAfterResolution ===
+            "function"
+
+      },
+
+      {
+
+        name: "05. Conflict",
+
+        check: () =>
+
+          window.PGDConflict &&
+
+          typeof PGDConflict.compareFields ===
+            "function"
+
+      },
+
+      {
+
+        name: "06. Cloud Backup",
+
+        check: () =>
+
+          window.PGDCloudBackup &&
+
+          PGDCloudBackup.config.VERSION ===
+            CONFIG.CLOUD_VERSION &&
+
+          typeof PGDCloudBackup.verifyInSession ===
+            "function"
+
+      },
+
+      {
+
+        name: "07. Resolution C3.2",
+
+        check: () =>
+
+          window.PGDResolution &&
+
+          PGDResolution.config.VERSION ===
+            CONFIG.RESOLUTION_VERSION &&
+
+          typeof PGDResolution.retryRelease ===
+            "function"
+
+      },
+
+      {
+
+        name: "08. IndexedDB",
+
+        check: () =>
+
+          Boolean(window.indexedDB)
+
+      },
+
+      {
+
+        name: "09. Web Locks",
+
+        check: () =>
+
+          navigator.locks &&
+
+          typeof navigator.locks.request ===
+            "function"
+
+      },
+
+      {
+
+        name: "10. Multi-tab + Crypto",
+
+        check: () =>
+
+          typeof BroadcastChannel ===
+            "function" &&
+
+          Boolean(crypto.subtle) &&
+
+          window.isSecureContext === true
+
+      }
+
+    ];
+
+    const tbody = $("moduleTable");
+
+    tbody.replaceChildren();
+
+    const results = tests.map(test => {
+
+      let passed = false;
+
+      let detail = "";
+
+      try {
+
+        passed = Boolean(test.check());
+
+        detail = passed
+
+          ? "Sẵn sàng"
+
+          : "Thiếu hoặc sai phiên bản";
+
+      } catch (error) {
+
+        detail = error.message;
+
+      }
+
+      const row =
+        document.createElement("tr");
+
+      const name =
+        document.createElement("td");
+
+      const result =
+        document.createElement("td");
+
+      const info =
+        document.createElement("td");
+
+      name.textContent = test.name;
+
+      result.textContent =
+
+        passed ? "PASS" : "FAIL";
+
+      result.className =
+
+        passed ? "pass" : "fail";
+
+      info.textContent = detail;
+
+      row.append(name, result, info);
+
+      tbody.appendChild(row);
+
+      return {
+
+        name: test.name,
+
+        passed,
+
+        detail
+
+      };
+
+    });
+
+    state.modulePassed =
+
+      results.filter(
+        item => item.passed
+      ).length;
+
+    metric(
+
+      "moduleScore",
+
+      state.modulePassed + "/10",
+
+      state.modulePassed === 10
+
+        ? "pass"
+
+        : "fail"
+
+    );
+
+    return results;
+
+  }
+
+  async function checkHealth() {
+
+    const health = await PGDAPI.health();
+
+    const conflict =
+      await PGDAPI.conflictHealth();
+
+    assert(
+
+      health.requestStateEnabled === true,
+
+      "REQUEST_STATE_DISABLED"
+
+    );
+
+    assert(
+
+      conflict.enabled === true,
+
+      "CONFLICT_API_DISABLED"
+
+    );
+
+    output(
+
+      "testOutput",
+
+      {health, conflict}
+
+    );
+
+    return {health, conflict};
+
+  }
+
+  async function runAllTests() {
+
+    checkModules();
+
+    assert(
+
+      state.modulePassed === 10,
+
+      "MODULE_TEST_FAILED"
+
+    );
+
+    const suites = [
+
+      {
+
+        name: "Cloud Backup",
+
+        expected: 42,
+
+        run: () => PGDCloudBackup.selfTest()
+
+      },
+
+      {
+
+        name: "Conflict Resolution",
+
+        expected: 44,
+
+        run: () => PGDResolution.selfTest()
+
+      },
+
+      {
+
+        name: "Sync C3.1",
+
+        expected: 8,
+
+        run: () => PGDSync.selfTestC31()
+
+      },
+
+      {
+
+        name: "Resolution C3.2",
+
+        expected: 10,
+
+        run: () => PGDResolution.selfTestC32()
+
+      }
+
+    ];
+
+    const results = [];
+
+    let passed = 0;
+
+    let total = 0;
+
+    for (const suite of suites) {
+
+      try {
+
+        const result = await suite.run();
+
+        const valid =
+
+          result &&
+
+          Number.isInteger(result.passed) &&
+
+          result.total === suite.expected &&
+
+          result.passed >= 0 &&
+
+          result.passed <= result.total;
+
+        assert(
+
+          valid,
+
+          "INVALID_TEST_RESULT"
+
+        );
+
+        passed += result.passed;
+
+        total += result.total;
+
+        results.push({
+
+          name: suite.name,
+
+          ...result
+
+        });
+
+      } catch (error) {
+
+        total += suite.expected;
+
+        results.push({
+
+          name: suite.name,
+
+          success: false,
+
+          passed: 0,
+
+          total: suite.expected,
+
+          error: error.message
+
+        });
+
+      }
+
+    }
+
+    state.testPassed = passed;
+
+    state.testTotal = total;
+
+    metric(
+
+      "testScore",
+
+      passed + "/" + total,
+
+      passed === CONFIG.EXPECTED_TESTS &&
+      total === CONFIG.EXPECTED_TESTS
+
+        ? "pass"
+
+        : "fail"
+
+    );
+
+    const summary = {
+
+      success:
+
+        passed === CONFIG.EXPECTED_TESTS &&
+
+        total === CONFIG.EXPECTED_TESTS,
+
+      passed,
+
+      total,
+
+      results
+
+    };
+
+    output("testOutput", summary);
+
+    return summary;
+
+  }
+
+  /* =====================================================
+     02. LOGIN
+  ===================================================== */
+
+  async function login() {
+
+    const ctx = context();
+
+    const result = await PGDAPI.login(
 
       ctx.employee,
 
@@ -1689,707 +1910,974 @@ async function login() {
 
     );
 
-  } finally {
-
     $("pin").value = "";
+
+    const profile = requireSession(ctx);
+
+    invalidatePreview();
+
+    output("loginOutput", profile);
+
+    broadcast("LOGIN_COMPLETED", ctx);
+
+    return {
+
+      success: true,
+
+      profile
+
+    };
 
   }
 
-  assertLogin(ctx);
+  async function logout() {
 
-  const profile = PGDAPI.getProfile();
+    await PGDAPI.logout();
 
-  /*
-   * Không hiển thị token hoặc PIN.
-   */
+    invalidatePreview();
 
-  show("loginResult", {
+    output(
 
-    success: true,
+      "loginOutput",
 
-    code: profile.code,
+      "Đã đăng xuất."
 
-    name: profile.name || "",
+    );
 
-    role: profile.role || "",
+    return {success: true};
 
-    branch: profile.branch
+  }
 
-  });
+  /* =====================================================
+     03. LOCAL / SERVER
+  ===================================================== */
 
-  log("LOGIN_SUCCESS");
+  function updateLocalMetrics(local) {
 
-}
+    metric(
 
-async function logout() {
+      "localVersion",
 
-  invalidatePreview();
+      local ? local.serverVersion : 0
 
-  await PGDAPI.logout();
+    );
 
-  show("loginResult", "Đã đăng xuất.");
+    metric(
 
-  log("LOGOUT_SUCCESS");
+      "localRevision",
 
-}
+      local ? local.localRevision : 0
 
-/* =====================================================
-   10. BẢN NHÁP
-===================================================== */
+    );
 
-async function restore() {
+  }
 
-  invalidatePreview();
+  async function readLocal() {
 
-  const ctx = context();
+    const ctx = context();
 
-  assertLogin(ctx);
+    requireSession(ctx);
 
-  const result = await PGDSync.restore(ctx);
+    const local =
 
-  show("draftResult", {
+      await PGDDraft.restoreLocal(ctx);
 
-    source: result.source,
+    updateLocalMetrics(local);
 
-    version: result.record
+    output("localOutput", local);
 
-      ? result.record.serverVersion
+    if (local && local.data) {
 
-      : 0,
+      $("generalNote").value =
 
-    dirty: result.record
-
-      ? result.record.dirty
-
-      : null,
-
-    generalNote: result.record
-
-      ? result.record.data.generalNote
-
-      : ""
-
-  });
-
-  log("RESTORE_FINISHED");
-
-}
-
-async function saveLocal() {
-
-  invalidatePreview();
-
-  const ctx = context();
-
-  assertLogin(ctx);
-
-  await PGDDraft.saveFieldsLocal(
-
-    ctx,
-
-    {
-
-      generalNote: $("note").value
+        local.data.generalNote || "";
 
     }
 
-  );
+    return local;
 
-  const local =
+  }
 
-    await PGDDraft.restoreLocal(ctx);
+  async function readServer() {
 
-  show("draftResult", {
+    const ctx = context();
 
-    success: true,
+    requireSession(ctx);
 
-    serverVersion: local.serverVersion,
+    const server =
 
-    localRevision: local.localRevision,
+      await PGDAPI.restoreDraft(ctx);
 
-    dirty: local.dirty,
+    metric(
 
-    generalNote: local.data.generalNote
+      "serverVersion",
 
-  });
+      server.version
 
-  log("LOCAL_NOTE_SAVED");
+    );
 
-}
+    output("serverOutput", server);
 
-async function sync() {
+    return server;
 
-  invalidatePreview();
+  }
 
-  const ctx = context();
+  async function saveLocal() {
 
-  assertLogin(ctx);
+    const ctx = context();
 
-  assertOnline();
+    requireSession(ctx);
 
-  const result =
+    const result =
 
-    await PGDSync.syncNow(ctx);
+      await PGDDraft.saveFieldsLocal(
 
-  show("draftResult", result);
+        ctx,
 
-  log("SYNC_RESULT");
+        {
 
-  log(result);
+          generalNote:
+            $("generalNote").value
 
-}
+        }
 
-async function inspect() {
+      );
 
-  const ctx = context();
+    invalidatePreview();
 
-  assertLogin(ctx);
+    await readLocal();
 
-  const local =
+    broadcast("LOCAL_SAVED", ctx);
 
-    await PGDDraft.restoreLocal(ctx);
+    return result;
 
-  const pending =
+  }
 
-    await PGDOutbox.get(ctx);
+  async function syncNow() {
 
-  let server = null;
+    const ctx = context();
 
-  let serverError = null;
-
-  if (navigator.onLine !== false) {
+    requireSession(ctx);
 
     try {
 
-      server =
+      const result =
 
-        await PGDAPI.restoreDraft(ctx);
+        await PGDSync.syncNow(ctx);
 
-    } catch (error) {
+      output("serverOutput", result);
 
-      serverError = error.message;
+      invalidatePreview();
+
+      broadcast("SYNC_COMPLETED", ctx);
+
+      return result;
+
+    } finally {
+
+      await refreshSharedStatus();
 
     }
 
   }
 
-  const result = {
+  async function restoreViaSync() {
 
-    context: ctx,
+    const ctx = context();
 
-    local: local
+    requireSession(ctx);
 
-      ? {
+    const result =
 
-          serverVersion: local.serverVersion,
+      await PGDSync.restore(ctx);
 
-          localRevision: local.localRevision,
+    invalidatePreview();
 
-          status: local.status,
+    await readLocal();
 
-          dirty: local.dirty,
+    broadcast("RESTORE_COMPLETED", ctx);
 
-          data: local.data,
-
-          photoIds: Object.keys(
-
-            local.photos || {}
-
-          ),
-
-          removedPhotos:
-
-            local.removedPhotos || []
-
-        }
-
-      : null,
-
-    server: server,
-
-    serverError: serverError,
-
-    pendingRequest: pending
-
-      ? {
-
-          requestId: pending.requestId,
-
-          action: pending.action,
-
-          status: pending.status
-
-        }
-
-      : null
-
-  };
-
-  show("draftResult", result);
-
-  log("INSPECTION_FINISHED");
-
-}
-
-/* =====================================================
-   11. SO SÁNH XUNG ĐỘT
-===================================================== */
-
-async function preview() {
-
-  invalidatePreview();
-
-  assert(modulesReady, "Module chưa sẵn sàng.");
-
-  assert(apiReady, "Cần kiểm tra API.");
-
-  assert(testsPassed, "Cần đạt 86/86.");
-
-  assertOnline();
-
-  const ctx = context();
-
-  assertLogin(ctx);
-
-  const result =
-
-    await PGDResolution.preview(ctx);
-
-  assert(
-
-    result &&
-
-    result.success === true &&
-
-    result.previewId &&
-
-    result.cloudBackupRequired === true &&
-
-    result.localBackupRequired === true,
-
-    "Preview không đáp ứng yêu cầu sao lưu."
-
-  );
-
-  activePreview = {
-
-    previewId: result.previewId,
-
-    context: JSON.stringify(ctx),
-
-    localVersion: result.localVersion,
-
-    localRevision: result.localRevision,
-
-    serverVersion: result.serverVersion
-
-  };
-
-  show("localVersion", String(
-
-    result.localVersion
-
-  ));
-
-  show("serverVersion", String(
-
-    result.serverVersion
-
-  ));
-
-  show("localNote", result.localNote || "");
-
-  show("serverNote", result.serverNote || "");
-
-  show("differences", {
-
-    fields: result.fieldDifferences,
-
-    photos: result.photoDifferences,
-
-    localBackupRequired: true,
-
-    cloudBackupRequired: true
-
-  });
-
-  log("CONFLICT_PREVIEW_READY");
-
-}
-
-/* =====================================================
-   12. TIẾN ĐỘ
-===================================================== */
-
-function resetProgress() {
-
-  currentStage = null;
-
-  $("stageList").textContent = "";
-
-  STAGES.forEach((stage, index) => {
-
-    const div = document.createElement("div");
-
-    div.id = "stage_" + stage.id;
-
-    div.className = "stage";
-
-    div.textContent =
-
-      (index + 1) + ". " + stage.label;
-
-    $("stageList").appendChild(div);
-
-  });
-
-  $("progressBar").style.width = "0%";
-
-  $("progressLabel").textContent =
-
-    "Chưa thực hiện.";
-
-}
-
-function updateProgress(event) {
-
-  if (!event || !event.stage) return;
-
-  const stage = event.stage;
-
-  if (stage === "CLOUD_PROGRESS") {
-
-    const detail = event.details || {};
-
-    const completed = Number(
-
-      detail.completed || 0
-
-    );
-
-    const total = Number(
-
-      detail.total || 0
-
-    );
-
-    $("progressLabel").textContent =
-
-      "Google Drive: " +
-
-      completed +
-
-      "/" +
-
-      total +
-
-      " - " +
-
-      (detail.stage || "");
-
-    return;
+    return result;
 
   }
 
-  const index = STAGES.findIndex(
+  /* =====================================================
+     04. PHOTO
+  ===================================================== */
 
-    item => item.id === stage
+  const PHOTO_IDS = {
 
-  );
+    BEP_PHO: ["HA001", "HA002"],
 
-  if (index < 0) return;
+    BEP_VAT_TU: [
 
-  currentStage = stage;
+      "HA003", "HA004", "HA005"
 
-  STAGES.forEach((item, i) => {
+    ],
 
-    const node = $("stage_" + item.id);
+    CHAY_BAN: ["HA006", "HA007"],
 
-    node.className = "stage";
+    VE_SINH: ["HA008", "HA009"]
 
-    if (i < index || stage === "COMPLETED") {
+  };
 
-      node.classList.add("done");
+  function updatePhotoIds() {
 
-    } else if (i === index) {
+    const select = $("photoId");
 
-      node.classList.add("active");
+    const ids =
+
+      PHOTO_IDS[$("department").value] || [];
+
+    select.replaceChildren();
+
+    for (const id of ids) {
+
+      const option =
+        document.createElement("option");
+
+      option.value = id;
+
+      option.textContent = id;
+
+      select.appendChild(option);
 
     }
 
-  });
+  }
 
-  const percent =
+  async function preparePhoto(file) {
 
-    stage === "COMPLETED"
+    assert(
 
-      ? 100
+      file &&
 
-      : Math.round(
+      file.type.startsWith("image/"),
 
-          index / (STAGES.length - 1) * 100
+      "INVALID_IMAGE"
+
+    );
+
+    const url = URL.createObjectURL(file);
+
+    try {
+
+      const image = new Image();
+
+      await new Promise((resolve, reject) => {
+
+        image.onload = resolve;
+
+        image.onerror = reject;
+
+        image.src = url;
+
+      });
+
+      const maxSide = 1000;
+
+      const ratio = Math.min(
+
+        1,
+
+        maxSide /
+
+          Math.max(
+
+            image.naturalWidth,
+
+            image.naturalHeight
+
+          )
+
+      );
+
+      const canvas =
+
+        document.createElement("canvas");
+
+      canvas.width = Math.max(
+
+        1,
+
+        Math.round(
+          image.naturalWidth * ratio
+        )
+
+      );
+
+      canvas.height = Math.max(
+
+        1,
+
+        Math.round(
+          image.naturalHeight * ratio
+        )
+
+      );
+
+      const ctx = canvas.getContext("2d");
+
+      ctx.fillStyle = "#ffffff";
+
+      ctx.fillRect(
+
+        0, 0,
+
+        canvas.width,
+
+        canvas.height
+
+      );
+
+      ctx.drawImage(
+
+        image,
+
+        0, 0,
+
+        canvas.width,
+
+        canvas.height
+
+      );
+
+      let data = "";
+
+      for (
+
+        let quality = 0.85;
+
+        quality >= 0.25;
+
+        quality -= 0.1
+
+      ) {
+
+        data = canvas.toDataURL(
+
+          "image/jpeg",
+
+          quality
 
         );
 
-  $("progressBar").style.width =
+        if (data.length <= 750000) {
 
-    percent + "%";
+          break;
 
-  $("progressLabel").textContent =
+        }
 
-    STAGES[index].label;
+      }
 
-}
+      assert(
 
-function markProgressFailed(error) {
+        data.startsWith(
+          "data:image/jpeg;base64,"
+        ) &&
 
-  if (currentStage) {
+        data.length <= 750000,
 
-    const node = $("stage_" + currentStage);
+        "PHOTO_TOO_LARGE"
 
-    if (node) {
+      );
 
-      node.className = "stage failed";
+      return data;
+
+    } finally {
+
+      URL.revokeObjectURL(url);
 
     }
 
   }
 
-  $("progressLabel").textContent =
+  async function savePhoto() {
 
-    "Dừng: " + error.message;
+    const ctx = context();
 
-}
+    requireSession(ctx);
 
-/* =====================================================
-   13. KIỂM TRA KẾT QUẢ XỬ LÝ
-===================================================== */
+    const file = $("photoFile").files[0];
 
-function assertResolutionResult(result, choice) {
+    const data = await preparePhoto(file);
 
-  assert(
+    state.photoData = data;
 
-    result &&
+    const id = $("photoId").value;
 
-    result.success === true &&
+    const result =
 
-    result.choice === choice &&
+      await PGDDraft.savePhotoLocal(
 
-    result.localBackupVerified === true &&
+        ctx,
 
-    result.cloudBackupVerified === true &&
+        id,
 
-    result.contentVerified === true &&
+        data
 
-    result.finalVerificationPassed === true &&
+      );
 
-    result.localCommitted === true &&
+    $("photoPreview").src = data;
 
-    result.serverWritten === false &&
+    $("photoPreview").style.display =
+      "block";
 
-    result.backupId &&
+    invalidatePreview();
 
-    result.backupId === result.cloudBackupId,
+    output("photoOutput", {
 
-    "Kết quả xử lý cần được kiểm tra lại."
+      success: true,
 
-  );
+      photoId: id,
 
-  if (choice === "KEEP_LOCAL") {
+      length: data.length
+
+    });
+
+    broadcast("PHOTO_SAVED", ctx);
+
+    return result;
+
+  }
+
+  async function removePhoto() {
+
+    const ctx = context();
+
+    requireSession(ctx);
 
     assert(
 
-      result.dirty === true &&
+      confirm(
 
-      result.nextAction === "SYNC_REQUIRED",
+        "Xóa liên kết ảnh kiểm thử trên thiết bị?"
 
-      "KEEP_LOCAL không đúng trạng thái."
+      ),
+
+      "CANCELLED"
 
     );
 
+    const result =
+
+      await PGDDraft.removePhotoLocal(
+
+        ctx,
+
+        $("photoId").value
+
+      );
+
+    invalidatePreview();
+
+    broadcast("PHOTO_REMOVED", ctx);
+
+    output("photoOutput", result);
+
+    return result;
+
   }
 
-  if (choice === "KEEP_SERVER") {
+  async function readPhoto() {
+
+    const ctx = context();
+
+    requireSession(ctx);
+
+    const result =
+
+      await PGDAPI.readPhoto(
+
+        ctx,
+
+        $("photoId").value
+
+      );
 
     assert(
 
-      result.dirty === false &&
+      typeof result.data === "string" &&
 
-      result.nextAction === "SERVER_RESTORED",
+      result.data.startsWith(
+        "data:image/jpeg;base64,"
+      ),
 
-      "KEEP_SERVER không đúng trạng thái."
+      "INVALID_SERVER_PHOTO"
 
     );
 
-  }
+    $("photoPreview").src = result.data;
 
-}
+    $("photoPreview").style.display =
+      "block";
 
-/* =====================================================
-   14. XỬ LÝ XUNG ĐỘT THỰC TẾ
-===================================================== */
+    output("photoOutput", result);
 
-async function resolveConflict(choice) {
-
-  assert(modulesReady, "Module chưa sẵn sàng.");
-
-  assert(apiReady, "Cần kiểm tra lại API.");
-
-  assert(testsPassed, "Chưa đạt 86/86.");
-
-  assertOnline();
-
-  assert(activePreview, "Cần so sánh trước.");
-
-  assert(
-
-    $("confirmed").checked,
-
-    "Cần xác nhận lựa chọn."
-
-  );
-
-  const ctx = context();
-
-  assertLogin(ctx);
-
-  assert(
-
-    activePreview.context === JSON.stringify(ctx),
-
-    "Phiên làm việc đã thay đổi."
-
-  );
-
-  assert(
-
-    !(await PGDOutbox.get(ctx)),
-
-    "Còn yêu cầu Outbox chưa xử lý."
-
-  );
-
-  const message =
-
-    choice === "KEEP_LOCAL"
-
-      ? "Sao lưu cả hai bản và giữ bản thiết bị?"
-
-      : "Sao lưu cả hai bản và giữ bản máy chủ?";
-
-  if (!window.confirm(message)) {
-
-    log("USER_CANCELLED");
-
-    return;
+    return result;
 
   }
 
-  const previewId = activePreview.previewId;
+  /* =====================================================
+     05. CONFLICT
+  ===================================================== */
 
-  resetProgress();
+  async function inspectConflict() {
 
-  show(
+    const ctx = context();
 
-    "resolutionResult",
+    requireSession(ctx);
 
-    "Đang xử lý. Không đóng trang."
+    const result =
 
-  );
+      await PGDSync.inspectConflict(ctx);
 
-  show("receiptResult", "Đang xác minh.");
+    output("conflictOutput", result);
 
-  $("backupPhotos").textContent = "";
+    return result;
 
-  let result = null;
+  }
 
-  try {
+  async function readOutbox() {
 
-    result = await PGDResolution.resolveConflict(
+    const ctx = context();
+
+    requireSession(ctx);
+
+    const pending =
+
+      await PGDOutbox.get(ctx);
+
+    metric(
+
+      "outboxStatus",
+
+      pending ? pending.status : "EMPTY",
+
+      pending ? "pending" : "pass"
+
+    );
+
+    output("conflictOutput", {
+
+      pending: Boolean(pending),
+
+      record: pending || null
+
+    });
+
+    return pending;
+
+  }
+
+  async function previewConflict() {
+
+    const ctx = context();
+
+    requireSession(ctx);
+
+    const result =
+
+      await PGDResolution.preview(ctx);
+
+    assert(
+
+      result.success === true &&
+
+      result.previewId,
+
+      "PREVIEW_FAILED"
+
+    );
+
+    state.previewId = result.previewId;
+
+    state.previewContext = clone(ctx);
+
+    $("confirmResolution").checked = false;
+
+    output("conflictOutput", result);
+
+    return result;
+
+  }
+
+  /* =====================================================
+     06. RESOLUTION + RELEASE
+  ===================================================== */
+
+  async function resolve(choice) {
+
+    const ctx = context();
+
+    requireSession(ctx);
+
+    assert(
+
+      state.previewId &&
+
+      equal(
+
+        state.previewContext,
+
+        ctx
+
+      ),
+
+      "PREVIEW_REQUIRED",
+
+      "Cần xem trước xung đột."
+
+    );
+
+    assert(
+
+      $("confirmResolution").checked,
+
+      "CONFIRMATION_REQUIRED"
+
+    );
+
+    assert(
+
+      confirm(
+
+        "Xác nhận " + choice +
+
+        "? Hệ thống sẽ sao lưu cả hai phiên bản."
+
+      ),
+
+      "CANCELLED"
+
+    );
+
+    state.progress = [];
+
+    const previewId = state.previewId;
+
+    invalidatePreview();
+
+    const result =
+
+      await PGDResolution.resolveConflict(
+
+        ctx,
+
+        previewId,
+
+        choice,
+
+        true,
+
+        {
+
+          onProgress: progress
+
+        }
+
+      );
+
+    state.lastResolution = clone(result);
+
+    state.lastResolutionContext = clone(ctx);
+
+    if (result.backupId) {
+
+      $("backupId").value =
+        result.backupId;
+
+    }
+
+    metric(
+
+      "releaseStatus",
+
+      result.syncReleaseStatus || "UNKNOWN",
+
+      result.syncReleased
+
+        ? "pass"
+
+        : "pending"
+
+    );
+
+    output("resolutionOutput", result);
+
+    broadcast(
+
+      "RESOLUTION_COMPLETED",
 
       ctx,
 
-      previewId,
-
-      choice,
-
-      true,
-
       {
 
-        onProgress: updateProgress
+        backupId: result.backupId,
+
+        choice: result.choice,
+
+        localCommitted:
+          result.localCommitted,
+
+        syncReleased:
+          result.syncReleased
 
       }
 
     );
 
-  } catch (error) {
+    await refreshSharedStatus();
 
-    markProgressFailed(error);
+    return result;
 
-    if (error.backupId) {
+  }
 
-      $("backupId").value = error.backupId;
+  async function retryRelease() {
 
-    }
+    const ctx = context();
 
-    show("resolutionResult", {
+    requireSession(ctx);
 
-      success: false,
+    const backupId = readBackupId();
 
-      message: error.message,
+    const result =
 
-      code: error.code || "",
+      await PGDResolution.retryRelease(
 
-      backupId: error.backupId || null,
+        ctx,
 
-      stage: error.resolutionStage || null,
+        backupId,
+
+        {
+
+          onProgress: progress
+
+        }
+
+      );
+
+    state.lastResolution = clone(result);
+
+    state.lastResolutionContext = clone(ctx);
+
+    output("resolutionOutput", result);
+
+    metric(
+
+      "releaseStatus",
+
+      result.syncReleaseStatus || "UNKNOWN",
+
+      result.syncReleased
+
+        ? "pass"
+
+        : "pending"
+
+    );
+
+    broadcast(
+
+      "RELEASE_RETRIED",
+
+      ctx,
+
+      {
+
+        backupId,
+
+        syncReleased: result.syncReleased
+
+      }
+
+    );
+
+    await refreshSharedStatus();
+
+    return result;
+
+  }
+
+  async function verifyRelease() {
+
+    const ctx = context();
+
+    requireSession(ctx);
+
+    const result = state.lastResolution;
+
+    assert(
+
+      result &&
+
+      equal(
+
+        state.lastResolutionContext,
+
+        ctx
+
+      ),
+
+      "RESOLUTION_RESULT_REQUIRED"
+
+    );
+
+    const local =
+
+      await PGDDraft.restoreLocal(ctx);
+
+    const server =
+
+      await PGDAPI.restoreDraft(ctx);
+
+    const pending =
+
+      await PGDOutbox.get(ctx);
+
+    const status =
+
+      await PGDSync.getStatus(ctx);
+
+    const block = localStorage.getItem(
+
+      CONFIG.BLOCK_PREFIX +
+
+      PGDDraft.makeKey(ctx)
+
+    );
+
+    const checks = {
 
       localCommitted:
 
-        typeof error.localCommitted === "boolean"
+        result.localCommitted === true,
 
-          ? error.localCommitted
+      localBackupVerified:
 
-          : null,
+        result.localBackupVerified === true,
 
-      nextAction:
+      cloudBackupVerified:
 
-        "Kiểm tra lại dữ liệu trước khi thử lại."
+        result.cloudBackupVerified === true,
 
-    });
+      contentVerified:
 
-    invalidatePreview();
+        result.contentVerified === true,
 
-    throw error;
+      syncReleased:
+
+        result.syncReleased === true,
+
+      noBusinessWriteByResolution:
+
+        result.serverWritten === false,
+
+      noSharedBlock:
+
+        block === null,
+
+      noOutbox:
+
+        !pending,
+
+      sameServerVersion:
+
+        server.version ===
+          result.serverVersion,
+
+      localVersionMatches:
+
+        local &&
+
+        local.serverVersion ===
+          server.version,
+
+      localRevisionMatches:
+
+        local &&
+
+        local.localRevision ===
+          result.localRevision,
+
+      dirtyMatchesChoice:
+
+        local &&
+
+        local.dirty ===
+
+          (result.choice === "KEEP_LOCAL"),
+
+      syncNotBlocked:
+
+        status.status !== "BLOCKED"
+
+    };
+
+    const passed =
+
+      Object.values(checks)
+        .filter(Boolean).length;
+
+    const total =
+
+      Object.keys(checks).length;
+
+    const verification = {
+
+      success: passed === total,
+
+      passed,
+
+      total,
+
+      checks,
+
+      status,
+
+      choice: result.choice,
+
+      backupId: result.backupId
+
+    };
+
+    output(
+
+      "resolutionOutput",
+
+      verification
+
+    );
+
+    return verification;
 
   }
 
-  /*
-   * Module đã trả kết quả.
-   * Không gọi lại resolveConflict nếu việc
-   * hiển thị hoặc kiểm tra sau xử lý bị lỗi.
-   */
+  /* =====================================================
+     07. BACKUP
+  ===================================================== */
 
-  if (result && result.backupId) {
+  async function listBackups() {
 
-    $("backupId").value = result.backupId;
+    const ctx = context();
+
+    requireSession(ctx);
+
+    const records =
+
+      await PGDResolution.listBackups(ctx);
+
+    output("backupOutput", records);
+
+    return records;
 
   }
 
-  show("resolutionResult", result);
+  async function readBackup() {
 
-  invalidatePreview();
+    const ctx = context();
 
-  try {
-
-    assertResolutionResult(result, choice);
-
-    updateProgress({
-
-      stage: "COMPLETED"
-
-    });
+    requireSession(ctx);
 
     const backup =
 
@@ -2397,331 +2885,1783 @@ async function resolveConflict(choice) {
 
         ctx,
 
-        result.backupId
+        readBackupId()
 
       );
 
-    displayBackup(backup);
+    output("backupOutput", backup);
 
-    log({
+    return backup;
 
-      event: "RESOLUTION_COMPLETED",
+  }
 
-      choice: choice,
+  async function verifyBackup() {
 
-      backupId: result.backupId,
+    const ctx = context();
 
-      localCommitted: true,
+    requireSession(ctx);
 
-      cloudBackupVerified: true,
+    const id = readBackupId();
 
-      serverWritten: false,
+    const backup =
 
-      metadataUpdated:
+      await PGDResolution.getBackup(
 
-        result.backupMetadataUpdated === true,
+        ctx,
 
-      warning: result.warning || null
+        id
 
-    });
+      );
 
-  } catch (error) {
+    const receipt = backup.finalReceipt;
 
-    log({
+    assert(
 
-      event: "POST_RESOLUTION_CHECK_WARNING",
+      receipt &&
 
-      message: error.message,
+      receipt.contentVerified === true,
 
-      localCommitted:
+      "FINAL_RECEIPT_REQUIRED"
 
-        result &&
+    );
 
-        result.localCommitted === true,
+    const hashes = {
+
+      localHash:
+
+        await PGDCloudBackup.hashJson(
+
+          backup.local.data
+
+        ),
+
+      serverHash:
+
+        await PGDCloudBackup.hashJson(
+
+          backup.server
+
+        ),
+
+      localPhotoHashes:
+
+        await PGDCloudBackup.hashPhotos(
+
+          backup.local.photos || {}
+
+        ),
+
+      serverPhotoHashes:
+
+        await PGDCloudBackup.hashPhotos(
+
+          backup.serverPhotos || {}
+
+        )
+
+    };
+
+    const checks = {
 
       backupId:
 
-        result && result.backupId,
+        backup.backupId === id,
 
-      nextAction:
+      cloudBackupId:
 
-        "Không xử lý lại. Kiểm tra bản nháp và bản sao."
+        backup.cloudBackupId === id,
+
+      cloudVerified:
+
+        backup.cloudVerified === true,
+
+      localCommitCompleted:
+
+        backup.backupStatus ===
+
+          "LOCAL_COMMIT_COMPLETED",
+
+      localHash:
+
+        hashes.localHash ===
+          receipt.localHash,
+
+      serverHash:
+
+        hashes.serverHash ===
+          receipt.serverHash,
+
+      localPhotoHashes:
+
+        equal(
+
+          hashes.localPhotoHashes,
+
+          receipt.localPhotoHashes
+
+        ),
+
+      serverPhotoHashes:
+
+        equal(
+
+          hashes.serverPhotoHashes,
+
+          receipt.serverPhotoHashes
+
+        ),
+
+      independentReceipt:
+
+        Boolean(
+
+          receipt.confirmation &&
+
+          receipt.confirmation.contentVerified
+            === true
+
+        )
+
+    };
+
+    const passed =
+
+      Object.values(checks)
+        .filter(Boolean).length;
+
+    const total =
+
+      Object.keys(checks).length;
+
+    const result = {
+
+      success: passed === total,
+
+      passed,
+
+      total,
+
+      checks,
+
+      backupId: id,
+
+      localNote:
+
+        backup.local.data.generalNote || "",
+
+      serverNote:
+
+        backup.server.data.generalNote || "",
+
+      localPhotoCount:
+
+        Object.keys(
+          backup.local.photos || {}
+        ).length,
+
+      serverPhotoCount:
+
+        Object.keys(
+          backup.serverPhotos || {}
+        ).length
+
+    };
+
+    output("backupOutput", result);
+
+    return result;
+
+  }
+
+  /* =====================================================
+     08. MULTI-TAB
+  ===================================================== */
+
+  function broadcast(type, ctx, details) {
+
+    if (!state.channel) {
+
+      return;
+
+    }
+
+    state.channel.postMessage({
+
+      version: CONFIG.VERSION,
+
+      type,
+
+      tabId,
+
+      tabLabel,
+
+      draftKey:
+
+        PGDDraft.makeKey(ctx),
+
+      time:
+
+        new Date().toISOString(),
+
+      details:
+
+        details || {}
 
     });
 
   }
 
-  try {
-
-    await inspect();
-
-  } catch (error) {
-
-    log(
-
-      "Không đọc được trạng thái sau xử lý: " +
-
-      error.message
-
-    );
-
-  }
-
-}
-
-/* =====================================================
-   15. DANH SÁCH BẢN SAO LƯU
-===================================================== */
-
-async function listBackups() {
-
-  const ctx = context();
-
-  assertLogin(ctx);
-
-  const result =
-
-    await PGDResolution.listBackups(ctx);
-
-  show("backupResult", result);
-
-  log("BACKUP_LIST_READ");
-
-}
-
-/* =====================================================
-   16. HIỂN THỊ ẢNH
-===================================================== */
-
-function showPhotos(title, photos) {
-
-  const container = $("backupPhotos");
-
-  const heading = document.createElement("h3");
-
-  heading.textContent = title;
-
-  heading.style.gridColumn = "1 / -1";
-
-  container.appendChild(heading);
-
-  const ids = Object.keys(photos || {});
-
-  if (ids.length === 0) {
-
-    const empty = document.createElement("p");
-
-    empty.textContent = "Không có ảnh.";
-
-    container.appendChild(empty);
-
-    return;
-
-  }
-
-  for (const id of ids) {
-
-    const card = document.createElement("div");
-
-    card.className = "photo-card";
-
-    const label = document.createElement("p");
-
-    label.textContent = id;
-
-    card.appendChild(label);
-
-    const photo = photos[id];
-
-    const data = photo && photo.data;
+  function initChannel() {
 
     if (
 
-      typeof data === "string" &&
-
-      data.startsWith("data:image/jpeg;base64,")
+      typeof BroadcastChannel !== "function"
 
     ) {
 
-      const image = document.createElement("img");
+      log("BroadcastChannel unavailable.");
 
-      image.src = data;
-
-      image.alt = id;
-
-      card.appendChild(image);
-
-    } else {
-
-      const invalid = document.createElement("p");
-
-      invalid.textContent =
-
-        "Không có nội dung ảnh JPEG.";
-
-      card.appendChild(invalid);
+      return;
 
     }
 
-    container.appendChild(card);
+    state.channel = new BroadcastChannel(
 
-  }
-
-}
-
-/* =====================================================
-   17. HIỂN THỊ BẢN SAO LƯU
-===================================================== */
-
-function displayBackup(backup) {
-
-  assert(
-
-    backup && backup.local && backup.server,
-
-    "Bản sao lưu không hợp lệ."
-
-  );
-
-  show("backupResult", {
-
-    backupId: backup.backupId,
-
-    cloudBackupId: backup.cloudBackupId || null,
-
-    createdAt: backup.createdAt,
-
-    choice: backup.choice,
-
-    backupStatus:
-
-      backup.backupStatus || "LEGACY_LOCAL_ONLY",
-
-    cloudVerified: backup.cloudVerified === true,
-
-    localVersion: backup.local.serverVersion,
-
-    localRevision: backup.local.localRevision,
-
-    serverVersion: backup.server.version,
-
-    localData: backup.local.data,
-
-    serverData: backup.server.data,
-
-    localPhotoCount: Object.keys(
-
-      backup.local.photos || {}
-
-    ).length,
-
-    serverPhotoCount: Object.keys(
-
-      backup.serverPhotos || {}
-
-    ).length
-
-  });
-
-  show("receiptResult", {
-
-    cloudReceipt: backup.cloudReceipt || null,
-
-    finalReceipt: backup.finalReceipt || null,
-
-    note:
-
-      "Đây là biên nhận đã lưu trong IndexedDB. " +
-
-      "Không phải lần xác minh trực tiếp Google Drive mới."
-
-  });
-
-  $("backupPhotos").textContent = "";
-
-  showPhotos(
-
-    "Ảnh sao lưu thiết bị",
-
-    backup.local.photos
-
-  );
-
-  showPhotos(
-
-    "Ảnh sao lưu máy chủ",
-
-    backup.serverPhotos
-
-  );
-
-}
-
-async function readBackup() {
-
-  const ctx = context();
-
-  assertLogin(ctx);
-
-  const backupId = $("backupId").value.trim();
-
-  assert(
-
-    backupId.length > 0,
-
-    "Cần nhập mã bản sao lưu."
-
-  );
-
-  const backup =
-
-    await PGDResolution.getBackup(
-
-      ctx,
-
-      backupId
+      CONFIG.CHANNEL_NAME
 
     );
 
-  displayBackup(backup);
+    state.channel.onmessage = event => {
 
-  log("BACKUP_READ_SUCCESS");
+      const message = event.data;
 
-}
+      if (
 
-/* =====================================================
-   18. KHỞI TẠO
-===================================================== */
+        !message ||
 
-resetProgress();
+        message.tabId === tabId ||
 
-updateNetwork();
+        message.version !== CONFIG.VERSION
 
-try {
+      ) {
+
+        return;
+
+      }
+
+      state.receivedMessages++;
+
+      metric(
+
+        "messageCount",
+
+        state.receivedMessages,
+
+        "pass"
+
+      );
+
+      state.events.push(message);
+
+      state.events = state.events.slice(-50);
+
+      output("tabOutput", state.events);
+
+      log(
+
+        "Nhận tín hiệu từ tab khác",
+
+        message
+
+      );
+
+      refreshSharedStatus();
+
+    };
+
+  }
+
+  function openTabB() {
+
+    const ctx = context();
+
+    const url = new URL(location.href);
+
+    url.searchParams.set("v", "78433");
+
+    url.searchParams.set("tab", "B");
+
+    for (const key of Object.keys(ctx)) {
+
+      url.searchParams.set(
+
+        key,
+
+        ctx[key]
+
+      );
+
+    }
+
+    window.open(
+
+      url.toString(),
+
+      "_blank",
+
+      "noopener"
+
+    );
+
+    return {success: true};
+
+  }
+
+  function applyUrlContext() {
+
+    const map = {
+
+      date: "workDate",
+
+      branch: "branch",
+
+      shift: "shift",
+
+      department: "department",
+
+      employee: "employee"
+
+    };
+
+    for (const key of Object.keys(map)) {
+
+      if (params.has(key)) {
+
+        $(map[key]).value =
+
+          params.get(key);
+
+      }
+
+    }
+
+  }
+
+  async function refreshSharedStatus() {
+
+    if (state.refreshing) {
+
+      return;
+
+    }
+
+    state.refreshing = true;
+
+    try {
+
+      if (
+
+        !window.PGDSync ||
+
+        !window.PGDAPI ||
+
+        !window.PGDDraft
+
+      ) {
+
+        return;
+
+      }
+
+      const ctx = context();
+
+      const profile = PGDAPI.getProfile();
+
+      if (
+
+        !profile ||
+
+        profile.code !== ctx.employee ||
+
+        profile.branch !== ctx.branch
+
+      ) {
+
+        metric(
+
+          "syncStatus",
+
+          "LOGIN REQUIRED",
+
+          "pending"
+
+        );
+
+        return;
+
+      }
+
+      const status =
+
+        await PGDSync.getStatus(ctx);
+
+      metric(
+
+        "syncStatus",
+
+        status.status,
+
+        status.status === "SYNCED"
+
+          ? "pass"
+
+          : status.status === "BLOCKED"
+
+            ? "fail"
+
+            : "pending"
+
+      );
+
+      const local =
+
+        await PGDDraft.restoreLocal(ctx);
+
+      updateLocalMetrics(local);
+
+      const pending =
+
+        await PGDOutbox.get(ctx);
+
+      metric(
+
+        "outboxStatus",
+
+        pending
+
+          ? pending.status
+
+          : "EMPTY",
+
+        pending
+
+          ? "pending"
+
+          : "pass"
+
+      );
+
+      return {
+
+        status,
+
+        localVersion:
+
+          local ? local.serverVersion : 0,
+
+        localRevision:
+
+          local ? local.localRevision : 0,
+
+        pending: Boolean(pending),
+
+        sharedBlock:
+
+          localStorage.getItem(
+
+            CONFIG.BLOCK_PREFIX +
+
+            PGDDraft.makeKey(ctx)
+
+          )
+
+      };
+
+    } catch (error) {
+
+      metric(
+
+        "syncStatus",
+
+        error.code || "ERROR",
+
+        "fail"
+
+      );
+
+    } finally {
+
+      state.refreshing = false;
+
+    }
+
+  }
+
+  async function checkWebLock() {
+
+    const ctx = context();
+
+    requireSession(ctx);
+
+    const lockName =
+
+      "PGD_SYNC_" +
+
+      PGDDraft.makeKey(ctx);
+
+    const result =
+
+      await navigator.locks.request(
+
+        lockName,
+
+        {
+
+          mode: "exclusive",
+
+          ifAvailable: true
+
+        },
+
+        lock => ({
+
+          success: true,
+
+          lockName,
+
+          available: Boolean(lock),
+
+          status:
+
+            lock
+
+              ? "AVAILABLE"
+
+              : "HELD_BY_ANOTHER_TASK"
+
+        })
+
+      );
+
+    metric(
+
+      "lockStatus",
+
+      result.status,
+
+      result.available
+
+        ? "pass"
+
+        : "pending"
+
+    );
+
+    output("tabOutput", result);
+
+    return result;
+
+  }
+
+  async function holdWebLock() {
+
+    const ctx = context();
+
+    requireSession(ctx);
+
+    const lockName =
+
+      "PGD_SYNC_" +
+
+      PGDDraft.makeKey(ctx);
+
+    return navigator.locks.request(
+
+      lockName,
+
+      {
+
+        mode: "exclusive",
+
+        ifAvailable: true
+
+      },
+
+      async lock => {
+
+        assert(
+
+          lock,
+
+          "LOCK_BUSY"
+
+        );
+
+        metric(
+
+          "lockStatus",
+
+          "HELD - 8s",
+
+          "pending"
+
+        );
+
+        broadcast("LOCK_HELD", ctx);
+
+        await new Promise(
+
+          resolve =>
+
+            setTimeout(resolve, 8000)
+
+        );
+
+        metric(
+
+          "lockStatus",
+
+          "RELEASED",
+
+          "pass"
+
+        );
+
+        broadcast("LOCK_TEST_COMPLETED", ctx);
+
+        return {
+
+          success: true,
+
+          lockName,
+
+          heldMilliseconds: 8000
+
+        };
+
+      }
+
+    );
+
+  }
+
+  /* =====================================================
+     09. OFFLINE
+  ===================================================== */
+
+  async function captureOfflineSnapshot() {
+
+    const ctx = context();
+
+    requireSession(ctx);
+
+    const local =
+
+      await PGDDraft.restoreLocal(ctx);
+
+    assert(
+
+      local,
+
+      "LOCAL_DRAFT_REQUIRED"
+
+    );
+
+    state.offlineSnapshot = {
+
+      local: clone(local),
+
+      pending:
+
+        clone(
+
+          await PGDOutbox.get(ctx)
+
+        ),
+
+      block:
+
+        localStorage.getItem(
+
+          CONFIG.BLOCK_PREFIX +
+
+          PGDDraft.makeKey(ctx)
+
+        )
+
+    };
+
+    state.offlineContext = clone(ctx);
+
+    const result = {
+
+      success: true,
+
+      localVersion: local.serverVersion,
+
+      localRevision: local.localRevision,
+
+      dirty: local.dirty,
+
+      photoCount:
+
+        Object.keys(local.photos || {})
+          .length,
+
+      pending:
+
+        Boolean(
+          state.offlineSnapshot.pending
+        ),
+
+      block:
+
+        state.offlineSnapshot.block
+
+    };
+
+    output("offlineOutput", result);
+
+    return result;
+
+  }
+
+  async function compareOfflineSnapshot() {
+
+    const ctx = context();
+
+    requireSession(ctx);
+
+    assert(
+
+      state.offlineSnapshot &&
+
+      equal(state.offlineContext, ctx),
+
+      "OFFLINE_SNAPSHOT_REQUIRED"
+
+    );
+
+    const current = {
+
+      local:
+
+        await PGDDraft.restoreLocal(ctx),
+
+      pending:
+
+        await PGDOutbox.get(ctx),
+
+      block:
+
+        localStorage.getItem(
+
+          CONFIG.BLOCK_PREFIX +
+
+          PGDDraft.makeKey(ctx)
+
+        )
+
+    };
+
+    const checks = {
+
+      localUnchanged:
+
+        equal(
+
+          current.local,
+
+          state.offlineSnapshot.local
+
+        ),
+
+      outboxUnchanged:
+
+        equal(
+
+          current.pending,
+
+          state.offlineSnapshot.pending
+
+        ),
+
+      blockUnchanged:
+
+        equal(
+
+          current.block,
+
+          state.offlineSnapshot.block
+
+        )
+
+    };
+
+    const result = {
+
+      success:
+
+        Object.values(checks).every(Boolean),
+
+      checks
+
+    };
+
+    output("offlineOutput", result);
+
+    return result;
+
+  }
+
+  async function testOfflineSync() {
+
+    const ctx = context();
+
+    requireSession(ctx);
+
+    assert(
+
+      navigator.onLine === false,
+
+      "OFFLINE_REQUIRED",
+
+      "Hãy ngắt mạng trước."
+
+    );
+
+    await captureOfflineSnapshot();
+
+    let rejected = false;
+
+    let errorCode = null;
+
+    try {
+
+      await PGDSync.syncNow(ctx);
+
+    } catch (error) {
+
+      errorCode = error.code || "ERROR";
+
+      rejected = [
+
+        "OFFLINE",
+
+        "SYNC_BLOCKED",
+
+        "OUTBOX_BLOCKED"
+
+      ].includes(errorCode);
+
+    }
+
+    const comparison =
+
+      await compareOfflineSnapshot();
+
+    const result = {
+
+      success:
+
+        rejected && comparison.success,
+
+      rejected,
+
+      errorCode,
+
+      comparison
+
+    };
+
+    output("offlineOutput", result);
+
+    return result;
+
+  }
+
+  async function testOfflineRelease() {
+
+    const ctx = context();
+
+    requireSession(ctx);
+
+    assert(
+
+      navigator.onLine === false,
+
+      "OFFLINE_REQUIRED"
+
+    );
+
+    const backupId = readBackupId();
+
+    await captureOfflineSnapshot();
+
+    let rejected = false;
+
+    let errorCode = null;
+
+    try {
+
+      const result =
+
+        await PGDResolution.retryRelease(
+
+          ctx,
+
+          backupId
+
+        );
+
+      rejected =
+
+        result.syncReleased === false &&
+
+        result.syncReleaseError &&
+
+        result.syncReleaseError.code ===
+          "OFFLINE";
+
+    } catch (error) {
+
+      errorCode = error.code || "ERROR";
+
+      rejected = errorCode === "OFFLINE";
+
+    }
+
+    const comparison =
+
+      await compareOfflineSnapshot();
+
+    const result = {
+
+      success:
+
+        Boolean(rejected) &&
+
+        comparison.success,
+
+      rejected,
+
+      errorCode,
+
+      comparison
+
+    };
+
+    output("offlineOutput", result);
+
+    return result;
+
+  }
+
+  /* =====================================================
+     10. MANUAL CHECKLIST
+  ===================================================== */
+
+  const MANUAL_TASKS = [
+
+    "Module hệ thống đạt 10/10.",
+
+    "API Health và Conflict API hoạt động.",
+
+    "Kiểm thử logic đạt 104/104.",
+
+    "Tab A và Tab B cùng phiên làm việc.",
+
+    "Hai tab đọc được cùng bản nháp IndexedDB.",
+
+    "Hai tab nhận được tín hiệu BroadcastChannel.",
+
+    "Web Lock chặn tác vụ thứ hai khi đang giữ khóa.",
+
+    "Web Lock được giải phóng sau khi tác vụ kết thúc.",
+
+    "Tạo xung đột thực tế bằng hai thiết bị.",
+
+    "Phát hiện VERSION_CONFLICT và trạng thái BLOCKED.",
+
+    "Hai tab cùng nhìn thấy trạng thái BLOCKED.",
+
+    "KEEP_LOCAL sao lưu IndexedDB thành công.",
+
+    "KEEP_LOCAL sao lưu Google Drive thành công.",
+
+    "KEEP_LOCAL tự động mở chặn thành công.",
+
+    "Tab B nhận biết trạng thái đã mở chặn.",
+
+    "KEEP_LOCAL đồng bộ tiếp thành công.",
+
+    "KEEP_SERVER sao lưu cả hai phiên bản.",
+
+    "KEEP_SERVER tự động mở chặn thành công.",
+
+    "KEEP_SERVER giữ nguyên phiên bản máy chủ.",
+
+    "Kiểm tra hash bản sao lưu thành công.",
+
+    "Mất mạng không làm thay đổi bản nháp.",
+
+    "Mất mạng không tự giải phóng chặn.",
+
+    "Thử lại mở chặn sau khi có mạng thành công.",
+
+    "auditApiStorageV2 đạt 0 lỗi."
+
+  ];
+
+  function initChecklist() {
+
+    const container = $("manualChecklist");
+
+    container.replaceChildren();
+
+    MANUAL_TASKS.forEach((task, index) => {
+
+      const row =
+
+        document.createElement("div");
+
+      row.className = "check-row";
+
+      const checkbox =
+
+        document.createElement("input");
+
+      checkbox.type = "checkbox";
+
+      checkbox.id = "manual_" + index;
+
+      checkbox.addEventListener(
+
+        "change",
+
+        updateManualScore
+
+      );
+
+      const label =
+
+        document.createElement("label");
+
+      label.htmlFor = checkbox.id;
+
+      label.textContent =
+
+        (index + 1) + ". " + task;
+
+      row.append(checkbox, label);
+
+      container.appendChild(row);
+
+    });
+
+  }
+
+  function updateManualScore() {
+
+    const passed =
+
+      MANUAL_TASKS.filter(
+
+        (_, index) =>
+
+          $("manual_" + index).checked
+
+      ).length;
+
+    metric(
+
+      "manualScore",
+
+      passed + "/" + MANUAL_TASKS.length,
+
+      passed === MANUAL_TASKS.length
+
+        ? "pass"
+
+        : "pending"
+
+    );
+
+    return passed;
+
+  }
+
+  function summary() {
+
+    const manualPassed =
+
+      updateManualScore();
+
+    const result = {
+
+      version: CONFIG.VERSION,
+
+      modulePassed:
+
+        state.modulePassed,
+
+      moduleTotal: 10,
+
+      logicPassed:
+
+        state.testPassed,
+
+      logicTotal:
+
+        state.testTotal,
+
+      manualPassed,
+
+      manualTotal:
+
+        MANUAL_TASKS.length,
+
+      manualConfirmationOnly: true,
+
+      readyForAcceptance:
+
+        state.modulePassed === 10 &&
+
+        state.testPassed === 104 &&
+
+        state.testTotal === 104 &&
+
+        manualPassed === 24,
+
+      manualResults:
+
+        MANUAL_TASKS.map((task, index) => ({
+
+          task,
+
+          confirmed:
+
+            $("manual_" + index).checked
+
+        }))
+
+    };
+
+    output("summaryOutput", result);
+
+    return result;
+
+  }
+
+  /* =====================================================
+     11. BUTTON EVENTS
+  ===================================================== */
+
+  bind(
+
+    "btnModules",
+
+    "MODULE TEST",
+
+    checkModules
+
+  );
+
+  bind(
+
+    "btnHealth",
+
+    "API HEALTH",
+
+    checkHealth
+
+  );
+
+  bind(
+
+    "btnTests",
+
+    "104 LOGIC TESTS",
+
+    runAllTests
+
+  );
+
+  bind("btnLogin", "LOGIN", login);
+
+  bind("btnLogout", "LOGOUT", logout);
+
+  bind(
+
+    "btnProfile",
+
+    "PROFILE",
+
+    () => {
+
+      const profile =
+
+        PGDAPI.getProfile();
+
+      output("loginOutput", profile);
+
+      return profile;
+
+    }
+
+  );
+
+  bind(
+
+    "btnContext",
+
+    "CONTEXT",
+
+    () => {
+
+      const ctx = context();
+
+      const result = {
+
+        context: ctx,
+
+        draftKey:
+
+          PGDDraft.makeKey(ctx)
+
+      };
+
+      output("contextOutput", result);
+
+      return result;
+
+    }
+
+  );
+
+  bind(
+
+    "btnNewTab",
+
+    "OPEN TAB B",
+
+    openTabB
+
+  );
+
+  bind(
+
+    "btnRefresh",
+
+    "REFRESH",
+
+    refreshSharedStatus
+
+  );
+
+  bind(
+
+    "btnSaveLocal",
+
+    "SAVE LOCAL",
+
+    saveLocal
+
+  );
+
+  bind(
+
+    "btnRestoreLocal",
+
+    "READ LOCAL",
+
+    readLocal
+
+  );
+
+  bind(
+
+    "btnRestoreServer",
+
+    "READ SERVER",
+
+    readServer
+
+  );
+
+  bind(
+
+    "btnSyncRestore",
+
+    "SYNC RESTORE",
+
+    restoreViaSync
+
+  );
+
+  bind("btnSync", "SYNC NOW", syncNow);
+
+  bind(
+
+    "btnSavePhoto",
+
+    "SAVE PHOTO",
+
+    savePhoto
+
+  );
+
+  bind(
+
+    "btnRemovePhoto",
+
+    "REMOVE PHOTO",
+
+    removePhoto
+
+  );
+
+  bind(
+
+    "btnReadPhoto",
+
+    "READ PHOTO",
+
+    readPhoto
+
+  );
+
+  bind(
+
+    "btnInspect",
+
+    "INSPECT CONFLICT",
+
+    inspectConflict
+
+  );
+
+  bind(
+
+    "btnPreview",
+
+    "PREVIEW",
+
+    previewConflict
+
+  );
+
+  bind(
+
+    "btnOutbox",
+
+    "OUTBOX",
+
+    readOutbox
+
+  );
+
+  bind(
+
+    "btnKeepLocal",
+
+    "KEEP LOCAL",
+
+    () => resolve("KEEP_LOCAL")
+
+  );
+
+  bind(
+
+    "btnKeepServer",
+
+    "KEEP SERVER",
+
+    () => resolve("KEEP_SERVER")
+
+  );
+
+  bind(
+
+    "btnRetryRelease",
+
+    "RETRY RELEASE",
+
+    retryRelease
+
+  );
+
+  bind(
+
+    "btnResolutionStatus",
+
+    "RESOLUTION STATUS",
+
+    () => {
+
+      const result =
+
+        PGDResolution.getResolutionStatus(
+
+          context()
+
+        );
+
+      output("resolutionOutput", result);
+
+      return result;
+
+    }
+
+  );
+
+  bind(
+
+    "btnVerifyRelease",
+
+    "VERIFY RELEASE",
+
+    verifyRelease
+
+  );
+
+  bind(
+
+    "btnListBackups",
+
+    "LIST BACKUPS",
+
+    listBackups
+
+  );
+
+  bind(
+
+    "btnReadBackup",
+
+    "READ BACKUP",
+
+    readBackup
+
+  );
+
+  bind(
+
+    "btnVerifyBackup",
+
+    "VERIFY BACKUP",
+
+    verifyBackup
+
+  );
+
+  bind(
+
+    "btnBroadcast",
+
+    "BROADCAST",
+
+    () => {
+
+      broadcast(
+
+        "MANUAL_PING",
+
+        context()
+
+      );
+
+      return {success: true};
+
+    }
+
+  );
+
+  bind(
+
+    "btnSharedStatus",
+
+    "SHARED STATUS",
+
+    async () => {
+
+      const result =
+
+        await refreshSharedStatus();
+
+      output("tabOutput", result);
+
+      return result;
+
+    }
+
+  );
+
+  bind(
+
+    "btnLockTest",
+
+    "WEB LOCK CHECK",
+
+    checkWebLock
+
+  );
+
+  bind(
+
+    "btnHoldLock",
+
+    "HOLD WEB LOCK",
+
+    holdWebLock
+
+  );
+
+  bind(
+
+    "btnOfflineCheck",
+
+    "NETWORK CHECK",
+
+    () => {
+
+      updateNetwork();
+
+      const result = {
+
+        online: navigator.onLine
+
+      };
+
+      output("offlineOutput", result);
+
+      return result;
+
+    }
+
+  );
+
+  bind(
+
+    "btnOfflineSnapshot",
+
+    "OFFLINE SNAPSHOT",
+
+    captureOfflineSnapshot
+
+  );
+
+  bind(
+
+    "btnOfflineCompare",
+
+    "OFFLINE COMPARE",
+
+    compareOfflineSnapshot
+
+  );
+
+  bind(
+
+    "btnOfflineSync",
+
+    "OFFLINE SYNC",
+
+    testOfflineSync
+
+  );
+
+  bind(
+
+    "btnOfflineRelease",
+
+    "OFFLINE RELEASE",
+
+    testOfflineRelease
+
+  );
+
+  bind(
+
+    "btnSummary",
+
+    "SUMMARY",
+
+    summary
+
+  );
+
+  $("btnResetChecklist").onclick = () => {
+
+    MANUAL_TASKS.forEach((_, index) => {
+
+      $("manual_" + index).checked = false;
+
+    });
+
+    updateManualScore();
+
+  };
+
+  $("btnClearLog").onclick = () => {
+
+    state.logs = [];
+
+    output("logOutput", "Đã xóa hiển thị.");
+
+  };
+
+  [
+
+    "employee",
+
+    "branch",
+
+    "workDate",
+
+    "shift",
+
+    "department"
+
+  ].forEach(id => {
+
+    $(id).addEventListener("change", () => {
+
+      invalidatePreview();
+
+      state.lastResolution = null;
+
+      state.lastResolutionContext = null;
+
+      $("backupId").value = "";
+
+      updatePhotoIds();
+
+      refreshSharedStatus();
+
+    });
+
+  });
+
+  /* =====================================================
+     12. INITIALIZATION
+  ===================================================== */
+
+  window.addEventListener("online", () => {
+
+    updateNetwork();
+
+    log("NETWORK ONLINE");
+
+    refreshSharedStatus();
+
+  });
+
+  window.addEventListener("offline", () => {
+
+    updateNetwork();
+
+    log("NETWORK OFFLINE");
+
+    refreshSharedStatus();
+
+  });
+
+  window.addEventListener("storage", event => {
+
+    if (
+
+      event.key &&
+
+      event.key.startsWith(
+
+        CONFIG.BLOCK_PREFIX
+
+      )
+
+    ) {
+
+      log(
+
+        "Shared block changed",
+
+        {
+
+          key: event.key,
+
+          oldValue: event.oldValue,
+
+          newValue: event.newValue
+
+        }
+
+      );
+
+      refreshSharedStatus();
+
+    }
+
+  });
+
+  applyUrlContext();
+
+  updatePhotoIds();
+
+  initChecklist();
+
+  initChannel();
+
+  updateNetwork();
+
+  metric("tabName", tabLabel);
 
   checkModules();
 
-} catch (error) {
+  refreshSharedStatus();
 
-  log(error.message);
+  const refreshTimer = setInterval(
 
-}
+    refreshSharedStatus,
 
-updateButtons();
+    CONFIG.REFRESH_MS
 
-log({
+  );
 
-  pageVersion: PAGE_CONFIG.VERSION,
+  window.addEventListener(
 
-  cloudVersion: PAGE_CONFIG.CLOUD_VERSION,
+    "beforeunload",
 
-  resolutionVersion:
+    () => {
 
-    PAGE_CONFIG.RESOLUTION_VERSION,
+      clearInterval(refreshTimer);
 
-  expectedTests: PAGE_CONFIG.TOTAL_TESTS
+      if (state.channel) {
 
-});
+        state.channel.close();
+
+      }
+
+    }
+
+  );
+
+  log("SYSTEM READY", {
+
+    version: CONFIG.VERSION,
+
+    tabLabel,
+
+    tabId,
+
+    mode: "TEST",
+
+    autoSyncStarted: false,
+
+    automaticBusinessWrite: false
+
+  });
+
+})();
 
 </script>
 
