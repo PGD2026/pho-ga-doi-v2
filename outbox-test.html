@@ -1,1 +1,855 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>PGD V2 - Outbox Test</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #f1f5f9;
+      color: #172033;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      max-width: 760px;
+      margin: auto;
+      background: white;
+      border-radius: 14px;
+      padding: 22px;
+    }
+
+    h1 {
+      font-size: 23px;
+      margin-top: 0;
+    }
+
+    h2 {
+      font-size: 18px;
+    }
+
+    .info {
+      color: #64748b;
+      line-height: 1.6;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      padding: 14px;
+      margin: 9px 0;
+      background: #172033;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: wait;
+    }
+
+    #result {
+      padding: 16px;
+      background: #f8fafc;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    #score {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+
+    .pass {
+      color: #15803d;
+    }
+
+    .fail {
+      color: #dc2626;
+    }
+
+    hr {
+      border: 0;
+      border-top: 1px solid #e2e8f0;
+      margin: 25px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<main>
+
+  <h1>PHỞ GÀ ĐỒI – SYSTEM V2.0</h1>
+
+  <div class="info">
+    Giai đoạn 7.8.4.2-A<br>
+    Kiểm thử Persistent Outbox<br>
+    Danh mục 751 – TEST MODE
+  </div>
+
+  <hr>
+
+  <h2>Kiểm thử tự động</h2>
+
+  <div id="score">0/20</div>
+
+  <button onclick="runTests()">
+    Chạy 20 bài kiểm thử
+  </button>
+
+  <hr>
+
+  <h2>Kiểm thử đóng và mở lại website</h2>
+
+  <button onclick="createPending()">
+    1. Tạo yêu cầu chờ
+  </button>
+
+  <button onclick="location.reload()">
+    2. Tải lại website
+  </button>
+
+  <button onclick="readPending()">
+    3. Kiểm tra yêu cầu đã lưu
+  </button>
+
+  <button onclick="finishPending()">
+    4. Kết thúc dữ liệu kiểm thử
+  </button>
+
+  <pre id="result">Sẵn sàng.</pre>
+
+</main>
+
+<script src="draft.js?v=752"></script>
+<script src="outbox.js?v=7842"></script>
+
+<script>
+
+"use strict";
+
+const O = window.PGDOutbox;
+
+const output = document.getElementById("result");
+
+const score = document.getElementById("score");
+
+const manualContext = {
+
+  date: "2099-12-31",
+
+  branch: "CS1",
+
+  shift: "SANG",
+
+  department: "BEP_PHO",
+
+  employee: "TEST_OUTBOX_MANUAL"
+
+};
+
+let busy = false;
+
+
+function log(message) {
+
+  output.textContent += message + "\n";
+
+}
+
+
+function assert(condition, message) {
+
+  if (!condition) {
+
+    throw new Error(message);
+
+  }
+
+}
+
+
+function request(action, payload, version) {
+
+  return {
+
+    action: action,
+
+    requestId: PGDDraft.createId(),
+
+    expectedVersion: version,
+
+    localRevision: 1,
+
+    payload: payload
+
+  };
+
+}
+
+
+async function exclusive(callback) {
+
+  if (busy) return;
+
+  busy = true;
+
+  const buttons =
+    document.querySelectorAll("button");
+
+  buttons.forEach(
+    button => button.disabled = true
+  );
+
+  try {
+
+    await callback();
+
+  } catch (error) {
+
+    log(
+      "LỖI: " +
+      (error.code || "") +
+      " " +
+      error.message
+    );
+
+  } finally {
+
+    busy = false;
+
+    buttons.forEach(
+      button => button.disabled = false
+    );
+
+  }
+
+}
+
+
+async function runTests() {
+
+  return exclusive(async function() {
+
+    output.textContent = "";
+
+    score.textContent = "0/20";
+
+    score.className = "";
+
+    let passed = 0;
+
+    let failed = 0;
+
+    const context = {
+
+      date: "2099-12-30",
+
+      branch: "CS1",
+
+      shift: "SANG",
+
+      department: "BEP_PHO",
+
+      employee:
+        "TEST_OB_" +
+        PGDDraft.createId()
+          .replace(/[^A-Za-z0-9]/g, "")
+          .slice(0, 12)
+          .toUpperCase()
+
+    };
+
+    const fields = {
+
+      inventory: {},
+
+      supplies: {},
+
+      checklist: {},
+
+      wasteNote: "",
+
+      generalNote: "OUTBOX_TEST"
+
+    };
+
+    const input = request(
+      "saveDraft",
+      {data: fields},
+      0
+    );
+
+    async function test(name, callback) {
+
+      try {
+
+        await callback();
+
+        passed++;
+
+        log("ĐẠT - " + name);
+
+      } catch (error) {
+
+        failed++;
+
+        log(
+          "LỖI - " + name +
+          ": " + error.message
+        );
+
+      }
+
+      score.textContent =
+        passed + "/20";
+
+    }
+
+
+    async function reject(callback, code) {
+
+      let rejected = false;
+
+      try {
+
+        await callback();
+
+      } catch (error) {
+
+        rejected = error.code === code;
+
+      }
+
+      assert(
+        rejected,
+        "Không chặn đúng lỗi " + code
+      );
+
+    }
+
+
+    await test(
+      "01. Module được tải",
+      async function() {
+
+        assert(
+          O.config.VERSION === "7.8.4.2",
+          "Sai phiên bản."
+        );
+
+      }
+    );
+
+
+    await test(
+      "02. IndexedDB sẵn sàng",
+      async function() {
+
+        const health = await O.health();
+
+        assert(
+          health.databaseReady === true,
+          "Database chưa sẵn sàng."
+        );
+
+      }
+    );
+
+
+    await test(
+      "03. Danh mục 751",
+      async function() {
+
+        assert(
+          O.config.CATALOG_REVISION === "751",
+          "Sai danh mục."
+        );
+
+      }
+    );
+
+
+    await test(
+      "04. Phiên mới chưa có yêu cầu",
+      async function() {
+
+        assert(
+          await O.get(context) === null,
+          "Đã có dữ liệu."
+        );
+
+      }
+    );
+
+
+    await test(
+      "05. Lưu yêu cầu trước khi gửi",
+      async function() {
+
+        const saved = await O.prepare(
+          context,
+          input
+        );
+
+        assert(
+          saved.status === "PREPARED",
+          "Sai trạng thái."
+        );
+
+      }
+    );
+
+
+    await test(
+      "06. Giữ nguyên Request ID",
+      async function() {
+
+        const saved = await O.get(context);
+
+        assert(
+          saved.requestId === input.requestId,
+          "Mã yêu cầu thay đổi."
+        );
+
+      }
+    );
+
+
+    await test(
+      "07. Giữ nguyên nội dung",
+      async function() {
+
+        const saved = await O.get(context);
+
+        assert(
+          saved.payload.data.generalNote ===
+            "OUTBOX_TEST",
+          "Nội dung thay đổi."
+        );
+
+      }
+    );
+
+
+    await test(
+      "08. Lưu đúng phiên bản",
+      async function() {
+
+        const saved = await O.get(context);
+
+        assert(
+          saved.expectedVersion === 0 &&
+          saved.localRevision === 1,
+          "Sai phiên bản."
+        );
+
+      }
+    );
+
+
+    await test(
+      "09. Lưu lại cùng yêu cầu",
+      async function() {
+
+        const saved = await O.prepare(
+          context,
+          input
+        );
+
+        assert(
+          saved.requestId === input.requestId,
+          "Không giữ yêu cầu cũ."
+        );
+
+      }
+    );
+
+
+    await test(
+      "10. Chặn yêu cầu mới ghi đè",
+      async function() {
+
+        await reject(
+          () => O.prepare(
+            context,
+            request(
+              "saveDraft",
+              {data: fields},
+              0
+            )
+          ),
+          "OUTBOX_OCCUPIED"
+        );
+
+      }
+    );
+
+
+    await test(
+      "11. Chặn sửa nội dung cùng mã",
+      async function() {
+
+        const changed = JSON.parse(
+          JSON.stringify(input)
+        );
+
+        changed.payload.data.generalNote =
+          "CHANGED";
+
+        await reject(
+          () => O.prepare(context, changed),
+          "OUTBOX_OCCUPIED"
+        );
+
+      }
+    );
+
+
+    await test(
+      "12. Đánh dấu đang gửi",
+      async function() {
+
+        const saved = await O.markSending(
+          context,
+          input.requestId
+        );
+
+        assert(
+          saved.status === "SENDING" &&
+          saved.attempts === 1,
+          "Sai trạng thái gửi."
+        );
+
+      }
+    );
+
+
+    await test(
+      "13. Mô phỏng mất phản hồi",
+      async function() {
+
+        const saved = await O.markUncertain(
+          context,
+          input.requestId,
+          "TIMEOUT"
+        );
+
+        assert(
+          saved.status === "UNCERTAIN" &&
+          saved.lastError === "TIMEOUT",
+          "Không lưu trạng thái mất phản hồi."
+        );
+
+      }
+    );
+
+
+    await test(
+      "14. Thử lại giữ nguyên mã",
+      async function() {
+
+        const saved = await O.markSending(
+          context,
+          input.requestId
+        );
+
+        assert(
+          saved.attempts === 2 &&
+          saved.requestId === input.requestId,
+          "Sai mã khi thử lại."
+        );
+
+      }
+    );
+
+
+    await test(
+      "15. Chặn xác nhận sai Request ID",
+      async function() {
+
+        await reject(
+          () => O.complete(
+            context,
+            PGDDraft.createId(),
+            1
+          ),
+          "OUTBOX_REQUEST_MISMATCH"
+        );
+
+      }
+    );
+
+
+    await test(
+      "16. Chặn xác nhận sai version",
+      async function() {
+
+        await reject(
+          () => O.complete(
+            context,
+            input.requestId,
+            5
+          ),
+          "INVALID_CONFIRMED_VERSION"
+        );
+
+      }
+    );
+
+
+    await test(
+      "17. Lưu trạng thái xung đột",
+      async function() {
+
+        const saved = await O.markBlocked(
+          context,
+          input.requestId,
+          "VERSION_CONFLICT"
+        );
+
+        assert(
+          saved.status === "BLOCKED",
+          "Không lưu trạng thái chặn."
+        );
+
+      }
+    );
+
+
+    await test(
+      "18. Không tự gửi khi bị chặn",
+      async function() {
+
+        await reject(
+          () => O.markSending(
+            context,
+            input.requestId
+          ),
+          "OUTBOX_BLOCKED"
+        );
+
+      }
+    );
+
+
+    await test(
+      "19. Yêu cầu bị chặn vẫn được giữ",
+      async function() {
+
+        const saved = await O.get(context);
+
+        assert(
+          saved &&
+          saved.payload.data.generalNote ===
+            "OUTBOX_TEST" &&
+          saved.requestId === input.requestId,
+          "Yêu cầu đã bị mất."
+        );
+
+      }
+    );
+
+
+    await test(
+      "20. Hoàn thành dữ liệu mô phỏng",
+      async function() {
+
+        // Chỉ mô phỏng xác nhận trong test.
+        // Không gọi API thật.
+
+        await O.complete(
+          context,
+          input.requestId,
+          1
+        );
+
+        assert(
+          await O.get(context) === null,
+          "Chưa hoàn thành yêu cầu."
+        );
+
+      }
+    );
+
+
+    score.className =
+      failed === 0 ? "pass" : "fail";
+
+    log("");
+
+    log("==========================");
+
+    log("KẾT QUẢ: " + passed + "/20");
+
+    log(
+      failed === 0
+        ? "OUTBOX_TEST_PASSED"
+        : "OUTBOX_TEST_FAILED"
+    );
+
+    log("==========================");
+
+  });
+
+}
+
+
+async function createPending() {
+
+  return exclusive(async function() {
+
+    output.textContent = "";
+
+    const current = await O.get(
+      manualContext
+    );
+
+    if (current) {
+
+      log("Đã có yêu cầu kiểm thử.");
+
+      log(JSON.stringify(current, null, 2));
+
+      return;
+
+    }
+
+    const input = request(
+
+      "saveDraft",
+
+      {
+        data: {
+
+          inventory: {},
+
+          supplies: {},
+
+          checklist: {},
+
+          wasteNote: "",
+
+          generalNote:
+            "TEST_RELOAD_" + Date.now()
+
+        }
+      },
+
+      0
+
+    );
+
+    await O.prepare(
+      manualContext,
+      input
+    );
+
+    await O.markSending(
+      manualContext,
+      input.requestId
+    );
+
+    const saved = await O.markUncertain(
+      manualContext,
+      input.requestId,
+      "SIMULATED_TIMEOUT"
+    );
+
+    log("ĐÃ LƯU YÊU CẦU CHỜ");
+
+    log(JSON.stringify(saved, null, 2));
+
+    log("");
+
+    log("Hãy tải lại hoặc đóng website.");
+
+  });
+
+}
+
+
+async function readPending() {
+
+  return exclusive(async function() {
+
+    output.textContent = "";
+
+    const saved = await O.get(
+      manualContext
+    );
+
+    assert(
+      saved,
+      "Không tìm thấy yêu cầu kiểm thử."
+    );
+
+    log(JSON.stringify(saved, null, 2));
+
+    log("");
+
+    log("PERSISTENT_REQUEST_FOUND");
+
+  });
+
+}
+
+
+async function finishPending() {
+
+  return exclusive(async function() {
+
+    const saved = await O.get(
+      manualContext
+    );
+
+    if (!saved) {
+
+      log("Không còn yêu cầu kiểm thử.");
+
+      return;
+
+    }
+
+    // Chỉ dọn dữ liệu mô phỏng riêng.
+    // Không xác nhận bản nháp thực tế.
+
+    await O.complete(
+      manualContext,
+      saved.requestId,
+      saved.expectedVersion + 1
+    );
+
+    assert(
+      await O.get(manualContext) === null,
+      "Chưa dọn dữ liệu kiểm thử."
+    );
+
+    log("TEST_REQUEST_COMPLETED");
+
+  });
+
+}
+
+</script>
+
+</body>
+</html>
